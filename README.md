@@ -37,7 +37,26 @@ my-harness/
 
 ## 스킬 (18)
 
-`code-review`, `feature-dev`, `find-skills`, `frontend-code-quality`, `frontend-design`, `github`, `mcp-builder`, `nestjs-testing`, `pdf`, `pptx`, `react-nextjs-testing`, `react-state-colocation`, `remotion-best-practices`, `skill-creator`, `skill-developer`, `structuring-react-layers`, `vercel-react-best-practices`, `web-design-guidelines`
+| 스킬 | 역할 | 트리거 |
+|---|---|---|
+| `code-review` | 멀티 에이전트 기반 PR 코드 리뷰. 신뢰도 점수로 false positive 필터링 | "review this PR", "code review" |
+| `feature-dev` | 탐색→설계→구현→리뷰 단계별 기능 개발 워크플로우 | "implement feature", "add feature" |
+| `find-skills` | `npx skills` CLI로 오픈 스킬 생태계 검색 및 설치 지원 | "find a skill for X", "how do I do X" |
+| `frontend-code-quality` | 가독성·예측 가능성·응집도·결합도 4원칙 기반 프론트엔드 코드 품질 가이드 | 컴포넌트 설계, 리팩토링, 코드 리뷰 |
+| `frontend-design` | 제네릭 AI 미학을 탈피한 고품질 프론트엔드 UI/UX 디자인 및 구현 | 웹 컴포넌트, 랜딩 페이지, 대시보드 제작 |
+| `github` | GitHub MCP 서버 통한 이슈·PR·레포 관리 | "create issue", "manage PR" |
+| `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node) | MCP 서버 개발, 외부 API 통합 |
+| `nestjs-testing` | NestJS 행동/계약 중심 테스트 가이드. Functional Core / Imperative Shell 패턴 | Jest, `@nestjs/testing`, E2E 테스트 |
+| `pdf` | PDF 읽기·병합·분할·워터마크·폼 작성·OCR 등 전방위 PDF 처리 | `.pdf` 파일 관련 모든 작업 |
+| `pptx` | PPTX 읽기·생성·편집·템플릿 작업. markitdown + pptxgenjs 기반 | `.pptx` 파일, "slides", "presentation" |
+| `react-nextjs-testing` | Kent C. Dodds 철학 기반 React/Next.js 행동 테스트 가이드 (Vitest + RTL + MSW + Playwright) | 테스트 코드 작성, 컴포넌트 테스트, E2E |
+| `react-state-colocation` | Kent C. Dodds의 State Colocation 원칙 기반 상태 배치 의사결정 플로우차트 | 상태 관리 설계, prop drilling 해결 |
+| `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스. 자막·FFmpeg·오디오 시각화 포함 | Remotion 코드, 비디오 생성 |
+| `skill-creator` | 새 스킬 생성→테스트→평가→반복 개선 루프. 정량 벤치마크 및 description 최적화 | "create a skill", 스킬 성능 측정 |
+| `skill-developer` | Claude Code 스킬 시스템 가이드. 트리거·훅·자동 활성화·500줄 규칙·메모리 패턴 | 스킬 생성/수정, `skill-rules.json` |
+| `structuring-react-layers` | Page(레이아웃 셸)→Feature Component→Hook 3계층 아키텍처 가이드 | 페이지 구조 설계, Hook 분리, 코드 리뷰 |
+| `vercel-react-best-practices` | Vercel 엔지니어링 기반 React/Next.js 성능 최적화 62개 규칙 (8개 카테고리) | React 컴포넌트 작성, 번들 최적화 |
+| `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 감사 | "review my UI", "check accessibility" |
 
 ## 커맨드 (1)
 
