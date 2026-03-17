@@ -69,6 +69,26 @@ my-harness/
 - `claude-remote-stop.sh` — 세션 종료 알림
 - `notify.sh` — 로컬 알림
 
+## 사용법
+
+설치 후 `--agent` 플래그로 에이전트를 지정해서 Claude Code를 실행한다.
+
+**오케스트레이터 (권장)**
+
+```bash
+claude --agent orchestrator
+```
+
+탐색→위임→검증 루프를 자동으로 수행하는 메인 에이전트. 대부분의 작업에 이걸 쓰면 된다.
+
+**플래너**
+
+```bash
+claude --agent planner
+```
+
+구현 없이 작업 계획만 수립한다. 복잡한 태스크의 설계/분석 단계에서 사용.
+
 ## 설치
 
 ```bash
