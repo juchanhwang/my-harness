@@ -1,0 +1,19 @@
+#!/bin/bash
+# Claude Code webhook hook for Claude Remote - Stop event
+
+PORT="${CLAUDE_REMOTE_PORT:-8765}"
+HOOK_SERVER_URL="http://localhost:${PORT}/hook"
+
+TMUX_SESSION=""
+if [ -n "$TMUX" ]; then
+    TMUX_SESSION=$(tmux display-message -p '#S')
+fi
+
+PROJECT="$(basename "$PWD")"
+TIMESTAMP=$(date +%s)
+JSON=$(cat <<JSONEOF
+{"event":"Stop","project":"$PROJECT","tmux_session":"$TMUX_SESSION","timestamp":$TIMESTAMP}
+JSONEOF
+)
+curl -s -X POST "$HOOK_SERVER_URL"     -H "Content-Type: application/json"     -H "X-API-Key: ${CLAUDE_REMOTE_API_KEY:-your-api-key-here}"     -d "$JSON"     > /dev/null 2>&1 &
+exit 0
