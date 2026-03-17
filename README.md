@@ -62,12 +62,15 @@ my-harness/
 
 - `init-deep.md` — `/init-deep` 슬래시 커맨드
 
-## 훅 (4)
+## 훅 (5)
 
-- `claude-remote-notification.sh` — 원격 알림 전송
-- `claude-remote-session-start.sh` — 세션 시작 알림
-- `claude-remote-stop.sh` — 세션 종료 알림
-- `notify.sh` — 로컬 알림
+| 훅 | 이벤트 | 역할 |
+|---|---|---|
+| `skill-eval.sh` | `UserPromptSubmit` | 프롬프트 제출 시 사용 가능한 스킬을 강제 평가·활성화 |
+| `claude-remote-notification.sh` | `Notification` | 원격 알림 전송 |
+| `claude-remote-session-start.sh` | `SessionStart` | 세션 시작 알림 |
+| `claude-remote-stop.sh` | `Stop` | 세션 종료 알림 |
+| `notify.sh` | `Notification`, `Stop` | macOS 로컬 알림 |
 
 ## 사용법
 

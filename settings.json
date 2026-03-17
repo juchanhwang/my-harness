@@ -51,6 +51,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/JuChan/.claude/hooks/skill-eval.sh"
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
