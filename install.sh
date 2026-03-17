@@ -47,16 +47,15 @@ if [ "${1:-}" = "--uninstall" ]; then
   info "my-harness 제거를 시작합니다..."
   echo ""
 
-  # 단일 파일 심링크 제거
+  # 디렉토리 및 단일 파일 심링크 제거
   for item in agents commands hooks CLAUDE.md settings.json keybindings.json; do
     remove_link "$HOME/.claude/$item"
   done
 
-  # skills 심링크 제거 (~/.agents/skills/*)
+  # skills 심링크 제거
   if [ -d "$REPO_DIR/skills" ]; then
     for skill_dir in "$REPO_DIR/skills"/*/; do
       skill_name="$(basename "$skill_dir")"
-      remove_link "$HOME/.agents/skills/$skill_name"
       remove_link "$HOME/.claude/skills/$skill_name"
     done
   fi
@@ -81,7 +80,6 @@ info "백업 디렉토리: $BACKUP_DIR"
 # 대상 디렉토리 생성
 mkdir -p "$HOME/.claude"
 mkdir -p "$HOME/.claude/skills"
-mkdir -p "$HOME/.agents/skills"
 
 # --- 디렉토리 심링크 ---
 for item in agents commands hooks; do
@@ -93,17 +91,10 @@ for item in CLAUDE.md settings.json keybindings.json; do
   create_link "$REPO_DIR/$item" "$HOME/.claude/$item"
 done
 
-# --- Skills 심링크 (이중 구조) ---
-# 1. 각 스킬 디렉토리를 ~/.agents/skills/{name} 에 심링크
-# 2. ~/.claude/skills/{name} -> ~/.agents/skills/{name} 심링크 (듀얼 시스템 동기화 패턴)
+# --- Skills 심링크 ---
 for skill_dir in "$REPO_DIR/skills"/*/; do
   skill_name="$(basename "$skill_dir")"
-
-  # repo -> ~/.agents/skills/{name}
-  create_link "$REPO_DIR/skills/$skill_name" "$HOME/.agents/skills/$skill_name"
-
-  # ~/.claude/skills/{name} -> ~/.agents/skills/{name}
-  create_link "$HOME/.agents/skills/$skill_name" "$HOME/.claude/skills/$skill_name"
+  create_link "$REPO_DIR/skills/$skill_name" "$HOME/.claude/skills/$skill_name"
 done
 
 echo ""
