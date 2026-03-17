@@ -77,9 +77,10 @@ my-harness/
 | `vercel` | http | Vercel 플랫폼 연동 |
 | `notionApi` | stdio | Notion API (토큰 필요) |
 
-## 커맨드 (1)
+## 커맨드 (2)
 
-- `init-deep.md` — `/init-deep` 슬래시 커맨드
+- `init-deep.md` — `/init-deep` 계층적 CLAUDE.md 자동 생성
+- `ulw-loop.md` — `/ulw-loop` Oracle 검증 기반 자기 참조 개발 루프
 
 ## 훅 (5)
 
