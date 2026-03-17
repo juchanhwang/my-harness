@@ -15,8 +15,7 @@ my-harness/
 ├── mcp.json         # MCP 서버 템플릿 (6개)
 ├── CLAUDE.md        # 글로벌 지침
 ├── settings.json    # Claude Code 설정
-├── keybindings.json # 키 바인딩
-└── install.sh       # 설치/제거 스크립트
+└── keybindings.json # 키 바인딩
 ```
 
 ## 에이전트 (12)
@@ -67,7 +66,7 @@ my-harness/
 
 ## MCP 서버 (6)
 
-`mcp.json`은 참조용 템플릿이다. `install.sh`가 자동 설치하지 않으며, 시크릿은 직접 채워야 한다.
+`mcp.json`은 참조용 템플릿이다. 시크릿은 직접 채워야 한다.
 
 | 서버 | 타입 | 용도 |
 |---|---|---|
@@ -111,20 +110,6 @@ claude --agent planner
 ```
 
 구현 없이 작업 계획만 수립한다. 복잡한 태스크의 설계/분석 단계에서 사용.
-
-## 설치
-
-```bash
-git clone https://github.com/juchanhwang/my-harness.git
-cd my-harness
-./install.sh
-```
-
-## 제거
-
-```bash
-./install.sh --uninstall
-```
 
 ## 환경 변수
 
