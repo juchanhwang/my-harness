@@ -9,9 +9,10 @@ Claude Code 개인 하네스 설정 저장소.
 ```
 my-harness/
 ├── agents/          # 서브 에이전트 정의 (12개)
-├── skills/          # 스킬 정의 (18개)
+├── skills/          # 스킬 정의 (22개)
 ├── commands/        # 슬래시 커맨드 (1개)
-├── hooks/           # 이벤트 훅 스크립트 (4개)
+├── hooks/           # 이벤트 훅 스크립트 (5개)
+├── mcp.json         # MCP 서버 템플릿 (6개)
 ├── CLAUDE.md        # 글로벌 지침
 ├── settings.json    # Claude Code 설정
 ├── keybindings.json # 키 바인딩
@@ -63,6 +64,19 @@ my-harness/
 | `structuring-react-layers` | Page(레이아웃 셸)→Feature Component→Hook 3계층 아키텍처 가이드 | 페이지 구조 설계, Hook 분리, 코드 리뷰 |
 | `vercel-react-best-practices` | Vercel 엔지니어링 기반 React/Next.js 성능 최적화 62개 규칙 (8개 카테고리) | React 컴포넌트 작성, 번들 최적화 |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 감사 | "review my UI", "check accessibility" |
+
+## MCP 서버 (6)
+
+`mcp.json`은 참조용 템플릿이다. `install.sh`가 자동 설치하지 않으며, 시크릿은 직접 채워야 한다.
+
+| 서버 | 타입 | 용도 |
+|---|---|---|
+| `gcp` | stdio | Google Cloud Platform CLI |
+| `sequential-thinking` | stdio | 순차적 사고 체인 |
+| `chrome-devtools` | stdio | Chrome DevTools 연동 |
+| `github` | http | GitHub API (토큰 필요) |
+| `vercel` | http | Vercel 플랫폼 연동 |
+| `notionApi` | stdio | Notion API (토큰 필요) |
 
 ## 커맨드 (1)
 

@@ -1,0 +1,36 @@
+{
+  "gcp": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@google-cloud/gcloud-mcp"]
+  },
+  "sequential-thinking": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+  },
+  "chrome-devtools": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "chrome-devtools-mcp@latest"]
+  },
+  "github": {
+    "type": "http",
+    "url": "https://api.githubcopilot.com/mcp/",
+    "headers": {
+      "Authorization": "<YOUR_AUTHORIZATION>"
+    }
+  },
+  "vercel": {
+    "type": "http",
+    "url": "https://mcp.vercel.com"
+  },
+  "notionApi": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@notionhq/notion-mcp-server"],
+    "env": {
+      "NOTION_TOKEN": "<YOUR_NOTION_TOKEN>"
+    }
+  }
+}
