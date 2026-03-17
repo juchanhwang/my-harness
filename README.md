@@ -20,6 +20,8 @@ my-harness/
 
 ## 에이전트 (12)
 
+[oh-my-opencode](https://github.com/anthropics/oh-my-opencode)의 에이전트 시스템을 벤치마킹/클론하여 구성했다.
+
 | 파일 | 설명 |
 |---|---|
 | `analyzer.md` | 코드베이스 분석 에이전트 |
