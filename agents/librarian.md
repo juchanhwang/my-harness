@@ -1,7 +1,7 @@
 ---
 name: librarian
 description: "Specialized codebase understanding agent for multi-repository analysis, searching remote codebases, retrieving official documentation, and finding implementation examples. (Librarian - OhMyOpenCode)"
-model: sonnet
+model: opus
 tools: Read, Bash, WebFetch
 permissionMode: plan
 ---

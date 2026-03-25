@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(*)",
@@ -14,6 +17,7 @@
       "mcp__*"
     ]
   },
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
@@ -51,24 +55,20 @@
           }
         ]
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/JuChan/.claude/hooks/skill-eval.sh"
-          }
-        ]
-      }
     ]
   },
   "enabledPlugins": {
     "code-review@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   },
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "autoDreamEnabled": true
 }

@@ -1,0 +1,254 @@
+#!/bin/zsh
+
+# Claude Code Agent Team Command
+# --append-system-prompt + 구조화된 프롬프트로 에이전트 팀 생성 확률 극대화
+
+usage() {
+    cat << EOF
+Claude Code Agent Team Command
+
+사용법:
+  claude-team [team-type] ["작업 설명"]
+
+Team Types:
+  full    - 전체팀 (PO + Designer + FE-Dev + BE-Dev + QA + DevOps + Data-Analyst)
+  prod    - 프로덕션팀 (PO + Designer + FE-Dev + BE-Dev + QA)
+  dev     - 개발팀 (FE-Dev + BE-Dev + QA + DevOps + Data-Analyst)
+
+예시:
+  claude-team dev "새로운 기능 개발"
+  claude-team prod "배포 준비"
+  claude-team full
+
+옵션:
+  -h, --help    이 도움말 표시
+
+EOF
+    exit 0
+}
+
+# 옵션 확인
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ -z "$1" ]]; then
+    usage
+fi
+
+TEAM_TYPE="$1"
+TASK="${2:-}"
+
+# 팀 타입 검증
+case "$TEAM_TYPE" in
+    full|prod|dev) ;;
+    *)
+        echo "❌ Unknown team type: $TEAM_TYPE"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac
+
+# 환경 변수 확인 (settings.json에 있어도 셸에선 안 보일 수 있으므로 안내만)
+if [[ -z "$CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" ]]; then
+    # settings.json에 설정되어 있는지 확인
+    if ! grep -q 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' ~/.claude/settings.json 2>/dev/null; then
+        echo "⚠️  에이전트 팀 기능이 활성화되지 않았습니다."
+        echo ""
+        echo "활성화 방법:"
+        echo "  export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+        echo ""
+        echo "또는 ~/.claude/settings.json에 추가:"
+        echo '  { "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }'
+        echo ""
+        exit 1
+    fi
+fi
+
+# ─────────────────────────────────────────────────────────────
+# 시스템 프롬프트: 에이전트 팀 생성을 최대한 강제
+# ─────────────────────────────────────────────────────────────
+read -r -d '' SYSTEM_PROMPT << 'SYSPROMPT'
+## MANDATORY DIRECTIVE: Agent Team Creation
+
+You are operating as a Team Lead. When you receive a user message requesting team creation, you MUST follow these rules:
+
+### Non-Negotiable Requirements
+1. You MUST use the agent team tools (create_team, spawn_teammate) to create a REAL agent team with separate Claude Code instances.
+2. You MUST NOT use subagents (Task tool) as a substitute for spawning agent teammates. Subagents are NOT agent teams. However, once the team is created, you MAY use subagents (Task tool) to assist with your own coordination and orchestration work.
+3. You MUST NOT do the work yourself instead of delegating to the team. Your primary purpose is to create and lead the agent team.
+4. You MUST create the team as your VERY FIRST action — before reading files, before planning, before analyzing anything.
+5. You MUST spawn every teammate listed in the user's request. Do not skip any.
+
+### Failure Modes to Avoid
+- ❌ Using Task/subagent tools instead of spawning agent teammates (substitution, not assistance)
+- ❌ Deciding "this task doesn't need a team" and working alone
+- ❌ Planning or analyzing before creating the team
+- ❌ Asking clarifying questions before creating the team
+- ❌ Spawning fewer teammates than requested
+
+### Correct Sequence
+1. Create the agent team immediately
+2. Spawn ALL requested teammates with the specified names, agent types, models, and colors
+3. THEN coordinate task assignment through the shared task list
+4. If no task is provided, wait for the user to assign one
+SYSPROMPT
+
+# ─────────────────────────────────────────────────────────────
+# 공통 에이전트 Prompt 마무리
+# ─────────────────────────────────────────────────────────────
+AGENT_SUFFIX="Coordinate with teammates through the shared task list and direct messages."
+
+# ─────────────────────────────────────────────────────────────
+# PR 생성 프로세스 (모든 팀 공통)
+# ─────────────────────────────────────────────────────────────
+read -r -d '' PR_PROCESS << 'PRPROCESS'
+PR Creation Process (triggered when user says "PR 생성"):
+  1. QA performs pre-validation on the completed work FIRST
+  2. If issues found, FE/BE fixes them → QA re-validates
+  3. After QA passes, the responsible FE or BE creates the PR
+  4. CI/CD wait: use run_in_background — do NOT poll manually; resume only when notified complete
+  5. Code review: fetch reviews and comments in a single parallel batch call; read only the files mentioned in each review (not the entire codebase); apply changes and push
+  6. Team lead asks user for merge approval
+PRPROCESS
+
+# ─────────────────────────────────────────────────────────────
+# 팀 별 생성 프롬프트 (성공한 config.json 구조 기반)
+# ─────────────────────────────────────────────────────────────
+get_team_prompt() {
+    case "$1" in
+        full)
+            cat << FULLTEAM
+Create an agent team NOW with these 7 teammates. Spawn each one immediately:
+
+1. Name: "PO" | Agent type: po | Color: blue
+   Prompt: "You are a Product Owner on an agent team. Define product strategy, write PRDs, and make priority decisions. Responsible for business requirements, user research, and roadmap. $AGENT_SUFFIX"
+
+2. Name: "PD" | Agent type: designer | Color: green
+   Prompt: "You are a Product Designer on an agent team. Design UI/UX, create wireframes, and maintain design systems. Responsible for user experience, screen design, and design consistency. $AGENT_SUFFIX"
+
+3. Name: "FE" | Agent type: fe-dev | Color: yellow
+   Prompt: "You are a Frontend Engineer on an agent team. Implement React/Next.js frontends. Responsible for UI implementation, performance optimization, and accessibility. $AGENT_SUFFIX"
+
+4. Name: "BE" | Agent type: be-dev | Color: purple
+   Prompt: "You are a Backend Engineer on an agent team. Implement APIs, databases, and server architecture. Responsible for API design, database modeling, and backend systems. $AGENT_SUFFIX"
+
+5. Name: "QA" | Agent type: qa | Color: orange
+   Prompt: "You are a QA Engineer on an agent team. Develop test strategies, review code, and verify quality. Responsible for writing tests, finding bugs, and setting quality standards. $AGENT_SUFFIX"
+
+6. Name: "OPS" | Agent type: ops-lead | Color: pink
+   Prompt: "You are a DevOps Engineer on an agent team. Manage CI/CD, deployments, infrastructure, and monitoring. Responsible for deployment pipelines, server management, and incident response. $AGENT_SUFFIX"
+
+7. Name: "DA" | Agent type: data-analyst | Color: cyan
+   Prompt: "You are a Data Analyst on an agent team. Analyze data, define metrics, and analyze A/B tests. Responsible for user insights, outcome measurement, and data-driven decisions. $AGENT_SUFFIX"
+
+Coordination Rules:
+- Each teammate works independently in their domain
+- Teammates consult each other when cross-domain decisions are needed
+- Resolve conflicts through consensus
+- Run independent sub-tasks in parallel within your own work
+- Share progress periodically through the shared task list
+
+$PR_PROCESS
+FULLTEAM
+            ;;
+        prod)
+            cat << PRODTEAM
+Create an agent team NOW with these 5 teammates. Spawn each one immediately:
+
+1. Name: "PO" | Agent type: po | Color: blue
+   Prompt: "You are a Product Owner on an agent team. Define product strategy, write PRDs, and make priority decisions. Responsible for business requirements, user research, and roadmap. $AGENT_SUFFIX"
+
+2. Name: "PD" | Agent type: designer | Color: green
+   Prompt: "You are a Product Designer on an agent team. Design UI/UX, create wireframes, and maintain design systems. Responsible for user experience, screen design, and design consistency. $AGENT_SUFFIX"
+
+3. Name: "FE" | Agent type: fe-dev | Color: yellow
+   Prompt: "You are a Frontend Engineer on an agent team. Implement React/Next.js frontends. Responsible for UI implementation, performance optimization, and accessibility. $AGENT_SUFFIX"
+
+4. Name: "BE" | Agent type: be-dev | Color: purple
+   Prompt: "You are a Backend Engineer on an agent team. Implement APIs, databases, and server architecture. Responsible for API design, database modeling, and backend systems. $AGENT_SUFFIX"
+
+5. Name: "QA" | Agent type: qa | Color: orange
+   Prompt: "You are a QA Engineer on an agent team. Develop test strategies, review code, and verify quality. Responsible for writing tests, finding bugs, and setting quality standards. $AGENT_SUFFIX"
+
+Coordination Rules:
+- Each teammate works independently in their domain
+- PO defines requirements, Designer creates designs, FE/BE implement, QA validates
+- Teammates consult each other when cross-domain decisions are needed
+- Run independent sub-tasks in parallel within your own work
+- Share progress periodically through the shared task list
+
+$PR_PROCESS
+PRODTEAM
+            ;;
+        dev)
+            cat << DEVTEAM
+Create an agent team NOW with these 5 teammates. Spawn each one immediately:
+
+1. Name: "FE" | Agent type: fe-dev | Color: yellow
+   Prompt: "You are a Frontend Engineer on an agent team. Implement React/Next.js frontends. Responsible for UI implementation, performance optimization, and accessibility. $AGENT_SUFFIX"
+
+2. Name: "BE" | Agent type: be-dev | Color: purple
+   Prompt: "You are a Backend Engineer on an agent team. Implement APIs, databases, and server architecture. Responsible for API design, database modeling, and backend systems. $AGENT_SUFFIX"
+
+3. Name: "QA" | Agent type: qa | Color: orange
+   Prompt: "You are a QA Engineer on an agent team. Develop test strategies, review code, and verify quality. Responsible for writing tests, finding bugs, and setting quality standards. $AGENT_SUFFIX"
+
+4. Name: "OPS" | Agent type: ops-lead | Color: pink
+   Prompt: "You are a DevOps Engineer on an agent team. Manage CI/CD, deployments, infrastructure, and monitoring. Responsible for deployment pipelines, server management, and incident response. $AGENT_SUFFIX"
+
+5. Name: "DA" | Agent type: data-analyst | Color: cyan
+   Prompt: "You are a Data Analyst on an agent team. Analyze data, define metrics, and analyze A/B tests. Responsible for user insights, outcome measurement, and data-driven decisions. $AGENT_SUFFIX"
+
+Coordination Rules:
+- Each teammate works independently in their domain
+- FE-Dev and BE-Dev coordinate on API contracts
+- DevOps manages deployment and QA manages quality gates together
+- Run independent sub-tasks in parallel within your own work
+- Share progress periodically through the shared task list
+
+$PR_PROCESS
+DEVTEAM
+            ;;
+    esac
+}
+
+# ─────────────────────────────────────────────────────────────
+# 프롬프트 조합
+# ─────────────────────────────────────────────────────────────
+TEAM_PROMPT=$(get_team_prompt "$TEAM_TYPE")
+
+if [[ -n "$TASK" ]]; then
+    PROMPT="$TEAM_PROMPT
+
+After ALL teammates are spawned and ready, assign this task to the team:
+**Task**: $TASK
+
+Create the team FIRST, then coordinate the task."
+else
+    PROMPT="$TEAM_PROMPT
+
+After ALL teammates are spawned, wait for a task from the user."
+fi
+
+# ─────────────────────────────────────────────────────────────
+# 팀 타입별 출력
+# ─────────────────────────────────────────────────────────────
+case "$TEAM_TYPE" in
+    full) DESC="전체팀 (7명: PO + Designer + FE-Dev + BE-Dev + QA + DevOps + DA)" ;;
+    prod) DESC="프로덕션팀 (5명: PO + Designer + FE-Dev + BE-Dev + QA)" ;;
+    dev)  DESC="개발팀 (5명: FE-Dev + BE-Dev + QA + DevOps + DA)" ;;
+esac
+
+echo ""
+echo "Claude Code Agent Team"
+echo "  Type: $DESC"
+if [[ -n "$TASK" ]]; then
+    echo "  Task: $TASK"
+fi
+echo ""
+
+# ─────────────────────────────────────────────────────────────
+# Claude Code 실행
+# ─────────────────────────────────────────────────────────────
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude \
+    --name "Orchestrator" \
+    --append-system-prompt "$SYSTEM_PROMPT" \
+    "$PROMPT"
