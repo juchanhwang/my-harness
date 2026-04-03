@@ -15,5 +15,5 @@ JSON=$(cat <<JSONEOF
 {"event":"Stop","project":"$PROJECT","tmux_session":"$TMUX_SESSION","timestamp":$TIMESTAMP}
 JSONEOF
 )
-curl -s -X POST "$HOOK_SERVER_URL"     -H "Content-Type: application/json"     -H "X-API-Key: ${CLAUDE_REMOTE_API_KEY:-your-api-key-here}"     -d "$JSON"     > /dev/null 2>&1 &
+curl -s -X POST "$HOOK_SERVER_URL"     -H "Content-Type: application/json"     -H "X-API-Key: c3mbn7q187pznlp7pe9vqzff2l90boci"     -d "$JSON"     > /dev/null 2>&1 &
 exit 0

@@ -14,10 +14,10 @@
       "WebSearch(*)",
       "NotebookEdit(*)",
       "Task(*)",
-      "mcp__*"
+      "mcp__*",
+      "Skill(*)"
     ]
   },
-  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
