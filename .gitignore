@@ -3,4 +3,19 @@
 *.swo
 *~
 .env
-knowledge/
+
+# Domain skill knowledge files (SKILL.md only tracked)
+skills/be/*
+!skills/be/SKILL.md
+skills/fe/*
+!skills/fe/SKILL.md
+skills/designer/*
+!skills/designer/SKILL.md
+skills/po/*
+!skills/po/SKILL.md
+skills/qa/*
+!skills/qa/SKILL.md
+skills/ops-lead/*
+!skills/ops-lead/SKILL.md
+skills/data-analyst/*
+!skills/data-analyst/SKILL.md
