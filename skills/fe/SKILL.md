@@ -18,9 +18,12 @@ description: >
 
 **기본 경로**: `~/.claude/skills/fe/` — 아래 테이블의 파일명 앞에 이 경로를 붙여서 Read한다.
 
+> 📎 **Next.js 전용 주제는 vercel 플러그인 스킬이 자동 로드한다.** `app/**` 경로, `next/*` import, 관련 프롬프트 시그널에서 Claude Code 훅이 자동으로 주입하므로 이 인벤토리에 매핑하지 않는다. 예: Cache Components(`'use cache'`, `cacheLife`, PPR, `updateTag`/`revalidateTag`, `unstable_cache` 마이그레이션) → `vercel:next-cache-components`, Next.js App Router 일반(remote image config, Tailwind 통합, local font 멀티파일, 라우팅) → `vercel:nextjs`, Turbopack 설정/디버깅 → `vercel:turbopack`. 이 문서들은 우리 팀이 관리하는 FE knowledge 파일만 다룬다.
+
 ## 핵심 원칙
 - 코드 철학: "변경하기 쉬운 코드 = 좋은 코드"
-- 4대 원칙: 가독성, 예측가능성, 응집도, 결합도
+- **코드 품질 4대 원칙** (code-quality.md): 가독성, 예측가능성, 응집도, 결합도
+- **아키텍처 5 기본 원칙** (architecture.md §1): Colocation · AHA · 단방향 의존성 · Server-First · SRP
 
 ## 기술 스택
 * **Language**: TypeScript (strict mode)
@@ -42,9 +45,12 @@ description: >
 | 테스트 작성 (기본) | 유틸·훅·로직 단위 테스트 | `testing.md` + `testing-vitest-setup.md` + `testing-msw.md` |
 | 테스트 작성 (컴포넌트) | 컴포넌트 렌더링·인터랙션 테스트 | `testing.md` + `testing-component-patterns.md` |
 | 테스트 작성 (Next.js) | RSC·라우트 핸들러·미들웨어 테스트 | `testing.md` + `testing-nextjs.md` |
-| 성능 이슈/최적화 | 번들 크기·렌더링 속도·메모리 | `performance.md` + `build-optimization.md` |
+| 성능 이슈 — SSR/streaming | Next.js SSR 런타임, `'use client'` 경계, streaming, push-down 패턴 | `performance-ssr.md` + `monitoring.md` |
+| 성능 이슈 — React 렌더링 | Compiler, memo/useMemo/useCallback, 가상화, 1ms 룰 | `performance-react-rendering.md` + `monitoring.md` |
+| 성능 이슈 — 빌드/번들 | tree-shaking, 코드 스플리팅, `optimizePackageImports`, Turborepo 캐시 | `build-optimization.md` + `ci-cd.md` |
+| 이미지/폰트 최적화 | `next/image`·`next/font`·CLS·LCP 방어 | `next-assets.md` |
 | 접근성 관련 | 스크린리더·키보드·ARIA·시맨틱 HTML | `accessibility.md` |
-| 디자인 시스템/UI | 공통 UI 컴포넌트·토큰·테마 | `design-system.md` + `styling.md` |
+| 디자인 시스템/UI | 공통 UI 컴포넌트·토큰·테마 | `design-system.md` + `component-patterns.md` + `styling.md` |
 | 폼 구현 | 사용자 입력 수집·유효성 검증·제출 | `forms.md` + `component-patterns.md` + `error-handling.md` + `accessibility.md` + `testing.md` |
 | 에러 처리 | Error Boundary·에러 UI·로깅 | `error-handling.md` |
 | 라우팅/네비게이션 | URL 구조·페이지 전환·동적 라우트 | `routing.md` |
@@ -56,8 +62,8 @@ description: >
 | CI/CD/배포 | 빌드 파이프라인·배포 설정 | `ci-cd.md` + `git-workflow.md` |
 | 모니터링/분석 | 에러 추적·사용자 행동 수집 | `monitoring.md` + `analytics.md` |
 | Server Actions | 서버 mutation·form action·revalidation | `server-actions.md` + `async-patterns.md` + `error-handling.md` + `testing.md` |
-| 리팩토링 | 기존 코드 구조 개선 (기능 변경 없음) | `react-effects.md` + `code-quality.md` + `component-patterns.md` + `state-management.md` |
-| 코드 리뷰 | PR·코드 품질 검토 | `code-quality.md` + `react-effects.md` + `accessibility.md` + 리뷰 대상에 따라 관련 파일 추가 참조 |
+| 리팩토링 | 기존 코드 구조 개선 (기능 변경 없음) | `react-effects.md` + `code-quality.md` + `component-patterns.md` + `architecture.md` + `state-management.md` |
+| 코드 리뷰 | PR·코드 품질 검토 | `code-review.md` + `code-quality.md` + `react-effects.md` + `accessibility.md` + 리뷰 대상에 따라 관련 파일 추가 참조 |
 
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 - 새 페이지 개발 → architecture.md + code-quality.md + design-system.md + async-patterns.md + testing.md
