@@ -47,6 +47,7 @@ description: >
 | 비주얼 디자인 | 색상·타이포·비주얼 톤앤매너 | `color-theory.md` + `typography.md` + `design-principles.md` |
 | UX 라이팅 | 마이크로카피·에러 메시지·톤 | `ux-writing.md` + `form-design.md` |
 | 디자인 리더십 | 프로세스·팀 운영·디자인 문화 | `design-leadership.md` + `design-process.md` + `design-critique.md` |
+| 목업 생성 | 디자인 스펙 기반 HTML 목업 작성 | `developer-handoff.md` + `component-design.md` + `shadcn-patterns.md` |
 
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 - 새 기능 전체 디자인 → user-flows.md + information-architecture.md + component-design.md + shadcn-patterns.md + accessibility.md
