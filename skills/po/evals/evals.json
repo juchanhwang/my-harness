@@ -1,0 +1,56 @@
+{
+  "skill_name": "po",
+  "evals": [
+    {
+      "id": 0,
+      "name": "prd-writing-onboarding",
+      "prompt": "우리 팀은 B2B 프로젝트 관리 SaaS를 만들고 있어. 최근 3개월 데이터를 보면 신규 가입 후 첫 프로젝트 생성까지 전환율이 30%인데, 업계 벤치마크(50%)보다 낮아. 이 문제를 해결하기 위한 '신규 사용자 온보딩 개선' 프로젝트의 PRD를 작성해줘. Primary persona는 10-50명 규모 엔지니어링 팀의 매니저야. Goal은 전환율 30% → 50%로 개선하는 것이고, 타임라인은 6주야. 실제로 팀에 공유할 수 있는 수준으로, 핵심 섹션을 모두 포함해서 작성해줘.",
+      "expected_output": "제대로 된 PRD 문서. Background/Problem → Goals/Non-Goals → Target Users → User Stories + Acceptance Criteria → Success Metrics → Timeline 구조. 문제 기반 서술(솔루션 먼저가 아님), 측정 가능한 지표, Non-Goals 명시, Given-When-Then AC 등을 포함해야 함.",
+      "files": [],
+      "expectations": [
+        "PRD가 '문제'부터 시작하고 솔루션/기능부터 시작하지 않는다",
+        "Goals 섹션에 '전환율 30% → 50%'처럼 측정 가능한 수치 목표가 명시돼 있다",
+        "Non-Goals 섹션이 존재하고 이번에 하지 않을 것을 명시적으로 적는다",
+        "User Story가 'As a [user], I want [action], So that [benefit]' 포맷 혹은 명확한 user story 구조를 따른다",
+        "Acceptance Criteria가 최소 1개 이상 Given-When-Then 포맷 또는 명확한 조건 리스트로 작성돼 있다",
+        "Success Metrics가 Primary / Secondary / Guardrail 혹은 최소 그에 준하는 구분으로 제시된다",
+        "Target Users(Primary persona)가 요청한 '10-50명 규모 엔지니어링 매니저'로 명시된다",
+        "Timeline 또는 마일스톤 섹션이 6주 범위로 존재한다"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "prioritization-rice",
+      "prompt": "다음 5개 기능 후보 중 Q1에 어떤 걸 할지 우선순위를 정해야 해. 우리는 15,000 MAU의 B2B 프로젝트 관리 SaaS고, 리소스는 2명 엔지니어 × 3개월 = 6 person-months야.\n\n1. 다크 모드\n2. Slack/Discord 통합\n3. 칸반 보드 커스텀 필드\n4. 모바일 앱 (iOS)\n5. API v2 공개 (개발자 대상)\n\n각 기능에 대해 RICE 스코어를 계산해서 순위를 매겨줘. Reach, Impact, Confidence, Effort 각각의 값을 어떻게 추정했는지 근거도 같이 써줘. 상위 2개만 선택한다면 뭘 고르고 왜인지, 나머지는 왜 제외하는지도 설명해줘.",
+      "expected_output": "RICE 프레임워크를 엄밀하게 적용한 우선순위 분석. 각 기능에 대해 Reach(숫자), Impact(3/2/1/0.5/0.25), Confidence(%), Effort(person-months), RICE = (R×I×C)/E 계산. 순위 정렬. 상위 2개 선택 근거 + 나머지 3개 탈락 근거. 6 person-months 리소스 제약 반영.",
+      "files": [],
+      "expectations": [
+        "RICE 공식 '(Reach × Impact × Confidence) / Effort'이 명시적으로 언급된다",
+        "5개 기능 모두에 대해 R, I, C, E 네 값이 모두 제시된다 (하나라도 빠지면 실패)",
+        "Impact 값이 RICE 표준 스케일(3/2/1/0.5/0.25) 중 하나를 사용한다",
+        "Confidence가 백분율(%)로 표현된다",
+        "Effort가 person-months 또는 그에 상응하는 공수 단위로 표현된다",
+        "각 기능에 계산된 RICE 숫자 점수가 포함된다",
+        "5개 기능이 RICE 점수에 따라 순위가 매겨진다",
+        "상위 2개 선택 이유와 나머지 3개 탈락 이유가 구체적으로 설명된다",
+        "리소스 제약(6 person-months)이 의사결정에 반영된다"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "implicit-feature-decision",
+      "prompt": "한 엔터프라이즈 고객(연 $50K 계약)이 '프로젝트에 커스텀 필드를 추가할 수 있는 기능'을 요청했어. 이 고객은 우리 ARR의 2%를 차지하는데, 지금 계약 갱신 시즌이야. 영업팀은 '이거 없으면 이탈할 수 있다'고 말해. 이걸 해야 할까? 판단 과정을 보여줘.",
+      "expected_output": "감정/압력에 휩쓸리지 않은 구조적 의사결정 분석. 단일 고객 요청의 한계 지적, 데이터 기반 검증 제안, 전략적 정합성 검토, 대안 제시(축소 스코프, 리서치 먼저, feature flag 등), 트레이드오프 명시. 즉답으로 '네 합니다'도 '아니오'도 아닌 조건부 판단.",
+      "expectations": [
+        "응답이 즉각적인 '네, 합니다' 또는 '아니오, 안 합니다' 단순 답변이 아니다",
+        "단일 고객 요청 vs 전체 사용자/시장의 trade-off를 명시적으로 다룬다",
+        "이 기능을 원하는 다른 고객이 얼마나 되는지(추가 데이터/검증 필요)를 확인하자고 제안한다",
+        "현재 분기 목표/OKR/로드맵과의 정합성을 검토한다",
+        "ARR 2% 비중과 이탈 리스크의 정량적 계산 또는 최소한 비중 언급을 한다",
+        "Full 구현 외 대안(축소 스코프, 임시 해결책, 다른 방식의 retention 지원 등)을 최소 1개 제안한다",
+        "RICE/ICE/MoSCoW/Value-Effort 등 우선순위 프레임워크 혹은 One-Way/Two-Way Door 같은 의사결정 프레임워크를 참조한다",
+        "의사결정 근거가 '영업팀이 그렇게 말해서'가 아니라 데이터/전략 기반이다"
+      ]
+    }
+  ]
+}
