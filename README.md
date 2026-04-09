@@ -436,8 +436,6 @@ my-harness/
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
 
-> React/Next.js 성능 규칙은 vercel 플러그인의 `vercel:react-best-practices` 스킬로 통합되어 standalone 스킬은 제거했다 (플러그인 버전은 자동 트리거와 shadcn 체이닝 지원).
-
 ## 플러그인 (10)
 
 `settings.json`의 `enabledPlugins`에 선언. Claude Code가 자동으로 설치/업데이트한다.
