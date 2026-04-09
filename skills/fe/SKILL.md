@@ -1,13 +1,13 @@
 ---
 name: fe
 description: >
-  프론트엔드 도메인 knowledge. React/Next.js/TypeScript 컴포넌트 작성,
-  상태 관리(Zustand, TanStack Query), 테스트(Vitest, MSW, Playwright),
-  성능 최적화, 접근성, 폼, 라우팅, Server Actions, 코드 리뷰, 리팩토링 시 활성화.
-  .tsx/.ts/.css 파일 작성/수정/리뷰 시, 프론트엔드 설계 판단이 필요할 때 사용한다.
-  사용자가 컴포넌트, 훅, 스타일링, 번들 최적화, React 패턴, UI 테스트를
-  언급하면 반드시 이 스킬을 활성화하라. 명시적으로 '프론트엔드'라고 말하지 않더라도
-  .tsx/.jsx 파일을 다루거나 React/Next.js 관련 작업이면 활성화한다.
+  Use when working on React/Next.js/TypeScript frontend code —
+  .tsx/.jsx/.ts/.css 파일 작성·수정·리뷰, 컴포넌트/훅/상태관리(Zustand,
+  TanStack Query)/폼/성능 최적화/접근성/테스트(Vitest, MSW, Playwright)/
+  Server Actions/라우팅/리팩토링/코드 리뷰가 필요한 상황. 사용자가 명시적으로
+  '프론트엔드'라고 말하지 않더라도 .tsx/.jsx 파일이 등장하거나 React/Next.js
+  키워드(컴포넌트, 훅, 스타일링, 번들 최적화, React 패턴, UI 테스트 등)가
+  나오면 반드시 활성화한다.
 ---
 
 # FE Domain Knowledge
@@ -18,7 +18,19 @@ description: >
 
 **기본 경로**: `~/.claude/skills/fe/` — 아래 테이블의 파일명 앞에 이 경로를 붙여서 Read한다.
 
-> 📎 **Next.js 전용 주제는 vercel 플러그인 스킬이 자동 로드한다.** `app/**` 경로, `next/*` import, 관련 프롬프트 시그널에서 Claude Code 훅이 자동으로 주입하므로 이 인벤토리에 매핑하지 않는다. 예: Cache Components(`'use cache'`, `cacheLife`, PPR, `updateTag`/`revalidateTag`, `unstable_cache` 마이그레이션) → `vercel:next-cache-components`, Next.js App Router 일반(remote image config, Tailwind 통합, local font 멀티파일, 라우팅) → `vercel:nextjs`, Turbopack 설정/디버깅 → `vercel:turbopack`. 이 문서들은 우리 팀이 관리하는 FE knowledge 파일만 다룬다.
+> 📎 **Next.js 전용 주제는 vercel 플러그인 스킬이 자동 주입한다 (Read 불필요).** `app/**` 경로, `next/*` import, 관련 프롬프트 시그널을 감지하면 Claude Code 훅이 자동으로 컨텍스트에 주입하므로 FE 스킬은 **팀 고유 컨벤션**(nuqs URL state, `ActionResult<T>` 타입, Toss TDS 패턴 등)만 다룬다.
+>
+> | 주제 | 자동 주입 스킬 |
+> |---|---|
+> | App Router 기본, 라우팅/레이아웃, `loading.tsx`/`error.tsx`/`not-found.tsx`, 네비게이션(`useRouter`, `Link`, `redirect`), Metadata API | `vercel:nextjs` |
+> | Server Actions 기본 동작, `'use server'`, `useActionState`, `useOptimistic`, `revalidatePath`/`revalidateTag` | `vercel:nextjs` |
+> | Cache Components, `'use cache'`, `cacheLife`, `cacheTag`, `updateTag`, PPR, `unstable_cache` 마이그레이션 | `vercel:next-cache-components` |
+> | 미들웨어/`proxy.ts`(Next.js 16 rename), 요청 가로채기 | `vercel:routing-middleware` |
+> | Turbopack 설정/디버깅 | `vercel:turbopack` |
+> | shadcn/ui CLI, 컴포넌트 설치/테마 | `vercel:shadcn` |
+> | React 성능 규칙(64 rules, waterfall/bundle/rerender) | `vercel:react-best-practices` |
+>
+> `⚡` 표시된 태스크 행은 vercel 스킬이 자동 주입되므로 **해당 스킬을 별도 Read하지 말고**, FE 고유 보조 파일만 Read한다.
 
 ## 핵심 원칙
 - 코드 철학: "변경하기 쉬운 코드 = 좋은 코드"
@@ -48,12 +60,12 @@ description: >
 | 성능 이슈 — SSR/streaming | Next.js SSR 런타임, `'use client'` 경계, streaming, push-down 패턴 | `performance-ssr.md` + `monitoring.md` |
 | 성능 이슈 — React 렌더링 | Compiler, memo/useMemo/useCallback, 가상화, 1ms 룰 | `performance-react-rendering.md` + `monitoring.md` |
 | 성능 이슈 — 빌드/번들 | tree-shaking, 코드 스플리팅, `optimizePackageImports`, Turborepo 캐시 | `build-optimization.md` + `ci-cd.md` |
-| 이미지/폰트 최적화 | `next/image`·`next/font`·CLS·LCP 방어 | `next-assets.md` |
+| 이미지/폰트 최적화 | `next/image`·`next/font`·CLS·LCP 방어 | ⚡ `vercel:nextjs` (자동, Read 불필요) + `next-assets.md` |
 | 접근성 관련 | 스크린리더·키보드·ARIA·시맨틱 HTML | `accessibility.md` |
 | 디자인 시스템/UI | 공통 UI 컴포넌트·토큰·테마 | `design-system.md` + `component-patterns.md` + `styling.md` |
 | 폼 구현 | 사용자 입력 수집·유효성 검증·제출 | `forms.md` + `component-patterns.md` + `error-handling.md` + `accessibility.md` + `testing.md` |
 | 에러 처리 | Error Boundary·에러 UI·로깅 | `error-handling.md` |
-| 라우팅/네비게이션 | URL 구조·페이지 전환·동적 라우트 | `routing.md` |
+| 라우팅/네비게이션 | URL 구조·페이지 전환·동적 라우트 | ⚡ `vercel:nextjs` (자동, Read 불필요) + `state-management.md` §4 URL 상태 (nuqs) |
 | 유틸리티/라이브러리 선택 | 외부 패키지 도입·교체 판단 | `libraries.md` |
 | TypeScript 설계 | 타입 정의·제네릭·유틸 타입 | `typescript.md` + `code-quality.md` |
 | 국제화(i18n) | 다국어·번역 키·로케일 | `i18n.md` |
@@ -61,7 +73,7 @@ description: >
 | 보안 | XSS·CSRF·인증 토큰 처리 | `security.md` |
 | CI/CD/배포 | 빌드 파이프라인·배포 설정 | `ci-cd.md` + `git-workflow.md` |
 | 모니터링/분석 | 에러 추적·사용자 행동 수집 | `monitoring.md` + `analytics.md` |
-| Server Actions | 서버 mutation·form action·revalidation | `server-actions.md` + `async-patterns.md` + `error-handling.md` + `testing.md` |
+| Server Actions | 서버 mutation·form action·revalidation | ⚡ `vercel:nextjs` (자동, Read 불필요) + `forms.md` §5 (ActionResult 타입 + Zod + 권한 검증) + `error-handling.md` + `testing.md` |
 | 리팩토링 | 기존 코드 구조 개선 (기능 변경 없음) | `react-effects.md` + `code-quality.md` + `component-patterns.md` + `architecture.md` + `state-management.md` |
 | 코드 리뷰 | PR·코드 품질 검토 | `code-review.md` + `code-quality.md` + `react-effects.md` + `accessibility.md` + 리뷰 대상에 따라 관련 파일 추가 참조 |
 
