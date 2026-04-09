@@ -424,7 +424,7 @@ my-harness/
 
 </details>
 
-### 범용 스킬 (8)
+### 범용 스킬 (7)
 
 | 스킬 | 역할 |
 |---|---|
@@ -434,8 +434,9 @@ my-harness/
 | `pdf` | PDF 읽기·병합·분할·워터마크·폼 작성·OCR 등 전방위 PDF 처리 |
 | `pptx` | PPTX 읽기·생성·편집·템플릿 작업 (markitdown + pptxgenjs 기반) |
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
-| `vercel-react-best-practices` | Vercel 엔지니어링 기반 React/Next.js 성능 최적화 64개 규칙 |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
+
+> React/Next.js 성능 규칙은 vercel 플러그인의 `vercel:react-best-practices` 스킬로 통합되어 standalone 스킬은 제거했다 (플러그인 버전은 자동 트리거와 shadcn 체이닝 지원).
 
 ## 플러그인 (10)
 
