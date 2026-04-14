@@ -41,6 +41,16 @@ function AllProviders({ children }: { children: React.ReactNode }) {
   const queryClient = createTestQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
+      {/*
+        프로젝트에 따라 아래 Provider를 추가한다 — 순서는 실제 앱의 layout.tsx /
+        app/providers.tsx가 감싸는 순서를 그대로 반영하면 된다. 누락 시 context를 읽는
+        hook(useTheme, useOverlay 등)이 undefined를 반환하거나 throw한다.
+        - next-themes:    <ThemeProvider attribute="class">
+        - overlay-kit:    <OverlayProvider />
+        - nuqs:           <NuqsAdapter>
+        - i18n:           <I18nProvider lang="ko">
+        Zustand는 글로벌 store를 쓰는 한 provider가 필요 없다.
+      */}
       {children}
     </QueryClientProvider>
   );
@@ -111,22 +121,6 @@ it('제출 중 로딩 상태가 표시되고, 성공 후 성공 메시지가 나
 });
 ```
 
-### Select/Dropdown
-
-```tsx
-it('카테고리를 선택하면 선택된 값이 표시된다', async () => {
-  render(<CategoryFilter />);
-  const user = userEvent.setup();
-
-  await user.selectOptions(
-    screen.getByRole('combobox', { name: '카테고리' }),
-    '기술',
-  );
-
-  expect(screen.getByRole('combobox', { name: '카테고리' })).toHaveValue('tech');
-});
-```
-
 ***
 
 ## 모달/다이얼로그 테스트
@@ -170,22 +164,12 @@ describe('DeleteConfirmDialog', () => {
 
 ## 리스트/테이블 테스트
 
+> "배열을 받아 그대로 `<tr>`에 뿌린다"만 검증하는 건 `testing.md` §3.2 Don't "순수 JSX
+> 배치"에 해당한다 — 타입체커·Storybook으로 커버된다. 아래 패턴은 **빈 상태 분기**나
+> **행마다 다른 UI(`within` 필요)** 같이 행동이 있을 때만 적용한다.
+
 ```tsx
 describe('UserTable', () => {
-  it('사용자 목록이 테이블에 표시된다', () => {
-    const users = [
-      createUser({ name: '김철수' }),
-      createUser({ name: '이영희' }),
-    ];
-    render(<UserTable users={users} />);
-
-    const rows = screen.getAllByRole('row');
-    // 헤더 행 + 데이터 행 2개
-    expect(rows).toHaveLength(3);
-    expect(screen.getByRole('cell', { name: '김철수' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: '이영희' })).toBeInTheDocument();
-  });
-
   it('빈 목록이면 안내 메시지가 표시된다', () => {
     render(<UserTable users={[]} />);
 
@@ -196,13 +180,23 @@ describe('UserTable', () => {
 
 ### within으로 특정 행 내 요소 검증
 
+행마다 다른 UI가 나타날 때 `screen.getByRole('button')`은 "버튼이 여러 개"라 실패한다.
+`within`으로 행 단위로 스코프를 좁혀 검증한다. 모든 행에 똑같이 나타나는 요소를 검증한다면
+`within`이 불필요하고, 그 테스트 자체가 §3.2 Don't에 가깝다.
+
 ```tsx
-it('각 행에 수정 버튼이 있다', () => {
-  const users = [createUser({ name: '김철수' }), createUser({ name: '이영희' })];
+it('관리자 행에만 역할 변경 버튼이 나타난다', () => {
+  const users = [
+    createUser({ name: '김철수', role: 'admin' }),
+    createUser({ name: '이영희', role: 'member' }),
+  ];
   render(<UserTable users={users} />);
 
-  const row = screen.getByRole('row', { name: /김철수/ });
-  expect(within(row).getByRole('button', { name: '수정' })).toBeInTheDocument();
+  const adminRow = screen.getByRole('row', { name: /김철수/ });
+  const memberRow = screen.getByRole('row', { name: /이영희/ });
+
+  expect(within(adminRow).getByRole('button', { name: '역할 변경' })).toBeInTheDocument();
+  expect(within(memberRow).queryByRole('button', { name: '역할 변경' })).not.toBeInTheDocument();
 });
 ```
 
@@ -371,6 +365,14 @@ describe('SearchInput', () => {
 ***
 
 ## Intersection Observer 테스트
+
+> 전역 no-op stub은 `testing-vitest-setup.md` §vitest.setup.ts에 이미 설치되어 있어서
+> `IntersectionObserver`를 쓰는 컴포넌트도 import 시점에 터지지 않는다. 아래 패턴은
+> **콜백을 수동으로 트리거해야 하는 테스트**에 한정해 그 stub을 오버라이드하는 예다.
+>
+> 오버라이드한 mock이 다음 테스트에 누설되지 않도록, `vitest.config.ts`에
+> `test.unstubGlobals: true`를 켜두거나 `afterEach(() => vi.unstubAllGlobals())`를 두는 걸
+> 잊지 말 것. 동일 원칙이 `matchMedia`, `ResizeObserver`에도 적용된다.
 
 ```tsx
 describe('InfiniteScrollList', () => {
