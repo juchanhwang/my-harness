@@ -51,7 +51,7 @@ description: >
 | 태스크 유형 | 판단 기준 | Read할 파일 |
 |---|---|---|
 | 컴포넌트 작성/수정 | UI 구조·분리·합성이 핵심 | `code-quality.md` + `component-patterns.md` + `react-effects.md` + `design-system.md` + `testing.md` |
-| API 연동/데이터 패칭 | fetch·mutation·캐싱이 핵심 | `async-patterns.md` + `data-fetching.md` + `state-management.md` + `error-handling.md` + `testing.md` |
+| API 연동/데이터 패칭 | fetch·mutation·캐싱이 핵심 | `async-patterns.md` + `state-management.md` + `error-handling.md` + `testing.md` |
 | 상태 관리 설계 | 상태 위치(서버/URL/전역/로컬) 결정 | `state-management.md` + `state-colocation.md` + `react-effects.md` |
 | 프로젝트 구조/설계 | 디렉토리·모듈 경계·레이어 분리 | `architecture.md` + `code-quality.md` |
 | 테스트 작성 (기본) | 유틸·훅·로직 단위 테스트 | `testing.md` + `testing-vitest-setup.md` + `testing-msw.md` |
@@ -79,6 +79,6 @@ description: >
 
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 - 새 페이지 개발 → architecture.md + code-quality.md + design-system.md + async-patterns.md + testing.md
-- API 연동 폼 → async-patterns.md + data-fetching.md + forms.md + error-handling.md + testing.md
+- API 연동 폼 → async-patterns.md + forms.md + error-handling.md + testing.md
 
 **테스트 파일 선택 가이드**: testing.md는 항상 읽고, 나머지 테스트 파일은 태스크에 맞게 선택적으로 읽는다.

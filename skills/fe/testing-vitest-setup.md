@@ -61,31 +61,19 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@/test-utils': path.resolve(__dirname, './src/test-utils'),
     },
-  },
-});
-```
 
-### Next.js와 함께 사용 시
+    // 격리: forks가 threads보다 MSW/RTL과의 호환성이 좋다 (§성능 최적화 참조)
+    pool: 'forks',
 
-```tsx
-// next.js의 @next/env를 로드하려면
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+    // `vi.stubGlobal`을 afterEach마다 자동 원복 — 테스트 간 mock 누설 방지.
+    // IntersectionObserver/matchMedia 등을 테스트별로 오버라이드할 때 필수.
+    // 수동 원복 대안: `afterEach(() => vi.unstubAllGlobals())`
+    unstubGlobals: true,
 
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-    globals: true,
-    alias: {
-      '@': './src',
-    },
-    // Next.js 서버 전용 모듈 무시
+    // Next.js 프로젝트에서만 필요: next/* 서버 전용 모듈이 ESM으로 로드되지 않는 문제 회피.
+    // Next.js가 아니면 이 블록 전체를 제거해도 무방하다.
     server: {
-      deps: {
-        inline: ['next'],
-      },
+      deps: { inline: ['next'] },
     },
   },
 });
@@ -127,10 +115,23 @@ vi.mock('next/navigation', () => ({
 }));
 
 // --- next/image Mock ---
+// `next/image`는 DOM `<img>`에 없는 props를 받는다 (fill, priority, placeholder,
+// blurDataURL, quality, loader, unoptimized, onLoadingComplete, fetchPriority).
+// 이들을 그대로 spread하면 React가 "Received `true` for a non-boolean attribute" 경고를
+//쏟아내고, 경고 노이즈에 묻혀 진짜 경고를 놓치게 된다. 테스트 관점에서 필요한 건
+// src/alt/width/height뿐이므로 나머지는 제거하고 `<img>`에 전달한다.
+// 출처: https://nextjs.org/docs/app/api-reference/components/image
+const NEXT_IMAGE_NON_DOM_PROPS = [
+  'fill', 'priority', 'placeholder', 'blurDataURL', 'quality',
+  'loader', 'loaderFile', 'onLoadingComplete', 'unoptimized', 'fetchPriority',
+] as const;
+
 vi.mock('next/image', () => ({
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+  default: (allProps: Record<string, unknown>) => {
+    const props = { ...allProps };
+    for (const key of NEXT_IMAGE_NON_DOM_PROPS) delete props[key];
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return <img {...props} />;
+    return <img {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />;
   },
 }));
 
@@ -166,6 +167,34 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // --- scrollTo Mock ---
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
 ```
+
+### 전역 Mock의 역할 구분
+
+위의 `next/navigation`, `next/image`, `matchMedia`, `ResizeObserver`,
+`IntersectionObserver`, `scrollTo`는 모두 **no-op 전역 stub**이다. 목적은 단 하나 —
+jsdom에 없거나 Next.js 런타임에서만 존재하는 API를 참조하는 컴포넌트가
+**import/렌더 시점에 터지지 않게** 하는 것이다. 테스트의 기대값을 검증하는 용도가 아니다.
+
+행동을 트리거해야 하는 테스트(예: 스크롤 진입 시 다음 페이지 로드, 뷰포트 변경 시 레이아웃 분기)는
+이 no-op을 **테스트 파일 내에서 `vi.stubGlobal`로 오버라이드**한다:
+
+```tsx
+const mockIntersectionObserver = vi.fn();
+mockIntersectionObserver.mockReturnValue({
+  observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn(),
+});
+vi.stubGlobal('IntersectionObserver', mockIntersectionObserver);
+
+// 이후 mockIntersectionObserver.mock.calls[0][0]을 통해
+// observer 콜백을 수동으로 호출해 "뷰포트 진입" 이벤트를 시뮬레이션
+```
+
+**원복은 자동이 안전하다**. 위 `vitest.config.ts`에 `unstubGlobals: true`를 켜두면 Vitest가
+`afterEach`마다 `vi.unstubAllGlobals()`를 호출한다. 이 옵션이 없으면 한 테스트의 stub이
+다음 테스트에 누설되어 "왜 observe가 두 번 불리지?" 같은 디버깅 지옥에 빠진다.
+수동 대안: `afterEach(() => vi.unstubAllGlobals())`.
+
+출처: Vitest `vi.stubGlobal` — https://vitest.dev/api/vi.html#vi-stubglobal
 
 ***
 

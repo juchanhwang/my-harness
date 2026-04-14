@@ -1,5 +1,19 @@
 # Next.js App Router Testing Patterns
 
+> **이 파일의 스코프**: `vercel:nextjs` 자동 주입 스킬이 App Router · Server Actions ·
+> middleware(`proxy.ts`) · Cache Components의 **기본 동작과 API**를 이미 설명한다.
+> 이 파일은 그 위에서 **테스트 방법**에 한정한다.
+>
+> - ✅ 다룬다: 테스트 전략 매트릭스(RSC는 E2E, Client는 RTL), `vi.mocked(useRouter)`
+>   오버라이드 패턴, Server Actions의 순수 함수 검증, `createMockRequest` 헬퍼,
+>   Route Handler의 `Request`/`NextResponse` 직접 생성, Playwright POM.
+> - ❌ 다루지 않는다(= `vercel:nextjs`/`vercel:next-cache-components` 등에서 이미 제공):
+>   Server Component · Server Actions · middleware의 *기본 동작과 API*,
+>   `'use cache'` · `cacheLife` · `cacheTag` · `updateTag`,
+>   `useActionState` · `useOptimistic`의 시맨틱.
+> - 주제가 겹쳐 보이면 "어떻게 동작하는가"는 vercel 스킬, **"어떻게 검증하는가"는 이 파일**로
+>   판단한다.
+
 Next.js App Router 환경 특화 테스트 전략과 패턴.
 
 ***
@@ -85,6 +99,9 @@ describe('NavigationMenu', () => {
   });
 });
 ```
+
+> 이 테스트는 `NavigationMenu` 컴포넌트 **단위에서 한 번**이면 충분하다.
+> 각 페이지 테스트에서 같은 로직을 반복 검증하지 않는다.
 
 ***
 
@@ -252,18 +269,11 @@ describe('middleware', () => {
 
 `vi.mock('next/image')` 전역 setup은 `testing-vitest-setup.md` §vitest.setup.ts 참조.
 
-### next/link 테스트
+### next/link — 별도 테스트 불필요
 
-next/link는 일반적으로 모킹 불필요. `<a>` 태그로 렌더링되므로 role `link`로 검증.
-
-```tsx
-it('로고를 클릭하면 홈으로 이동하는 링크다', () => {
-  render(<Header />);
-
-  const homeLink = screen.getByRole('link', { name: '홈으로' });
-  expect(homeLink).toHaveAttribute('href', '/');
-});
-```
+- **분기가 있는 navigation 로직**은 컴포넌트 단위 테스트로 검증한다 (예: 현재 경로에 따라
+  `aria-current`가 붙는지 — `§next/navigation 모킹` 참조).
+- **실제 페이지 이동**은 Playwright E2E로 검증한다 — 프레임워크 전체가 엮여야 의미가 있다.
 
 ***
 
@@ -287,16 +297,6 @@ export async function POST(request: Request) {
 
 ```tsx
 // app/api/users/route.test.ts
-describe('GET /api/users', () => {
-  it('사용자 목록을 반환한다', async () => {
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data).toBeInstanceOf(Array);
-  });
-});
-
 describe('POST /api/users', () => {
   it('새 사용자를 생성하고 201을 반환한다', async () => {
     const request = new Request('http://localhost/api/users', {

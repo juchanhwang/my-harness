@@ -8,8 +8,11 @@
 2. [2. Suspense 선언적 로딩 패턴](#2-suspense-선언적-로딩-패턴) — 중첩 Suspense, 섹션별 독립 로딩
 3. [3. Mutation 에러 처리](#3-mutation-에러-처리) — Toast/Alert 기반
 4. [4. Error Boundary 세분화 전략](#4-error-boundary-세분화-전략) — 배치 원칙, 재시도 fallback
-5. [5. 비동기 패턴 결정 가이드](#5-비동기-패턴-결정-가이드)
-6. [6. React Query 설정 가이드](#6-react-query-설정-가이드) — defaultOptions, Query Key 컨벤션
+5. [5. 서버 컴포넌트 데이터 패칭](#5-서버-컴포넌트-데이터-패칭) — fetch + Promise.all 병렬화
+6. [6. Infinite Query / Prefetching](#6-infinite-query--prefetching)
+7. [7. 캐싱 전략 — staleTime 기준](#7-캐싱-전략--staletime-기준)
+8. [8. 비동기 패턴 결정 가이드](#8-비동기-패턴-결정-가이드)
+9. [9. React Query 설정 가이드](#9-react-query-설정-가이드) — defaultOptions, Query Key 컨벤션
 
 ***
 
@@ -309,7 +312,69 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
 
 ***
 
-## 5. 비동기 패턴 결정 가이드
+## 5. 서버 컴포넌트 데이터 패칭
+
+서버 컴포넌트에서는 TanStack Query를 쓰지 않고 **`fetch`를 직접 호출**한다. Next.js `fetch`는 캐싱(`next: { revalidate }`)과 자연스럽게 통합된다.
+
+```tsx
+// ✅ 병렬 페칭 — 순차 fetch(waterfall) 금지
+async function DashboardPage() {
+  const [stats, users, orders] = await Promise.all([
+    fetchStats(),
+    fetchUsers(),
+    fetchOrders(),
+  ]);
+  return <DashboardView stats={stats} users={users} orders={orders} />;
+}
+```
+
+***
+
+## 6. Infinite Query / Prefetching
+
+### Infinite Query (무한 스크롤)
+
+```tsx
+function useInfiniteUsers() {
+  return useInfiniteQuery({
+    queryKey: ['users', 'infinite'],
+    queryFn: ({ pageParam }) => fetchUsers({ cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+}
+```
+
+### Prefetching (hover 시)
+
+```tsx
+<Link
+  href={`/users/${user.id}`}
+  onMouseEnter={() => {
+    queryClient.prefetchQuery({
+      queryKey: ['user', user.id],
+      queryFn: () => fetchUser(user.id),
+    });
+  }}
+>
+  {user.name}
+</Link>
+```
+
+***
+
+## 7. 캐싱 전략 — staleTime 기준
+
+| 데이터 유형 | staleTime | 이유 |
+|---|---|---|
+| 설정/메타데이터 | 30분 | 거의 불변 |
+| 사용자 프로필 | 5분 | 자주 안 바뀜 |
+| 대시보드 지표 | 1분 | 거의 실시간 |
+| 검색 결과 | 0 (즉시 stale) | 매번 최신 필요 |
+
+***
+
+## 8. 비동기 패턴 결정 가이드
 
 | 상황                | 패턴                               |
 | ----------------- | -------------------------------- |
@@ -323,7 +388,7 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
 
 ***
 
-## 6. React Query 설정 가이드
+## 9. React Query 설정 가이드
 
 ```tsx
 // lib/query-client.ts
