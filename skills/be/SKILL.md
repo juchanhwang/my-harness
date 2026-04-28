@@ -60,11 +60,12 @@ description: >
 ## 핵심 원칙
 
 - 시스템 철학: "견고하고 확장 가능한 시스템"
+- **개발 방법론: DDD (Domain-Driven Design) 기본 적용** — 모든 BE 구현은 DDD 패턴을 기본으로 따른다. 코드 작성 전 `domain-driven-design.md`를 반드시 Read하라. 단순 CRUD만으로 충분한 경우 명시적으로 opt-out할 수 있으나, 기본값은 DDD다.
 - 4대 원칙: 안정성(Reliability), 확장성(Scalability), 관찰 가능성(Observability), 보안(Security)
 - 기술 스택 (공통): TypeScript strict, Node.js 22+, PostgreSQL 16+, Drizzle ORM, Redis, BullMQ, Pino, Vitest
 - 기술 스택 (framework): Fastify 5 **또는** NestJS 11 (위 Framework Selection 규칙으로 결정)
 - API 계약: RFC 9457 Problem Details 표준, Breaking change는 versioning
-- 안티패턴: Happy path만 구현, 추측 기반 최적화, "나중에 보안 처리", 로그 없는 시스템
+- 안티패턴: Happy path만 구현, 추측 기반 최적화, "나중에 보안 처리", 로그 없는 시스템, DDD 없이 비즈니스 로직 구현
 
 ---
 
@@ -99,8 +100,8 @@ description: >
 
 | 태스크 유형 | Fastify (Read할 파일) | NestJS (Read할 파일) |
 |---|---|---|
-| 프로젝트 구조/설계 | `fastify/architecture.md` | `nestjs/architecture.md` + `nestjs/providers-di.md` |
-| API endpoint 설계/구현 | `fastify/api-design.md` + `fastify/error-handling.md` | `nestjs/controllers.md` + `nestjs/validation.md` + `nestjs/error-handling.md` |
+| 프로젝트 구조/설계 | `domain-driven-design.md` + `fastify/architecture.md` | `domain-driven-design.md` + `nestjs/architecture.md` + `nestjs/providers-di.md` |
+| API endpoint 설계/구현 | `domain-driven-design.md` + `fastify/api-design.md` + `fastify/error-handling.md` | `domain-driven-design.md` + `nestjs/controllers.md` + `nestjs/validation.md` + `nestjs/error-handling.md` |
 | 인증/인가/보안 (구현) | `fastify/security.md` + `security.md` | `nestjs/controllers.md`(Guards 절) + `security.md` |
 | 에러 처리 (구현) | `fastify/error-handling.md` + `error-handling.md` | `nestjs/error-handling.md` + `error-handling.md` |
 | 로깅/관찰성 (구현) | `fastify/observability.md` + `observability.md` | `nestjs/observability.md` + `observability.md` |
@@ -116,8 +117,8 @@ description: >
 
 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 
-- **새 API endpoint (Fastify)** → `fastify/api-design.md` + `fastify/error-handling.md` + `database.md` + `fastify/security.md` + `fastify/testing.md`
-- **새 API endpoint (NestJS)** → `nestjs/controllers.md` + `nestjs/validation.md` + `nestjs/error-handling.md` + `database.md` + `nestjs/testing.md`
+- **새 API endpoint (Fastify)** → `domain-driven-design.md` + `fastify/api-design.md` + `fastify/error-handling.md` + `database.md` + `fastify/security.md` + `fastify/testing.md`
+- **새 API endpoint (NestJS)** → `domain-driven-design.md` + `nestjs/controllers.md` + `nestjs/validation.md` + `nestjs/error-handling.md` + `database.md` + `nestjs/testing.md`
 - **서비스 간 통신 설계** (framework 무관) → `system-design.md` + `message-queues.md` + `networking.md` + `resilience.md`
 
 **모든 API 구현 전 필수**: shared/api-contracts.md 확인 (FE-BE 간 계약, 존재 시) + 기존 코드 패턴 확인

@@ -1,0 +1,96 @@
+{
+  "skill_name": "fe",
+  "iteration": 1,
+  "configurations": [
+    "with_skill",
+    "without_skill"
+  ],
+  "evals": [
+    {
+      "eval_id": 0,
+      "eval_name": "component-building",
+      "prompt": "Next.js App Router 프로젝트에서 주문 목록 페이지를 만들어줘. 요구사항:\n- 서버에서 주문 데이터를 가져와서 표시\n- 상태별 필터링 (전체/대기중/완료/취소)\n- 페이지네이션 (URL에 반영)\n- 주문 삭제 기능 (낙관적 업데이트)\n\n파일 경로: src/app/orders/page.tsx, src/components/orders/OrderList.tsx, src/hooks/useOrders.ts\n\nTypeScript strict 모드이고, TanStack Query + Zustand + shadcn/ui를 쓰고 있어.",
+      "results": {
+        "with_skill": {
+          "pass_rate": 1.0,
+          "duration_seconds": 329.3,
+          "total_cost_usd": 1.79789025,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "total_tokens": 1259465
+        },
+        "without_skill": {
+          "pass_rate": 1.0,
+          "duration_seconds": 105.7,
+          "total_cost_usd": 0.4437335,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "total_tokens": 141868
+        }
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "code-review",
+      "prompt": "Dashboard.tsx 코드 리뷰 — useEffect 남용, Zustand에 서버 데이터 저장, God Component 등 안티패턴 탐지",
+      "results": {
+        "with_skill": {
+          "pass_rate": 0.83,
+          "duration_seconds": 223.2,
+          "total_cost_usd": 0.9335317499999999,
+          "passed": 5,
+          "failed": 1,
+          "total": 6,
+          "total_tokens": 472355
+        },
+        "without_skill": {
+          "pass_rate": 0.67,
+          "duration_seconds": 147.7,
+          "total_cost_usd": 0.5047864999999999,
+          "passed": 4,
+          "failed": 2,
+          "total": 6,
+          "total_tokens": 189001
+        }
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "test-writing",
+      "prompt": "LoginForm 컴포넌트 테스트 코드 작성 — Vitest + RTL + MSW, 사용자 관점 테스트",
+      "results": {
+        "with_skill": {
+          "pass_rate": null,
+          "duration_seconds": 56.1,
+          "total_cost_usd": 0.42533125000000005,
+          "total_tokens": 410726
+        },
+        "without_skill": {
+          "pass_rate": 1.0,
+          "duration_seconds": 138.3,
+          "total_cost_usd": 0.59260475,
+          "passed": 6,
+          "failed": 0,
+          "total": 6,
+          "total_tokens": 497371
+        }
+      }
+    }
+  ],
+  "with_skill_aggregate": {
+    "mean_pass_rate": 0.92,
+    "mean_duration_seconds": 202.9,
+    "total_cost_usd": 3.1568
+  },
+  "without_skill_aggregate": {
+    "mean_pass_rate": 0.89,
+    "mean_duration_seconds": 130.6,
+    "total_cost_usd": 1.5411
+  },
+  "delta": {
+    "pass_rate_delta": 0.03,
+    "duration_delta_seconds": 72.3
+  }
+}

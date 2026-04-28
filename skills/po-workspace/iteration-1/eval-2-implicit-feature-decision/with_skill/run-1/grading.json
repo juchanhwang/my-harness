@@ -1,0 +1,58 @@
+{
+  "expectations": [
+    {
+      "text": "응답이 즉각적인 '네, 합니다' 또는 '아니오, 안 합니다' 단순 답변이 아니다",
+      "passed": true,
+      "evidence": "섹션 11 '최종 조건부 권고안' — 조건 A/B/C 세 분기로 구성. '지금 당장 만든다/안 만든다를 결정하지 말 것'이 전제."
+    },
+    {
+      "text": "단일 고객 요청 vs 전체 사용자/시장의 trade-off를 명시적으로 다룬다",
+      "passed": true,
+      "evidence": "섹션 4 트레이드오프 분석 + 섹션 5 정량적 추론의 'RICE 시나리오 A(1개사)=0.27 vs 시나리오 B(10개사+)=4.67' 비교."
+    },
+    {
+      "text": "이 기능을 원하는 다른 고객이 얼마나 되는지(추가 데이터/검증 필요)를 확인하자고 제안한다",
+      "passed": true,
+      "evidence": "섹션 6 Data Gaps 테이블에 '다른 고객들도 커스텀 필드를 원하는가?' 명시. Action Items: '2주 안에 CS/영업 채널에서 커스텀 필드 수요를 가진 다른 고객 수 집계'."
+    },
+    {
+      "text": "현재 분기 목표/OKR/로드맵과의 정합성을 검토한다",
+      "passed": true,
+      "evidence": "섹션 7 전략적 정렬 체크 3 질문: 엔터프라이즈 세그먼트가 전략 방향인가, 현재 분기 OKR과 연관되는가, 기술적으로 지금 시작하기 좋은 시점인가."
+    },
+    {
+      "text": "ARR 2% 비중과 이탈 리스크의 정량적 계산 또는 최소한 비중 언급을 한다",
+      "passed": true,
+      "evidence": "섹션 5 ARR 노출 분석: '$50,000/year, 전체 ARR = ~$2,500,000, 손실 비율 = 2%'. '이 하나의 고객을 위해 2-4 person-months를 쓰는 결정은 순수 방어적 관점에서만 보면 비효율적일 수 있다' 결론."
+    },
+    {
+      "text": "Full 구현 외 대안(축소 스코프, 임시 해결책, 다른 방식의 retention 지원 등)을 최소 1개 제안한다",
+      "passed": true,
+      "evidence": "섹션 8 대안 옵션 4개: 옵션 1 Scoped-Down MVP (텍스트 타입만), 옵션 2 Workaround 제공, 옵션 3 Research First (2주 내 5-10개사 조사), 옵션 4 계약 연동 조건부 약속(베타 파트너십)."
+    },
+    {
+      "text": "RICE/ICE/MoSCoW/Value-Effort 등 우선순위 프레임워크 혹은 One-Way/Two-Way Door 같은 의사결정 프레임워크를 참조한다",
+      "passed": true,
+      "evidence": "문서 헤더에 '사용 프레임워크: One-Way/Two-Way Door, RICE, Value vs Effort Matrix, No 프레임워크, RAPID, Stakeholder Conflict Resolution'. 섹션 3 One-Way vs Two-Way 분류, 섹션 5 RICE 계산, 섹션 9 RAPID 역할 매트릭스 모두 실제 적용."
+    },
+    {
+      "text": "의사결정 근거가 '영업팀이 그렇게 말해서'가 아니라 데이터/전략 기반이다",
+      "passed": true,
+      "evidence": "섹션 2 '편향 점검: 영업 압력에 속지 않기'에서 Recency Bias, Survivorship Bias, HiPPO 위험 명시. 섹션 9 RAPID: '이 결정에서 Sales는 Input 역할이다. Decide 역할이 아니다'."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "6개 프레임워크를 명시적으로 조합 적용 (One-Way/Two-Way, RICE, Value-Effort, 'No' 프레임워크, RAPID, Stakeholder Conflict Resolution)",
+    "인지 편향(Recency, Survivorship, HiPPO) 명시적 점검 — baseline에는 없음",
+    "조건 A/B/C 분기 권고 — 불완전 정보 하에서의 의사결정 모범",
+    "RAPID로 '영업팀은 Input, Decide 아님' 역할 명확화 — 매우 강력한 차별점",
+    "Decision Log 포맷으로 결정 기록까지 포함",
+    "skill의 task mapping table 따라 decision-making.md + prioritization.md + stakeholder-management.md + cross-functional.md 4개 파일 참조"
+  ]
+}

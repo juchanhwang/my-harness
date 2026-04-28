@@ -1,0 +1,42 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-splitting",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect",
+      "passed": true,
+      "evidence": "Line 19: '예전엔 사실이었지만, 현재는 다르다.' Line 24: '\"React.lazy는 SSR이 안 된다\"는 주장은 React 17 이전 기준의 구식 정보다.' Correctly identifies outdated assumption."
+    },
+    {
+      "text": "Cites Next.js 16 official: 'React.lazy + Suspense → Client Components prerendered (SSR) by default'",
+      "passed": false,
+      "evidence": "Says 'Next.js 13+ App Router 환경에서는 React.lazy가 Client Component 내에서 SSR과 함께 정상적으로 동작한다' but does NOT cite the official Next.js docs quote about 'prerendered (SSR) by default'. No keyword 'prerender'/'prerendered' used. Information is correct but lacks direct official citation."
+    },
+    {
+      "text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'",
+      "passed": true,
+      "evidence": "Line 47: '내부적으로 React.lazy + <Suspense>를 래핑한 Next.js 전용 유틸리티'. Concept conveyed via 'wrapping' equivalent. Word 'composite' not used but concept captured."
+    },
+    {
+      "text": "States that ssr: false is Client Component only (Server Component → error)",
+      "passed": true,
+      "evidence": "Line 92-97: 'Server Component에서 dynamic()이나 lazy()를 호출하면 에러가 발생한다.' Plus example showing 'use client' wrapping pattern for ssr: false usage."
+    },
+    {
+      "text": "Cites Next.js Lazy Loading guide URL",
+      "passed": true,
+      "evidence": "Line 169: 'https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading'. URL is OUTDATED structure (Next.js 13/14 era), correct Next.js 16 URL is /docs/app/guides/lazy-loading. Lenient pass since 'or equivalent' specified in criterion, but flag outdated URL."
+    },
+    {
+      "text": "Includes named export dynamic import pattern",
+      "passed": true,
+      "evidence": "Line 125: shows '() => import(\"recharts\").then(m => ({ default: m.LineChart }))'. This is the OLDER workaround pattern (wraps named export in default). Pattern is technically present but uses outdated wrapping convention vs Next.js 16 official .then((mod) => mod.X)."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.833
+  }
+}

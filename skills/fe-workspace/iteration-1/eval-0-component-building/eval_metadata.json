@@ -1,0 +1,37 @@
+{
+  "eval_id": 0,
+  "eval_name": "component-building",
+  "prompt": "Next.js App Router 프로젝트에서 주문 목록 페이지를 만들어줘. 요구사항:\n- 서버에서 주문 데이터를 가져와서 표시\n- 상태별 필터링 (전체/대기중/완료/취소)\n- 페이지네이션 (URL에 반영)\n- 주문 삭제 기능 (낙관적 업데이트)\n\n파일 경로: src/app/orders/page.tsx, src/components/orders/OrderList.tsx, src/hooks/useOrders.ts\n\nTypeScript strict 모드이고, TanStack Query + Zustand + shadcn/ui를 쓰고 있어.",
+  "assertions": [
+    {
+      "id": "tanstack-query-usage",
+      "text": "서버 데이터 패칭에 TanStack Query (useSuspenseQuery 또는 useQuery)를 사용한다",
+      "type": "content_check"
+    },
+    {
+      "id": "url-state-management",
+      "text": "필터/페이지네이션이 URL searchParams 또는 nuqs로 관리된다",
+      "type": "content_check"
+    },
+    {
+      "id": "optimistic-update",
+      "text": "삭제 시 낙관적 업데이트 패턴 (useMutation + onMutate/setQueryData)을 사용한다",
+      "type": "content_check"
+    },
+    {
+      "id": "component-separation",
+      "text": "최소 2개 이상 파일로 분리 (Container/Presentational 또는 Hook 분리)",
+      "type": "content_check"
+    },
+    {
+      "id": "no-useeffect-fetch",
+      "text": "데이터 패칭에 useEffect + fetch 패턴을 사용하지 않는다",
+      "type": "content_check"
+    },
+    {
+      "id": "typescript-strict",
+      "text": "타입 정의가 존재하고 any를 사용하지 않는다",
+      "type": "content_check"
+    }
+  ]
+}

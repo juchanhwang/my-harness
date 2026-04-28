@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "RICE 공식 '(Reach × Impact × Confidence) / Effort'이 명시적으로 언급된다",
+      "passed": true,
+      "evidence": "'## RICE 공식' 섹션에 정확한 공식 'RICE Score = (Reach × Impact × Confidence) / Effort' 명시."
+    },
+    {
+      "text": "5개 기능 모두에 대해 R, I, C, E 네 값이 모두 제시된다 (하나라도 빠지면 실패)",
+      "passed": true,
+      "evidence": "5개 기능 모두 'Reach 추정', 'Impact 추정', 'Confidence 추정', 'Effort 추정' 네 값 모두 제시. 최종 요약 테이블에도 5개 × 4값 모두 존재."
+    },
+    {
+      "text": "Impact 값이 RICE 표준 스케일(3/2/1/0.5/0.25) 중 하나를 사용한다",
+      "passed": true,
+      "evidence": "스케일 표에 '3=massive, 2=high, 1=medium, 0.5=low, 0.25=minimal' 명시. 사용된 값: 다크 모드 0.5, Slack 2, 커스텀 필드 2, 모바일 1, API 3 — 모두 표준 스케일."
+    },
+    {
+      "text": "Confidence가 백분율(%)로 표현된다",
+      "passed": true,
+      "evidence": "90%, 80%, 80%, 50%, 70% 모두 백분율로 명시 및 0.9/0.8 소수점으로도 병기."
+    },
+    {
+      "text": "Effort가 person-months 또는 그에 상응하는 공수 단위로 표현된다",
+      "passed": true,
+      "evidence": "1 PM, 2 PM, 3 PM, 5 PM, 4 PM — person-months로 일관되게 표현."
+    },
+    {
+      "text": "각 기능에 계산된 RICE 숫자 점수가 포함된다",
+      "passed": true,
+      "evidence": "다크 모드 6,750 / Slack 8,400 / 커스텀 필드 4,800 / 모바일 600 / API 1,575 — 계산식과 함께 명시."
+    },
+    {
+      "text": "5개 기능이 RICE 점수에 따라 순위가 매겨진다",
+      "passed": true,
+      "evidence": "'RICE 스코어 요약 및 순위' 테이블에 1위~5위 정렬: Slack(8,400) > 다크 모드(6,750) > 커스텀 필드(4,800) > API(1,575) > 모바일(600)."
+    },
+    {
+      "text": "상위 2개 선택 이유와 나머지 3개 탈락 이유가 구체적으로 설명된다",
+      "passed": true,
+      "evidence": "'최종 선택: 상위 2개 기능' 섹션에 Slack + 커스텀 필드 선택. 특히 RICE 2위 다크 모드를 정성적 조정으로 제외하고 3위 커스텀 필드를 선택한 근거를 테이블로 제시. '제외 기능 및 이유' 섹션에 다크 모드/API/모바일 각각 구체 근거."
+    },
+    {
+      "text": "리소스 제약(6 person-months)이 의사결정에 반영된다",
+      "passed": true,
+      "evidence": "'6 person-months 리소스 제약 적용' 섹션에 시나리오별 Effort 계산. 최종 선택 리소스 배분: Slack 2 PM + 커스텀 필드 3 PM + 버퍼 1 PM = 6 PM 정확히 일치."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "skill의 prioritization.md를 명시적으로 참조 ('prioritization.md의 다크 모드 예시에서도 Impact = 0.5')",
+    "RICE 2위(다크 모드)를 정성적 이유로 override하고 3위(커스텀 필드) 선택 — 'RICE 주의사항: 전략적 중요도는 RICE에 반영되지 않으므로 별도 고려' 원칙 적용",
+    "모바일 앱 Confidence 50%에 대해 skill의 '먼저 리서치/실험' 원칙 적용",
+    "Opportunity Score 개념까지 부분 적용",
+    "AARRR 연결(Retention 단계 기여) 언급"
+  ]
+}

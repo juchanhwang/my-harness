@@ -1,0 +1,42 @@
+{
+  "eval_id": 1,
+  "eval_name": "react-compiler-memo",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Cites React Compiler 'now stable' status",
+      "passed": false,
+      "evidence": "Answer describes React Compiler functionality but does NOT cite its 'now stable' / 'stable' / '안정' status. Quote on Line 17 says 'React Compiler is a build-time only tool' but omits the stability claim. No mention of 'stable', '안정', or 'production-ready'."
+    },
+    {
+      "text": "Frames manual hooks as 'escape hatch' only",
+      "passed": true,
+      "evidence": "Section 4 titled '진짜 필요한 Escape Hatch: 수동 메모이제이션이 정당화되는 경우'. Term used explicitly."
+    },
+    {
+      "text": "Includes React.memo conditions OR 'memo is not a guarantee'",
+      "passed": true,
+      "evidence": "Line 60 quotes: 'React will still re-render a component if it re-renders itself (regardless of memo)'. Quote conveys 'not a guarantee' principle. 4-condition checklist NOT explicitly present, but 'not guarantee' alternative satisfies the OR criterion."
+    },
+    {
+      "text": "Names at least 2 valid escape hatch cases",
+      "passed": true,
+      "evidence": "Lists 5 cases in Section 4: (4-1) compiler bail-out, (4-2) library reference contracts, (4-3) expensive computation with profiling, (4-4) Context value stabilization, (4-5) useEffect deps. Exceeds 2-case minimum."
+    },
+    {
+      "text": "Cites react.dev URL",
+      "passed": true,
+      "evidence": "Multiple react.dev URLs cited (compiler, useMemo, useCallback, memo, rules)."
+    },
+    {
+      "text": "Explains why blanket memoization is harmful",
+      "passed": true,
+      "evidence": "Multiple reasons: Line 51-55 (parent re-render makes memo useless), Line 53-54 ('memoization-of-memoization vicious cycle'), Line 63-67 (stale closure risk from manual deps), Line 35-39 (shallow comparison cost not free)."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 6,
+    "pass_rate": 0.833
+  }
+}

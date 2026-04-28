@@ -1,0 +1,37 @@
+{
+  "eval_id": 0,
+  "eval_name": "ssr-boundary",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Identifies 'lazy load Provider' as the wrong approach",
+      "passed": true,
+      "evidence": "Line 5: '부분적으로만 맞고, 근본 원인 진단을 빠뜨렸습니다'. Line 174: '동료의 next/dynamic 제안은 채택하지 마세요'. Conclusion clear though softer than with_skill."
+    },
+    {
+      "text": "Explains 'use client' as a module-graph boundary",
+      "passed": true,
+      "evidence": "Line 28: 'use client 를 layout.tsx 최상단에 선언하면, 이 파일 아래에 import된 모든 모듈이 클라이언트 번들에 포함됩니다.' Line 38: '번들링 경계가 이상하게 형성됩니다'. Concept conveyed (boundary + client bundle), no direct official quote."
+    },
+    {
+      "text": "Recommends pushing Provider deeper ({children} only)",
+      "passed": true,
+      "evidence": "Step 1 (Line 68-83) + Step 2 (Line 86-96) shows extracted Providers pattern. References Composition Patterns docs."
+    },
+    {
+      "text": "Cites Next.js official documentation URL",
+      "passed": true,
+      "evidence": "Multiple Next.js URLs cited: nextjs.org/docs/app/building-your-application/rendering/server-components, /lazy-loading, /composition-patterns. URLs are from older docs structure (Pages Router era) but still valid."
+    },
+    {
+      "text": "Mentions concrete performance benefits",
+      "passed": true,
+      "evidence": "Line 35: 'LCP 4초의 직접 원인'. Mentions '서버에서 HTML을 즉시 전송' / 'Hydration 비용 확산'. Performance impact explained."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

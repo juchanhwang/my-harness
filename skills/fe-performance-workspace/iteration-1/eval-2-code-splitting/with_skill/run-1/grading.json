@@ -1,0 +1,42 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-splitting",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect",
+      "passed": true,
+      "evidence": "Line 29: '결론: 틀린 정보다. Next.js 16 App Router 기준으로 이미 outdated된 통념이다.' Section 2 titled 'Outdated 통념 판정'."
+    },
+    {
+      "text": "Cites Next.js 16 official: 'React.lazy + Suspense → Client Components prerendered (SSR) by default'",
+      "passed": true,
+      "evidence": "Line 33: direct quote 'When using React.lazy() and Suspense, Client Components will be prerendered (SSR) by default.' with nextjs.org/docs/app/guides/lazy-loading URL."
+    },
+    {
+      "text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'",
+      "passed": true,
+      "evidence": "Line 19: direct quote 'next/dynamic is a composite of React.lazy() and Suspense. It behaves the same way in the app and pages directories'. Word 'composite' used explicitly."
+    },
+    {
+      "text": "States that ssr: false is Client Component only (Server Component → error)",
+      "passed": true,
+      "evidence": "Line 135: direct quote 'ssr: false is not allowed with next/dynamic in Server Components. Please move it into a Client Component.' Plus ❌ Server / ✅ Client code example."
+    },
+    {
+      "text": "Cites Next.js Lazy Loading guide URL",
+      "passed": true,
+      "evidence": "Multiple instances of nextjs.org/docs/app/guides/lazy-loading (the correct Next.js 16 URL, not the old building-your-application path)."
+    },
+    {
+      "text": "Includes named export dynamic import pattern",
+      "passed": true,
+      "evidence": "Line 180-182: official pattern shown 'dynamic(() => import(.../bar-chart).then((mod) => mod.BarChart))'. Uses correct .then((mod) => mod.X) pattern from Next.js 16 docs."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

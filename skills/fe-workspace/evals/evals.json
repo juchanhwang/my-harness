@@ -1,0 +1,47 @@
+{
+  "skill_name": "fe",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Next.js App Router 프로젝트에서 주문 목록 페이지를 만들어줘. 요구사항:\n- 서버에서 주문 데이터를 가져와서 표시\n- 상태별 필터링 (전체/대기중/완료/취소)\n- 페이지네이션 (URL에 반영)\n- 주문 삭제 기능 (낙관적 업데이트)\n\n파일 경로: src/app/orders/page.tsx, src/components/orders/OrderList.tsx, src/hooks/useOrders.ts\n\nTypeScript strict 모드이고, TanStack Query + Zustand + shadcn/ui를 쓰고 있어.",
+      "expected_output": "컴포넌트 분리 (Container/Presentational), TanStack Query로 서버 상태 관리, URL 상태로 필터/페이지네이션, 낙관적 업데이트 패턴, useEffect 최소화",
+      "files": [],
+      "assertions": [
+        { "id": "tanstack-query-usage", "text": "서버 데이터 패칭에 TanStack Query (useSuspenseQuery 또는 useQuery)를 사용한다" },
+        { "id": "url-state-management", "text": "필터/페이지네이션이 URL searchParams 또는 nuqs로 관리된다" },
+        { "id": "optimistic-update", "text": "삭제 시 낙관적 업데이트 패턴 (useMutation + onMutate/setQueryData)을 사용한다" },
+        { "id": "component-separation", "text": "최소 2개 이상 파일로 분리 (Container/Presentational 또는 Hook 분리)" },
+        { "id": "no-useeffect-fetch", "text": "데이터 패칭에 useEffect + fetch 패턴을 사용하지 않는다" },
+        { "id": "typescript-strict", "text": "타입 정의가 존재하고 any를 사용하지 않는다" }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "이 코드를 리뷰해줘. 문제점을 지적하고 개선 방향을 알려줘.\n\n[Dashboard.tsx with useEffect antipatterns, Zustand server data, God Component]",
+      "expected_output": "서버 데이터를 Zustand에 저장하는 안티패턴 지적, useEffect+setState 파생값 계산 안티패턴 지적, God Component 분리 제안, URL 상태 제안, TanStack Query 도입 제안, 접근성 개선",
+      "files": [],
+      "assertions": [
+        { "id": "zustand-server-data-antipattern", "text": "서버 데이터를 Zustand에 저장하는 안티패턴을 지적한다" },
+        { "id": "useeffect-derived-state-antipattern", "text": "useEffect+setState로 파생 값 계산하는 안티패턴을 지적한다" },
+        { "id": "tanstack-query-suggestion", "text": "서버 상태를 TanStack Query로 전환할 것을 제안한다" },
+        { "id": "usememo-or-variable-suggestion", "text": "파생 값은 렌더링 중 계산(useMemo 또는 변수)하라고 제안한다" },
+        { "id": "god-component-split", "text": "컴포넌트가 너무 크거나 역할이 많다는 점을 지적하고 분리를 제안한다" },
+        { "id": "accessibility-issues", "text": "접근성(a11y) 관련 이슈를 지적한다" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "아래 LoginForm 컴포넌트에 대한 테스트 코드를 작성해줘. Vitest + RTL + MSW를 사용하고, 프로젝트의 test-utils.tsx 커스텀 render를 사용해.\n\n[LoginForm.tsx with useMutation, form validation, error display]",
+      "expected_output": "userEvent 사용, 접근성 쿼리 우선, MSW 모킹, 사용자 관점 설명, 성공/실패 케이스, 커스텀 render",
+      "files": [],
+      "assertions": [
+        { "id": "userevent-usage", "text": "fireEvent 대신 userEvent.setup()을 사용한다" },
+        { "id": "accessible-queries", "text": "getByRole/getByLabelText 등 접근성 쿼리를 우선 사용하고 getByTestId를 사용하지 않는다" },
+        { "id": "msw-handlers", "text": "API 모킹에 MSW를 사용한다" },
+        { "id": "user-perspective-descriptions", "text": "it/test 설명이 사용자 행동 기반이다" },
+        { "id": "success-and-failure-cases", "text": "로그인 성공과 실패 시나리오를 모두 테스트한다" },
+        { "id": "custom-render-usage", "text": "test-utils에서 커스텀 render를 import하여 사용한다" }
+      ]
+    }
+  ]
+}

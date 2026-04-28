@@ -1,0 +1,42 @@
+{
+  "eval_id": 1,
+  "eval_name": "react-compiler-memo",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Cites React Compiler 'now stable' status",
+      "passed": true,
+      "evidence": "Line 9: 'React Compiler는 더 이상 실험적 도구가 아닙니다'. Line 17: '공식 문서는 React Compiler를 \"now stable\"로 표기하며 Meta 등에서 프로덕션 사용 중임을 명시'. Direct quote with react.dev URL."
+    },
+    {
+      "text": "Frames manual hooks as 'escape hatch' only",
+      "passed": true,
+      "evidence": "Line 27: official quote 'as an escape hatch'. Line 31: '신규 코드에서 useMemo/useCallback은 escape hatch(탈출구)입니다. 기본값이 아닙니다.'"
+    },
+    {
+      "text": "Includes React.memo conditions OR 'memo is not a guarantee'",
+      "passed": true,
+      "evidence": "BOTH present. Line 47: '메모이제이션은 성능을 최적화하는 것이지, 보장하는 것은 아니기 때문에' (official quote). Line 52-65: 4-condition checklist (same props, expensive render, Profiler verified, no inline props)."
+    },
+    {
+      "text": "Names at least 2 valid escape hatch cases",
+      "passed": true,
+      "evidence": "Line 174-176 explicit table of 3 cases: (1) useEffect 의존성, (2) 컴파일러 휴리스틱보다 정밀 제어 (1ms+), (3) use no memo 디렉티브. Plus 1ms rule explanation in §3.5."
+    },
+    {
+      "text": "Cites react.dev URL",
+      "passed": true,
+      "evidence": "Multiple react.dev URLs: react.dev/learn/react-compiler/introduction, react.dev/reference/react/useMemo, /useCallback, /memo, /reference/rules."
+    },
+    {
+      "text": "Explains why blanket memoization is harmful",
+      "passed": true,
+      "evidence": "Three reasons covered: (1) Line 80-82 inline prop defeats memo with Object.is comparison, (2) Line 95 memo-less child useCallback is useless, (3) Line 66 'Profiler 측정 없이 위 조건들을 통과했는지 알 수 없습니다'."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

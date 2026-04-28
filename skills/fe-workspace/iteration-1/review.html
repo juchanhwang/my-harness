@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>FE Skill Eval - Iteration 1</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+h1 { color: #58a6ff; margin-bottom: 20px; font-size: 24px; }
+h2 { color: #58a6ff; margin: 20px 0 10px; font-size: 20px; }
+h3 { color: #79c0ff; margin: 15px 0 8px; font-size: 16px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #30363d; }
+.tab { padding: 8px 16px; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; background: transparent; color: #8b949e; }
+.tab.active { background: #161b22; border-color: #30363d; color: #c9d1d9; border-bottom-color: #161b22; margin-bottom: -1px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.benchmark-table { width: 100%%; border-collapse: collapse; margin: 15px 0; }
+.benchmark-table th, .benchmark-table td { padding: 10px 14px; border: 1px solid #30363d; text-align: left; }
+.benchmark-table th { background: #161b22; color: #58a6ff; }
+.benchmark-table td { background: #0d1117; }
+.pass { color: #3fb950; } .fail { color: #f85149; }
+.eval-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; margin: 15px 0; padding: 20px; }
+.comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.variant { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 15px; }
+.variant h4 { margin-bottom: 10px; }
+.with-skill h4 { color: #3fb950; }
+.without-skill h4 { color: #d29922; }
+pre { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+.assertion { padding: 4px 8px; margin: 2px 0; border-radius: 4px; font-size: 13px; }
+.assertion.passed { background: rgba(63,185,80,0.1); border-left: 3px solid #3fb950; }
+.assertion.failed { background: rgba(248,81,73,0.1); border-left: 3px solid #f85149; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge-pass { background: rgba(63,185,80,0.2); color: #3fb950; }
+.badge-fail { background: rgba(248,81,73,0.2); color: #f85149; }
+.badge-delta-pos { background: rgba(63,185,80,0.2); color: #3fb950; }
+.badge-delta-neg { background: rgba(248,81,73,0.2); color: #f85149; }
+.badge-delta-zero { background: rgba(139,148,158,0.2); color: #8b949e; }
+textarea { width: 100%%; min-height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 10px; font-family: inherit; font-size: 14px; resize: vertical; margin-top: 10px; }
+.submit-btn { padding: 10px 24px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 15px; }
+.submit-btn:hover { background: #2ea043; }
+details { margin: 8px 0; }
+summary { cursor: pointer; color: #58a6ff; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🧪 FE Skill Evaluation — Iteration 1</h1>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('benchmark')">📊 Benchmark</div>
+  <div class="tab" onclick="showTab('outputs')">📄 Outputs</div>
+</div>
+
+<div id="benchmark" class="tab-content active">
+<h2>Pass Rate Comparison</h2>
+<table class="benchmark-table">
+<tr><th>Eval</th><th>with_skill</th><th>without_skill</th><th>Delta</th></tr>
+<tr><td>component-building</td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-delta-zero">0%</span></td></tr>
+<tr><td>code-review</td><td><span class="badge badge-pass">83%</span></td><td><span class="badge badge-pass">67%</span></td><td><span class="badge badge-delta-pos">+16%</span></td></tr>
+<tr><td>test-writing</td><td><span class="badge badge-pass">N/A</span></td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-delta-zero">—</span></td></tr>
+<tr style="font-weight:bold;border-top:2px solid #58a6ff">
+<td>MEAN</td><td>92%</td><td>89%</td>
+<td><span class="badge badge-delta-pos">+3%</span></td></tr>
+</table>
+
+<h2>Duration & Cost</h2>
+<table class="benchmark-table">
+<tr><th>Eval</th><th>with_skill (s)</th><th>without_skill (s)</th><th>with_skill ($)</th><th>without_skill ($)</th></tr>
+<tr><td>component-building</td><td>329.3</td><td>105.7</td><td>$1.7979</td><td>$0.4437</td></tr>
+<tr><td>code-review</td><td>223.2</td><td>147.7</td><td>$0.9335</td><td>$0.5048</td></tr>
+<tr><td>test-writing</td><td>56.1</td><td>138.3</td><td>$0.4253</td><td>$0.5926</td></tr>
+</table>
+
+<h2>Key Observations</h2>
+<div class="eval-card">
+<ul style="padding-left:20px">
+<li><strong>코드 리뷰</strong>: with_skill이 83% vs 67%로 <span class="pass">+16%p 우위</span>. Zustand 서버 데이터 안티패턴, URL 상태 관리, God Component 등 프로젝트 고유 컨벤션을 정확히 짚어냄. 스킬 참조 문서를 근거로 인용하는 것이 큰 차별점.</li>
+<li><strong>컴포넌트 작성</strong>: 양쪽 100%. 프롬프트에 기술 스택을 명시하면 기본 지식으로도 패턴을 따르지만, with_skill이 <code>error.tsx</code> (ErrorBoundary)를 추가로 생성하는 등 더 완성도 높은 구조.</li>
+<li><strong>테스트 작성</strong>: without_skill 100%. with_skill은 기술적 문제(Write 권한)로 결과 미생성. 테스트 작성은 기본 모델 지식이 이미 충분히 높은 영역.</li>
+<li><strong>비용/시간</strong>: with_skill이 2배 이상 비용/시간 소요 — 참조 파일을 읽는 데 추가 턴을 사용하기 때문. 단, 코드 리뷰 품질 향상이 이를 상쇄.</li>
+</ul>
+</div>
+</div>
+
+<div id="outputs" class="tab-content">
+<div class="eval-card"><h2>Eval 0: component-building</h2>
+<p style="color:#8b949e;margin-bottom:15px">Next.js App Router 프로젝트에서 주문 목록 페이지를 만들어줘. 요구사항:
+- 서버에서 주문 데이터를 가져와서 표시
+- 상태별 필터링 (전체/대기중/완료/취소)
+- 페이지네이션 (URL에 반영)
+- 주문 삭제 기능 (낙관적 업데이트)
+
+파일 경로: src/app/orders/page.tsx, src/components/orders/OrderLi...</p>
+<div class="comparison">
+<div class="variant with-skill"><h4>✅ With Skill</h4>
+<p><span class="badge badge-pass">Pass rate: 6/6 (100%)</span></p>
+<div class="assertion passed">✅ 서버 데이터 패칭에 TanStack Query (useSuspenseQuery 또는 useQuery)를 사용한다</div>
+<div class="assertion passed">✅ 필터/페이지네이션이 URL searchParams 또는 nuqs로 관리된다</div>
+<div class="assertion passed">✅ 삭제 시 낙관적 업데이트 패턴 (useMutation + onMutate/setQueryData)을 사용한다</div>
+<div class="assertion passed">✅ 최소 2개 이상 파일로 분리 (Container/Presentational 또는 Hook 분리)</div>
+<div class="assertion passed">✅ 데이터 패칭에 useEffect + fetch 패턴을 사용하지 않는다</div>
+<div class="assertion passed">✅ 타입 정의가 존재하고 any를 사용하지 않는다</div>
+<details><summary>📁 OrderList.tsx (7176 chars)</summary><pre>&#x27;use client&#x27;;
+
+import { useCallback } from &#x27;react&#x27;;
+import { useSearchParams, useRouter, usePathname } from &#x27;next/navigation&#x27;;
+import { useOrders, useDeleteOrder } from &#x27;@/hooks/useOrders&#x27;;
+import type { Order, OrderStatus } from &#x27;@/hooks/useOrders&#x27;;
+import { Button } from &#x27;@/components/ui/button&#x27;;
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from &#x27;@/components/ui/table&#x27;;
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from &#x27;@/components/ui/alert-dialog&#x27;;
+import { Badge } from &#x27;@/components/ui/badge&#x27;;
+
+// --- Constants ---
+
+const STATUS_FILTER_OPTIONS = [
+  { value: &#x27;all&#x27;, label: &#x27;전체&#x27; },
+  { value: &#x27;pending&#x27;, label: &#x27;대기중&#x27; },
+  { value: &#x27;completed&#x27;, label: &#x27;완료&#x27; },
+  { value: &#x27;cancelled&#x27;, label: &#x27;취소&#x27; },
+] as const;
+
+const STATUS_CONFIG: Record&lt;
+  OrderStatus,
+  { label: string; variant: &#x27;default&#x27; | &#x27;secondary&#x27; | &#x27;destructive&#x27; }
+&gt; = {
+  pending: { label: &#x27;대기중&#x27;, variant: &#x27;secondary&#x27; },
+  completed: { label: &#x27;완료&#x27;, variant: &#x27;default&#x27; },
+  cancelled: { label: &#x27;취소&#x27;, variant: &#x27;destructive&#x27; },
+};
+
+const VALID_STATUSES = new Set&lt;string&gt;([
+  &#x27;all&#x27;,
+  &#x27;pending&#x27;,
+  &#x27;completed&#x27;,
+  &#x27;cancelled&#x27;,
+]);
+
+// --- Helpers ---
+
+function isValidStatusFilter(value: string): value is OrderStatus | &#x27;all&#x27; {
+  return VALID_STATUSES.has(value);
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat(&#x27;ko-KR&#x27;, {
+    style: &#x27;currency&#x27;,
+    currency: &#x27;KRW&#x27;,
+  }).format(amount);
+}
+
+function formatDate(dateString: string): string {
+  return new Intl.DateTimeFormat(&#x27;ko-KR&#x27;, {
+    year: &#x27;numeric&#x27;,
+    month: &#x27;2-digit&#x27;,
+    day: &#x27;2-digit&#x27;,
+  }).format(new Date(dateString));
+}
+
+// --- Main Component ---
+
+export function OrderList() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const rawStatus = searchParams.get(&#x27;status&#x27;) ?? &#x27;all&#x27;;
+  const currentStatus = isValidStatusFilter(rawStatus) ? rawStatus : &#x27;all&#x27;;
+  const rawPage = Number(searchParams.get(&#x27;page&#x27;) ?? &#x27;1&#x27;);
+  const currentPage = Number.isInteger(rawPage) &amp;&amp; rawPage &gt;= 1 ? rawPage : 1;
+
+  const { data } = useOrders({ status: currentStatus, page: currentPage });
+  const { mutate: deleteOrder, isPending: isDeleting } = useDeleteOrder();
+
+  const updateSearchParams = useCallback(
+    (updates: Record&lt;string, string&gt;) =&gt; {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, value]) =&gt; {
+        if (value === &#x27;all&#x27; || value === &#x27;1&#x27;) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+      const queryString = params.toString();
+      router.push(queryString ? `${pathname}?${queryString}` : pathname);
+    },
+    [searchParams, router, pathname],
+  );
+
+  const handleStatusChange = (status: string) =&gt; {
+    updateSearchParams({ status, page: &#x27;1&#x27; });
+  };
+
+  const handlePageChange = (page: number) =&gt; {
+    updateSearchParams({ page: String(page) });
+  };
+
+  return (
+    &lt;div className=&quot;space-y-4&quot;&gt;
+      &lt;div className=&quot;flex gap-2&quot;&gt;
+        {STATUS_FILTER_OPTIONS.map((option) =&gt; (
+          &lt;Button
+            key={option.value}
+            variant={currentStatus === option.value ? &#x27;default&#x27; : &#x27;outline&#x27;}
+            size=&quot;sm&quot;
+            onClick={() =&gt; handleStatusChange(option.value)}
+          &gt;
+            {option.label}
+          &lt;/Button&gt;
+        ))}
+      &lt;/div&gt;
+
+      {data.orders.length === 0 ? (
+        &lt;div className=&quot;flex items-center justify-center py-12 text-muted-foreground&quot;&gt;
+          주문이 없습니다.
+        &lt;/div&gt;
+      ) : (
+        &lt;Table&gt;
+          &lt;TableHeader&gt;
+            &lt;TableRow&gt;
+              &lt;TableHead&gt;주문번호&lt;/TableHead&gt;
+              &lt;TableHead&gt;고객명&lt;/TableHead&gt;
+              &lt;TableHead&gt;상태&lt;/TableHead&gt;
+              &lt;TableHead className=&quot;text-right&quot;&gt;금액&lt;/TableHead&gt;
+              &lt;TableHead&gt;주문일&lt;/TableHead&gt;
+              &lt;TableHead className=&quot;text-right&quot;&gt;작업&lt;/TableHead&gt;
+            &lt;/TableRow&gt;
+          &lt;/TableHeader&gt;
+          &lt;TableBody&gt;
+            {data.orders.map((order) =&gt; (
+              &lt;OrderRow
+                key={order.id}
+                order={order}
+                onDelete={deleteOrder}
+                isDeleting={isDeleting}
+              /&gt;
+            ))}
+          &lt;/TableBody&gt;
+        &lt;/Table&gt;
+      )}
+
+      {data.totalPages &gt; 1 &amp;&amp; (
+        &lt;Pagination
+          currentPage={data.currentPage}
+          totalPages={data.totalPages}
+          onPageChange={handlePageChange}
+        /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+// --- Sub-components ---
+
+interface OrderRowProps {
+  order: Order;
+  onDelete: (orderId: string) =&gt; void;
+  isDeleting: boolean;
+}
+
+function OrderRow({ order, onDelete, isDeleting }: OrderRowProps) {
+  const { label, variant } = STATUS_CONFIG[order.status];
+
+  return (
+    &lt;TableRow&gt;
+      &lt;TableCell className=&quot;font-medium&quot;&gt;{order.orderNumber}&lt;/TableCell&gt;
+      &lt;TableCell&gt;</pre></details>
+<details><summary>📁 error.tsx (734 chars)</summary><pre>&#x27;use client&#x27;;
+
+import { useEffect } from &#x27;react&#x27;;
+import { Button } from &#x27;@/components/ui/button&#x27;;
+
+interface ErrorPageProps {
+  error: Error &amp; { digest?: string };
+  reset: () =&gt; void;
+}
+
+export default function OrdersError({ error, reset }: ErrorPageProps) {
+  useEffect(() =&gt; {
+    console.error(&#x27;[OrdersPage Error]&#x27;, error);
+  }, [error]);
+
+  return (
+    &lt;div className=&quot;container mx-auto py-8&quot;&gt;
+      &lt;div className=&quot;flex flex-col items-center justify-center gap-4 py-16&quot;&gt;
+        &lt;h2 className=&quot;text-xl font-semibold&quot;&gt;
+          주문 목록을 불러오는 데 실패했습니다
+        &lt;/h2&gt;
+        &lt;p className=&quot;text-muted-foreground&quot;&gt;
+          잠시 후 다시 시도해주세요.
+        &lt;/p&gt;
+        &lt;Button onClick={reset}&gt;다시 시도&lt;/Button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></details>
+<details><summary>📁 page.tsx (873 chars)</summary><pre>import { Suspense } from &#x27;react&#x27;;
+import { OrderList } from &#x27;@/components/orders/OrderList&#x27;;
+import { Skeleton } from &#x27;@/components/ui/skeleton&#x27;;
+
+function OrderListSkeleton() {
+  return (
+    &lt;div className=&quot;space-y-4&quot;&gt;
+      &lt;div className=&quot;flex gap-2&quot;&gt;
+        {Array.from({ length: 4 }).map((_, i) =&gt; (
+          &lt;Skeleton key={i} className=&quot;h-9 w-16&quot; /&gt;
+        ))}
+      &lt;/div&gt;
+      &lt;div className=&quot;space-y-2&quot;&gt;
+        &lt;Skeleton className=&quot;h-10 w-full&quot; /&gt;
+        {Array.from({ length: 5 }).map((_, i) =&gt; (
+          &lt;Skeleton key={i} className=&quot;h-14 w-full&quot; /&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    &lt;div className=&quot;container mx-auto py-8&quot;&gt;
+      &lt;h1 className=&quot;text-2xl font-bold mb-6&quot;&gt;주문 목록&lt;/h1&gt;
+      &lt;Suspense fallback={&lt;OrderListSkeleton /&gt;}&gt;
+        &lt;OrderList /&gt;
+      &lt;/Suspense&gt;
+    &lt;/div&gt;
+  );
+}
+</pre></details>
+<details><summary>📁 useOrders.ts (2773 chars)</summary><pre>import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from &#x27;@tanstack/react-query&#x27;;
+import { toast } from &#x27;sonner&#x27;;
+
+// --- Types ---
+
+export type OrderStatus = &#x27;pending&#x27; | &#x27;completed&#x27; | &#x27;cancelled&#x27;;
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  status: OrderStatus;
+  totalAmount: number;
+  createdAt: string;
+}
+
+export interface OrderFilters {
+  status: OrderStatus | &#x27;all&#x27;;
+  page: number;
+}
+
+export interface PaginatedOrders {
+  orders: Order[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+// --- Query Keys ---
+
+export const orderQueryKeys = {
+  all: [&#x27;orders&#x27;] as const,
+  lists: () =&gt; [...orderQueryKeys.all, &#x27;list&#x27;] as const,
+  list: (filters: OrderFilters) =&gt;
+    [...orderQueryKeys.lists(), filters] as const,
+};
+
+// --- API ---
+
+async function fetchOrders(filters: OrderFilters): Promise&lt;PaginatedOrders&gt; {
+  const params = new URLSearchParams();
+  if (filters.status !== &#x27;all&#x27;) {
+    params.set(&#x27;status&#x27;, filters.status);
+  }
+  params.set(&#x27;page&#x27;, String(filters.page));
+
+  const res = await fetch(`/api/orders?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(&#x27;주문 목록을 불러오는데 실패했습니다&#x27;);
+  }
+  return res.json();
+}
+
+async function deleteOrderApi(orderId: string): Promise&lt;void&gt; {
+  const res = await fetch(`/api/orders/${orderId}`, { method: &#x27;DELETE&#x27; });
+  if (!res.ok) {
+    throw new Error(&#x27;주문 삭제에 실패했습니다&#x27;);
+  }
+}
+
+// --- Hooks ---
+
+export function useOrders(filters: OrderFilters) {
+  return useSuspenseQuery({
+    queryKey: orderQueryKeys.list(filters),
+    queryFn: () =&gt; fetchOrders(filters),
+    staleTime: 30_000,
+  });
+}
+
+export function useDeleteOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteOrderApi,
+    onMutate: async (orderId) =&gt; {
+      await queryClient.cancelQueries({ queryKey: orderQueryKeys.lists() });
+
+      const previousQueries = queryClient.getQueriesData&lt;PaginatedOrders&gt;({
+        queryKey: orderQueryKeys.lists(),
+      });
+
+      queryClient.setQueriesData&lt;PaginatedOrders&gt;(
+        { queryKey: orderQueryKeys.lists() },
+        (old) =&gt;
+          old
+            ? {
+                ...old,
+                orders: old.orders.filter((order) =&gt; order.id !== orderId),
+                totalCount: old.totalCount - 1,
+              }
+            : old,
+      );
+
+      return { previousQueries };
+    },
+    onSuccess: () =&gt; {
+      toast.success(&#x27;주문이 삭제되었습니다.&#x27;);
+    },
+    onError: (_err, _id, context) =&gt; {
+      context?.previousQueries.forEach(([queryKey, data]) =&gt; {
+        queryClient.setQueryData(queryKey, data);
+      });
+      toast.error(&#x27;주문 삭제에 실패했습니다. 다시 시도해주세요.&#x27;);
+    },
+    onSettled: () =&gt; {
+      queryClient.invalidateQueries({ queryKey: orderQueryKeys.all });
+    },
+  });
+}
+</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 329.3s | $1.7979</p>
+</div>
+<div class="variant without-skill"><h4>🟡 Without Skill</h4>
+<p><span class="badge badge-pass">Pass rate: 6/6 (100%)</span></p>
+<div class="assertion passed">✅ 서버 데이터 패칭에 TanStack Query (useSuspenseQuery 또는 useQuery)를 사용한다</div>
+<div class="assertion passed">✅ 필터/페이지네이션이 URL searchParams 또는 nuqs로 관리된다</div>
+<div class="assertion passed">✅ 삭제 시 낙관적 업데이트 패턴 (useMutation + onMutate/setQueryData)을 사용한다</div>
+<div class="assertion passed">✅ 최소 2개 이상 파일로 분리 (Container/Presentational 또는 Hook 분리)</div>
+<div class="assertion passed">✅ 데이터 패칭에 useEffect + fetch 패턴을 사용하지 않는다</div>
+<div class="assertion passed">✅ 타입 정의가 존재하고 any를 사용하지 않는다</div>
+<details><summary>📁 OrderList.tsx (6780 chars)</summary><pre>&quot;use client&quot;;
+
+import { Suspense, useState } from &quot;react&quot;;
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from &quot;@/components/ui/alert-dialog&quot;;
+import { Badge } from &quot;@/components/ui/badge&quot;;
+import { Button } from &quot;@/components/ui/button&quot;;
+import { Skeleton } from &quot;@/components/ui/skeleton&quot;;
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from &quot;@/components/ui/table&quot;;
+
+import type { Order, OrderStatus } from &quot;./types&quot;;
+import { ORDER_STATUS_LABEL } from &quot;./types&quot;;
+import { useOrders } from &quot;./useOrders&quot;;
+
+const STATUS_VARIANT: Record&lt;OrderStatus, &quot;default&quot; | &quot;secondary&quot; | &quot;destructive&quot;&gt; = {
+  pending: &quot;secondary&quot;,
+  completed: &quot;default&quot;,
+  cancelled: &quot;destructive&quot;,
+};
+
+function StatusFilter({
+  current,
+  onChange,
+}: {
+  current: &quot;all&quot; | OrderStatus;
+  onChange: (status: &quot;all&quot; | OrderStatus) =&gt; void;
+}) {
+  const statuses = Object.keys(ORDER_STATUS_LABEL) as Array&lt;&quot;all&quot; | OrderStatus&gt;;
+
+  return (
+    &lt;div className=&quot;flex gap-2&quot;&gt;
+      {statuses.map((s) =&gt; (
+        &lt;Button
+          key={s}
+          variant={current === s ? &quot;default&quot; : &quot;outline&quot;}
+          size=&quot;sm&quot;
+          onClick={() =&gt; onChange(s)}
+        &gt;
+          {ORDER_STATUS_LABEL[s]}
+        &lt;/Button&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) =&gt; void;
+}) {
+  if (totalPages &lt;= 1) return null;
+
+  const pages: number[] = [];
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i &lt;= end; i++) {
+    pages.push(i);
+  }
+
+  return (
+    &lt;div className=&quot;flex items-center justify-center gap-1&quot;&gt;
+      &lt;Button
+        variant=&quot;outline&quot;
+        size=&quot;sm&quot;
+        disabled={currentPage &lt;= 1}
+        onClick={() =&gt; onPageChange(currentPage - 1)}
+      &gt;
+        이전
+      &lt;/Button&gt;
+      {start &gt; 1 &amp;&amp; (
+        &lt;&gt;
+          &lt;Button variant=&quot;outline&quot; size=&quot;sm&quot; onClick={() =&gt; onPageChange(1)}&gt;
+            1
+          &lt;/Button&gt;
+          {start &gt; 2 &amp;&amp; &lt;span className=&quot;px-2 text-muted-foreground&quot;&gt;...&lt;/span&gt;}
+        &lt;/&gt;
+      )}
+      {pages.map((p) =&gt; (
+        &lt;Button
+          key={p}
+          variant={p === currentPage ? &quot;default&quot; : &quot;outline&quot;}
+          size=&quot;sm&quot;
+          onClick={() =&gt; onPageChange(p)}
+        &gt;
+          {p}
+        &lt;/Button&gt;
+      ))}
+      {end &lt; totalPages &amp;&amp; (
+        &lt;&gt;
+          {end &lt; totalPages - 1 &amp;&amp; (
+            &lt;span className=&quot;px-2 text-muted-foreground&quot;&gt;...&lt;/span&gt;
+          )}
+          &lt;Button
+            variant=&quot;outline&quot;
+            size=&quot;sm&quot;
+            onClick={() =&gt; onPageChange(totalPages)}
+          &gt;
+            {totalPages}
+          &lt;/Button&gt;
+        &lt;/&gt;
+      )}
+      &lt;Button
+        variant=&quot;outline&quot;
+        size=&quot;sm&quot;
+        disabled={currentPage &gt;= totalPages}
+        onClick={() =&gt; onPageChange(currentPage + 1)}
+      &gt;
+        다음
+      &lt;/Button&gt;
+    &lt;/div&gt;
+  );
+}
+
+function OrderTableSkeleton() {
+  return (
+    &lt;div className=&quot;space-y-3&quot;&gt;
+      {Array.from({ length: 5 }).map((_, i) =&gt; (
+        &lt;Skeleton key={i} className=&quot;h-12 w-full&quot; /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+function OrderListInner() {
+  const {
+    orders,
+    totalPages,
+    currentPage,
+    status,
+    isLoading,
+    isError,
+    error,
+    setStatus,
+    setPage,
+    deleteOrder,
+    isDeleting,
+  } = useOrders();
+
+  const [deleteTarget, setDeleteTarget] = useState&lt;Order | null&gt;(null);
+
+  function handleDelete() {
+    if (!deleteTarget) return;
+    deleteOrder(deleteTarget.id);
+    setDeleteTarget(null);
+  }
+
+  return (
+    &lt;div className=&quot;space-y-4&quot;&gt;
+      &lt;StatusFilter current={status} onChange={setStatus} /&gt;
+
+      {isLoading ? (
+        &lt;OrderTableSkeleton /&gt;
+      ) : isError ? (
+        &lt;div className=&quot;rounded-md border border-destructive p-4 text-destructive&quot;&gt;
+          {error instanceof Error
+            ? error.message
+            : &quot;주문 목록을 불러오지 못했습니다.&quot;}
+        &lt;/div&gt;
+      ) : orders.length === 0 ? (
+        &lt;div className=&quot;py-12 text-center text-muted-foreground&quot;&gt;
+          주문이 없습니다.
+        &lt;/div&gt;
+      ) : (
+        &lt;Table&gt;
+          &lt;TableHeader&gt;
+            &lt;TableRow&gt;
+              &lt;TableHead&gt;주문번호&lt;/TableHead&gt;
+              &lt;TableHead&gt;고객명&lt;/TableHead&gt;
+              &lt;TableHead&gt;상태&lt;/TableHead&gt;
+              &lt;TableHead className=&quot;text-right&quot;&gt;금액&lt;/TableHead&gt;
+              &lt;TableHead&gt;주문일&lt;/TableHead&gt;
+              &lt;TableHead className=&quot;w-[80px]&quot; /&gt;
+            &lt;/TableRow&gt;
+          &lt;/TableHeader&gt;
+          &lt;TableBody&gt;
+            {orders.map((order) =&gt; (
+              &lt;TableRow key={order.id}&gt;
+                &lt;TableCell className=&quot;font-medium&quot;&gt;
+                  {order.orderNumber}
+                &lt;/TableCell&gt;
+                &lt;TableCell&gt;{order.customerName}&lt;/TableCell&gt;
+                &lt;TableCell&gt;
+                  &lt;Badge variant={STATUS_VARIANT[order.status]}&gt;
+               </pre></details>
+<details><summary>📁 page.tsx (1413 chars)</summary><pre>import { dehydrate, HydrationBoundary, QueryClient } from &quot;@tanstack/react-query&quot;;
+
+import type { OrdersResponse } from &quot;@/components/orders/types&quot;;
+
+import OrderList from &quot;@/components/orders/OrderList&quot;;
+
+const PAGE_SIZE = 10;
+
+async function fetchOrders(
+  page: number,
+  status?: string,
+): Promise&lt;OrdersResponse&gt; {
+  const params = new URLSearchParams();
+  params.set(&quot;page&quot;, String(page));
+  params.set(&quot;limit&quot;, String(PAGE_SIZE));
+  if (status &amp;&amp; status !== &quot;all&quot;) {
+    params.set(&quot;status&quot;, status);
+  }
+
+  const res = await fetch(
+    `${process.env.API_BASE_URL}/api/orders?${params.toString()}`,
+    { cache: &quot;no-store&quot; },
+  );
+  if (!res.ok) throw new Error(&quot;주문 목록을 불러오지 못했습니다.&quot;);
+  return res.json();
+}
+
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise&lt;{ page?: string; status?: string }&gt;;
+}) {
+  const { page: pageParam, status: statusParam } = await searchParams;
+  const page = Number(pageParam ?? &quot;1&quot;);
+  const status = statusParam ?? &quot;all&quot;;
+
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: [&quot;orders&quot;, { page, status }],
+    queryFn: () =&gt; fetchOrders(page, status),
+  });
+
+  return (
+    &lt;main className=&quot;container mx-auto py-8&quot;&gt;
+      &lt;h1 className=&quot;mb-6 text-2xl font-bold&quot;&gt;주문 목록&lt;/h1&gt;
+      &lt;HydrationBoundary state={dehydrate(queryClient)}&gt;
+        &lt;OrderList /&gt;
+      &lt;/HydrationBoundary&gt;
+    &lt;/main&gt;
+  );
+}
+</pre></details>
+<details><summary>📁 types.ts (490 chars)</summary><pre>export type OrderStatus = &quot;pending&quot; | &quot;completed&quot; | &quot;cancelled&quot;;
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  status: OrderStatus;
+  totalAmount: number;
+  createdAt: string;
+}
+
+export interface OrdersResponse {
+  orders: Order[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export const ORDER_STATUS_LABEL: Record&lt;&quot;all&quot; | OrderStatus, string&gt; = {
+  all: &quot;전체&quot;,
+  pending: &quot;대기중&quot;,
+  completed: &quot;완료&quot;,
+  cancelled: &quot;취소&quot;,
+};
+</pre></details>
+<details><summary>📁 useOrders.ts (3600 chars)</summary><pre>&quot;use client&quot;;
+
+import { useMutation, useQuery, useQueryClient } from &quot;@tanstack/react-query&quot;;
+import { useRouter, useSearchParams } from &quot;next/navigation&quot;;
+import { create } from &quot;zustand&quot;;
+
+import type { OrdersResponse, OrderStatus } from &quot;./types&quot;;
+
+const PAGE_SIZE = 10;
+
+interface OrderFilterStore {
+  pendingDeleteIds: Set&lt;string&gt;;
+  addPendingDelete: (id: string) =&gt; void;
+  removePendingDelete: (id: string) =&gt; void;
+}
+
+export const useOrderFilterStore = create&lt;OrderFilterStore&gt;((set) =&gt; ({
+  pendingDeleteIds: new Set(),
+  addPendingDelete: (id) =&gt;
+    set((state) =&gt; {
+      const next = new Set(state.pendingDeleteIds);
+      next.add(id);
+      return { pendingDeleteIds: next };
+    }),
+  removePendingDelete: (id) =&gt;
+    set((state) =&gt; {
+      const next = new Set(state.pendingDeleteIds);
+      next.delete(id);
+      return { pendingDeleteIds: next };
+    }),
+}));
+
+async function fetchOrders(
+  page: number,
+  status?: string,
+): Promise&lt;OrdersResponse&gt; {
+  const params = new URLSearchParams();
+  params.set(&quot;page&quot;, String(page));
+  params.set(&quot;limit&quot;, String(PAGE_SIZE));
+  if (status &amp;&amp; status !== &quot;all&quot;) {
+    params.set(&quot;status&quot;, status);
+  }
+
+  const res = await fetch(`/api/orders?${params.toString()}`);
+  if (!res.ok) throw new Error(&quot;주문 목록을 불러오지 못했습니다.&quot;);
+  return res.json();
+}
+
+async function deleteOrder(orderId: string): Promise&lt;void&gt; {
+  const res = await fetch(`/api/orders/${orderId}`, { method: &quot;DELETE&quot; });
+  if (!res.ok) throw new Error(&quot;주문 삭제에 실패했습니다.&quot;);
+}
+
+export function useOrders() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const page = Number(searchParams.get(&quot;page&quot;) ?? &quot;1&quot;);
+  const status = (searchParams.get(&quot;status&quot;) ?? &quot;all&quot;) as
+    | &quot;all&quot;
+    | OrderStatus;
+
+  const queryKey = [&quot;orders&quot;, { page, status }] as const;
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey,
+    queryFn: () =&gt; fetchOrders(page, status),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteOrder,
+    onMutate: async (orderId) =&gt; {
+      await queryClient.cancelQueries({ queryKey: [&quot;orders&quot;] });
+
+      const previous =
+        queryClient.getQueryData&lt;OrdersResponse&gt;(queryKey);
+
+      queryClient.setQueryData&lt;OrdersResponse&gt;(queryKey, (old) =&gt; {
+        if (!old) return old;
+        return {
+          ...old,
+          orders: old.orders.filter((o) =&gt; o.id !== orderId),
+          totalCount: old.totalCount - 1,
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_err, _orderId, context) =&gt; {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () =&gt; {
+      queryClient.invalidateQueries({ queryKey: [&quot;orders&quot;] });
+    },
+  });
+
+  function setStatus(newStatus: &quot;all&quot; | OrderStatus) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newStatus === &quot;all&quot;) {
+      params.delete(&quot;status&quot;);
+    } else {
+      params.set(&quot;status&quot;, newStatus);
+    }
+    params.set(&quot;page&quot;, &quot;1&quot;);
+    router.push(`/orders?${params.toString()}`);
+  }
+
+  function setPage(newPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(&quot;page&quot;, String(newPage));
+    router.push(`/orders?${params.toString()}`);
+  }
+
+  return {
+    orders: data?.orders ?? [],
+    totalCount: data?.totalCount ?? 0,
+    totalPages: data?.totalPages ?? 0,
+    currentPage: page,
+    status,
+    isLoading,
+    isError,
+    error,
+    setStatus,
+    setPage,
+    deleteOrder: deleteMutation.mutate,
+    isDeleting: deleteMutation.isPending,
+  };
+}
+</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 105.7s | $0.4437</p>
+</div>
+</div>
+<textarea placeholder="이 결과에 대한 피드백을 입력하세요..." id="feedback-0"></textarea>
+</div>
+<div class="eval-card"><h2>Eval 1: code-review</h2>
+<p style="color:#8b949e;margin-bottom:15px">Dashboard.tsx 코드 리뷰 — useEffect 남용, Zustand에 서버 데이터 저장, God Component 등 안티패턴 탐지...</p>
+<div class="comparison">
+<div class="variant with-skill"><h4>✅ With Skill</h4>
+<p><span class="badge badge-pass">Pass rate: 5/6 (83%)</span></p>
+<div class="assertion passed">✅ 서버 데이터를 Zustand에 저장하는 안티패턴을 지적한다</div>
+<div class="assertion passed">✅ useEffect+setState로 파생 값 계산하는 안티패턴을 지적한다</div>
+<div class="assertion passed">✅ 서버 상태를 TanStack Query로 전환할 것을 제안한다</div>
+<div class="assertion passed">✅ 파생 값은 렌더링 중 계산(useMemo 또는 변수)하라고 제안한다</div>
+<div class="assertion passed">✅ 컴포넌트가 너무 크거나 역할이 많다는 점을 지적하고 분리를 제안한다</div>
+<div class="assertion failed">❌ 접근성(a11y) 관련 이슈를 지적한다</div>
+<details><summary>📁 review.md (8201 chars)</summary><pre># Code Review: `src/components/Dashboard.tsx`
+
+## 요약
+
+이 컴포넌트에는 프로젝트 컨벤션에서 명시적으로 금지하는 안티패턴이 다수 포함되어 있다. 서버 데이터를 Zustand에 저장하고, `useEffect` + `fetch`로 데이터를 가져오며, 파생 값을 별도 state로 관리하는 구조가 핵심 문제다.
+
+---
+
+## 1. [Critical] 서버 데이터를 Zustand에 저장
+
+**위치**: `useDashboardStore` 전체 (line 6~20)
+
+**문제**: `orders`, `users`는 서버에서 가져오는 데이터다. 프로젝트 상태 분류 기준에 따르면 **서버 상태는 TanStack Query**로 관리해야 한다. Zustand에 서버 데이터를 넣으면:
+
+- 캐싱 전략이 없다 (staleTime, gcTime 없음)
+- 자동 refetch가 없다 (탭 전환, 네트워크 복구 시)
+- 에러/로딩 상태 관리가 없다
+- 캐시 무효화 메커니즘이 없다
+
+&gt; `state-management.md` §6 안티패턴: _&quot;❌ 서버 데이터를 Zustand에 저장 — TanStack Query를 쓰세요!&quot;_
+
+**개선 방향**:
+
+```tsx
+// hooks/useOrders.ts
+export function useOrders(filters: OrderFilters) {
+  return useSuspenseQuery({
+    queryKey: [&#x27;orders&#x27;, &#x27;list&#x27;, filters],
+    queryFn: () =&gt; fetchOrders(filters),
+    staleTime: 30_000,
+  });
+}
+
+// hooks/useUsers.ts
+export function useUsers() {
+  return useSuspenseQuery({
+    queryKey: [&#x27;users&#x27;],
+    queryFn: fetchUsers,
+    staleTime: 30_000,
+  });
+}
+```
+
+---
+
+## 2. [Critical] `useEffect` + `fetch`로 데이터 패칭
+
+**위치**: `useEffect(() =&gt; { fetchOrders(); fetchUsers(); }, [])` (line 33~36)
+
+**문제**: `useEffect` + `fetch` 패턴은 프로젝트에서 명시적으로 금지된 안티패턴이다.
+
+- 경쟁 조건(race condition) 발생 가능
+- 캐싱 없음 — 매번 네트워크 요청
+- 에러 처리 없음 — `res.ok` 체크 없이 `res.json()` 호출
+- 로딩 상태 수동 관리 필요
+- 컴포넌트 언마운트 시 cleanup 없음
+
+&gt; `react-effects.md` §4: _&quot;Effect에서 직접 fetch하지 않는다. 프레임워크/라이브러리를 사용한다.&quot;_
+&gt; `data-fetching.md` 안티패턴: _&quot;useEffect + useState로 데이터 페칭 → TanStack Query가 캐싱, 에러, 로딩, 재시도를 다 해줌&quot;_
+
+**개선 방향**: TanStack Query `useSuspenseQuery`로 교체. 부모에서 `&lt;Suspense&gt;` + `&lt;ErrorBoundary&gt;`로 감싸는 선언적 패턴 적용.
+
+---
+
+## 3. [Critical] 파생 값을 별도 state + useEffect로 관리
+
+**위치**: `filteredOrders`, `totalRevenue`, `activeOrderCount` (line 38~55)
+
+**문제**: 세 값 모두 `orders`와 `filter`에서 계산 가능한 **파생 값(derived state)**이다. 이를 별도 `useState` + `useEffect`로 관리하면:
+
+- 불필요한 리렌더링이 발생한다 (setState 호출마다 추가 렌더링)
+- 한 프레임 동안 stale 값이 표시될 수 있다
+- Effect 체인이 복잡해진다
+
+&gt; `react-effects.md` §2.1: _&quot;기존 state에서 계산 가능한 값은 state로 만들지 않는다.&quot;_
+&gt; `state-management.md` §6: _&quot;❌ derived state를 별도 상태로 관리&quot;_
+
+**개선 방향**: 렌더링 중 직접 계산하거나 `useMemo`로 캐싱한다.
+
+```tsx
+const filteredOrders = useMemo(
+  () =&gt; orders.filter(order =&gt; filter === &#x27;all&#x27; || order.status === filter),
+  [orders, filter],
+);
+
+const totalRevenue = useMemo(
+  () =&gt; orders.reduce((sum, o) =&gt; sum + o.amount, 0),
+  [orders],
+);
+
+// 간단한 계산은 useMemo 없이도 충분
+const activeOrderCount = orders.filter(o =&gt; o.status === &#x27;active&#x27;).length;
+```
+
+---
+
+## 4. [Major] filter 변경 시 page 리셋을 useEffect로 처리
+
+**위치**: `useEffect(() =&gt; { if (filter !== &#x27;all&#x27;) setPage(1); }, [filter])` (line 57~60)
+
+**문제**: filter 변경은 사용자 이벤트(select onChange)가 원인이다. 이벤트의 결과를 Effect로 처리하면 불필요한 리렌더링이 발생하고, &quot;왜 page가 1로 바뀌었는지&quot; 추적이 어렵다.
+
+&gt; `react-effects.md` §1 핵심 판단 기준: _&quot;사용자가 무언가를 했다 → 이벤트 핸들러에 둔다&quot;_
+
+**개선 방향**: 이벤트 핸들러에서 일괄 처리한다.
+
+```tsx
+function handleFilterChange(newFilter: string) {
+  setFilter(newFilter);
+  setPage(1);
+}
+
+// JSX
+&lt;select value={filter} onChange={e =&gt; handleFilterChange(e.target.value)}&gt;
+```
+
+---
+
+## 5. [Major] TypeScript 타입 부재
+
+**문제**: `create((set) =&gt; (...))` 에 제네릭 타입이 없다. store의 `orders`, `users`가 `any[]`로 추론되어 타입 안전성이 전혀 없다. 컴포넌트 내 `useState([])`도 마찬가지.
+
+**개선 방향**: store에 인터페이스를 정의하고, `create&lt;DashboardState&gt;()`처럼 제네릭을 명시한다.
+
+```tsx
+interface Order {
+  id: string;
+  name: string;
+  amount: number;
+  status: &#x27;active&#x27; | &#x27;completed&#x27;;
+}
+
+interface DashboardState {
+  orders: Order[];
+  // ...
+}
+```
+
+---
+
+## 6. [Major] filter, page, sortBy 등 URL 상태를 useState로 관리
+
+**위치**: `filter`, `page`, `sortBy`, `sortDirection`, `searchQuery` (line 29~32)
+
+**문제**: 필터, 페이지네이션, 정렬은 **공유 가능하고 북마크 가능해야 하는 URL 상태**다. `useState`로 관리하면 새로고침 시 초기화되고, URL 공유가 불가능하다.
+
+&gt; `state-management.md` §4: _&quot;필터, 페이지네이션, 정렬 등 공유 가능하고 북마크 가능해야 하는 상태는 URL에 둔다.&quot;_
+
+**개선 방향**: `useSearchParams` 또는 `nuqs`로 URL 상태 관리.
+
+---
+
+## 7. [Major] 에러 처리 부재 + Suspense/ErrorBoundary 미사용
+
+**문제**:
+- `fetch` 응답의 `res.ok` 체크가 없다 — 404/500 응답도 정상 처리됨
+- 로딩 상태 UI가 없다 — 데이터 도착 전까지 빈 화면
+- ErrorBoundary, Suspense가 없다
+
+&gt; `async-patterns.md` §2: _&quot;로딩 상태를 명령형(if/else)이 아닌 선언적(Suspense)으로 처리한다.&quot;_
+
+**개선 방향**:
+
+```tsx
+function DashboardPage() {
+  return (
+    &lt;ErrorBoundary fallback={(error, reset) =&gt; &lt;ErrorFallback error={error} onRetry={reset} /&gt;}&gt;
+      &lt;Suspense fallback={&lt;DashboardSkeleton /&gt;}&gt;
+        &lt;Dashboard /&gt;
+      &lt;/Suspense&gt;
+    &lt;/ErrorBoundary&gt;
+  );
+}
+```
+
+---
+
+## 8. [Minor] 컴포넌트 응집도 — 하나의 컴포넌트에 모든 책임
+
+**문제**: Dashboard 컴포넌트가 데이터 패칭, 필터링, 정렬, 페이지네이션, 통계 계산, 렌더링을 모두 담당한다. 변경 이유가 5개 이상인 &quot;God Component&quot;다.
+
+&gt; `code-quality.md` §4.1: _&quot;변경 이유(reason to change)가 2개 이상이면 분리의 신호다.&quot;_
+
+**개선 방향**: 관심사를 분리한다.
+- 데이터 패칭 → 커스텀 훅 (`useOrders`, `useUsers`)
+- 통계 계산 → 커스텀 훅 또는 파생 값
+- 필터/정렬 UI → 별도 컴포넌트
+- 주문 목록 → 별도 컴포넌트
+
+---
+
+## 9. [Minor] Zustand store를 컴포넌트 파일에 인라인 정의
+
+**문제**: store 정의가 컴포넌트 파일 안에 있다. store를 다른 컴포넌트에서 재사용하려면 import 경로가 `components/Dashboard`가 되어 의미적으로 맞지 않다.
+
+**개선 방향**: `stores/` 디렉토리에 분리하거나, 이 리뷰의 결론대로 TanStack Query로 전환하면 store 자체가 불필요해진다.
+
+---
+
+## 10. [Minor] 미사용 state 변수
+
+**위치**: `isDropdownOpen`, `searchQuery`, `sortB</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 223.2s | $0.9335</p>
+</div>
+<div class="variant without-skill"><h4>🟡 Without Skill</h4>
+<p><span class="badge badge-pass">Pass rate: 4/6 (67%)</span></p>
+<div class="assertion failed">❌ 서버 데이터를 Zustand에 저장하는 안티패턴을 지적한다</div>
+<div class="assertion passed">✅ useEffect+setState로 파생 값 계산하는 안티패턴을 지적한다</div>
+<div class="assertion passed">✅ 서버 상태를 TanStack Query로 전환할 것을 제안한다</div>
+<div class="assertion passed">✅ 파생 값은 렌더링 중 계산(useMemo 또는 변수)하라고 제안한다</div>
+<div class="assertion passed">✅ 컴포넌트가 너무 크거나 역할이 많다는 점을 지적하고 분리를 제안한다</div>
+<div class="assertion failed">❌ 접근성(a11y) 관련 이슈를 지적한다</div>
+<details><summary>📁 review.md (4660 chars)</summary><pre># Code Review: `src/components/Dashboard.tsx`
+
+---
+
+## 1. 파생 상태를 `useState` + `useEffect`로 관리하는 안티패턴 (심각도: 높음)
+
+`totalRevenue`, `activeOrderCount`, `filteredOrders` 모두 `orders`와 `filter`에서 **파생되는 값**인데, 각각 별도의 `useState` + `useEffect`로 관리하고 있다. 이는 React 공식 문서에서 명시적으로 경고하는 [&quot;You Might Not Need an Effect&quot;](https://react.dev/learn/you-might-not-need-an-effect) 안티패턴이다.
+
+**문제점:**
+- 불필요한 상태 동기화 코드가 3개의 `useEffect`로 분산되어 있다.
+- `orders`가 변경되면 렌더링이 2번 발생한다: 1번째는 `orders` 변경으로, 2번째는 `useEffect`가 `setTotalRevenue`, `setActiveOrderCount`, `setFilteredOrders`를 호출해서.
+- 상태 간 일시적 불일치(tearing) 가능성이 있다. `orders`는 새 값인데 `totalRevenue`는 아직 이전 값인 프레임이 존재한다.
+
+**개선:**
+```tsx
+const filteredOrders = useMemo(() =&gt; {
+  if (filter === &#x27;all&#x27;) return orders;
+  return orders.filter(order =&gt; order.status === filter);
+}, [orders, filter]);
+
+const totalRevenue = useMemo(
+  () =&gt; orders.reduce((sum, o) =&gt; sum + o.amount, 0),
+  [orders]
+);
+
+const activeOrderCount = useMemo(
+  () =&gt; orders.filter(o =&gt; o.status === &#x27;active&#x27;).length,
+  [orders]
+);
+```
+
+이렇게 하면 `useEffect` 3개와 `useState` 3개(`filteredOrders`, `totalRevenue`, `activeOrderCount`)를 모두 제거할 수 있다.
+
+---
+
+## 2. TypeScript 타입 부재 (심각도: 높음)
+
+파일 확장자가 `.tsx`인데 타입이 전혀 없다. Zustand store, 주문 데이터, 사용자 데이터 모두 `any`로 추론된다.
+
+**문제점:**
+- `order.amount`가 `number`인지 보장되지 않아 `reduce`에서 문자열 연결이 발생할 수 있다.
+- `order.status`, `order.id`, `order.name` 등 프로퍼티 접근이 타입 체크되지 않는다.
+- Zustand `create` 제네릭이 없어 store 반환 타입이 `any`다.
+
+**개선:**
+```tsx
+interface Order {
+  id: string;
+  name: string;
+  amount: number;
+  status: &#x27;active&#x27; | &#x27;completed&#x27; | &#x27;cancelled&#x27;;
+}
+
+interface DashboardState {
+  orders: Order[];
+  users: User[];
+  fetchOrders: () =&gt; Promise&lt;void&gt;;
+  fetchUsers: () =&gt; Promise&lt;void&gt;;
+}
+
+const useDashboardStore = create&lt;DashboardState&gt;((set) =&gt; ({
+  // ...
+}));
+```
+
+---
+
+## 3. fetch 에러 처리 없음 (심각도: 높음)
+
+`fetchOrders`와 `fetchUsers`에 에러 처리가 전혀 없다.
+
+**문제점:**
+- 네트워크 실패 시 unhandled rejection이 발생한다.
+- `res.ok`를 확인하지 않아 4xx/5xx 응답에서도 `res.json()`을 호출한다. 응답 본문이 JSON이 아니면 파싱 에러가 발생한다.
+- 사용자에게 에러 피드백이 없다.
+
+**개선:**
+```tsx
+fetchOrders: async () =&gt; {
+  try {
+    set({ isLoading: true, error: null });
+    const res = await fetch(&#x27;/api/orders&#x27;);
+    if (!res.ok) throw new Error(`Failed to fetch orders: ${res.status}`);
+    const data = await res.json();
+    set({ orders: data });
+  } catch (error) {
+    set({ error: error instanceof Error ? error.message : &#x27;Unknown error&#x27; });
+  } finally {
+    set({ isLoading: false });
+  }
+},
+```
+
+---
+
+## 4. 로딩 상태 없음 (심각도: 중간)
+
+데이터를 fetch하는 동안 사용자에게 아무런 피드백이 없다. 빈 화면이 보이다가 데이터가 들어오면 갑자기 렌더링된다.
+
+**개선:** store에 `isLoading`, `error` 상태를 추가하고 UI에 로딩/에러 상태를 표시한다.
+
+---
+
+## 5. 사용하지 않는 상태 변수 (심각도: 중간)
+
+선언만 하고 사용하지 않는 변수가 5개나 있다:
+- `stats` — store에서 destructure하지만 렌더링에 사용 안 함
+- `users` — fetch하고 destructure하지만 렌더링에 사용 안 함
+- `searchQuery` — 선언만 하고 어디에도 사용 안 함
+- `sortBy` / `sortDirection` — 선언만 하고 정렬 로직 없음
+- `isDropdownOpen` — 선언만 하고 드롭다운 UI 없음
+
+**개선:** 사용하지 않는 상태를 모두 제거한다. 향후 기능으로 필요하다면 그때 추가한다.
+
+---
+
+## 6. useEffect 의존성 배열 문제 (심각도: 중간)
+
+```tsx
+useEffect(() =&gt; {
+  fetchOrders();
+  fetchUsers();
+}, []);
+```
+
+`fetchOrders`와 `fetchUsers`가 의존성 배열에 포함되지 않았다. Zustand store 함수는 참조가 안정적이라 실제 동작에는 문제가 없지만, `react-hooks/exhaustive-deps` ESLint 규칙 위반이다.
+
+**개선:** 의존성 배열에 추가하거나, 컴포넌트 외부에서 store를 직접 호출하는 패턴을 사용한다.
+
+---
+
+## 7. Zustand store가 컴포넌트 파일에 정의됨 (심각도: 중간)
+
+store가 컴포넌트와 같은 파일에 있어서:
+- 다른 컴포넌트에서 재사용할 수 없다.
+- 관심사 분리가 안 된다.
+- 테스트하기 어렵다.
+
+**개선:** `src/stores/dashboardStore.ts`로 분리한다.
+
+---
+
+## 8. 페이지네이션이 불완전 (심각도: 낮음)
+
+`page` 상태와 slice 로직은 있지만, 페이지 이동 UI(이전/다음 버튼, 총 페이지 수)가 없다. `page`는 항상 1이라 사실상 첫 10개만 보인다.
+
+또한 `filter` 변경 시 `page`를 1로 리셋하는 별도의 `useEffect`가 있는데, 이것도 이벤트 핸들러에서 직접 처리하는 것이 맞다:
+
+```tsx
+const handleFilterChange = (newFilter: string) =&gt; {
+  setFilter(newFilter);
+  setPage(1); // 이벤트 핸들러에서 직접 리셋
+};
+```
+
+---
+
+## 9. `&#x27;use client&#x27;`에서의 데이터 페칭 (심각도: 낮음)
+
+Next.js App Router에서 `&#x27;use client&#x27;` 컴포넌트 내 `useEffect`로 데이터를 가져오고 있다. 이 패턴은:
+- SEO에 불리하다 (초기 HTML에 데이터 없음).
+- 워터폴 문제가 있다 (JS 다운로드 -&gt; 실행 -&gt; fetch 시작).
+
+**개선 방향:** Server Component에서 데이터를 fetch하고 Client Component에는 인터랙션만 맡기는 구조로 변경하거나, TanStack Query 등을 사용해 캐싱/재검증을 관리한다.
+
+---
+
+## 요약
+
+| # | 문제 | 심각도 | 핵심 |
+|---|------|--------|------|
+| 1 | 파생 상태를 `useState`+`useEffect`로 관리 | 높음 | `useMemo`로 교체, `useEffect` 3개 + `useState` 3개 제거 |
+| 2 | TypeScript 타입 부재 | 높음 | store, 데이터 모델에 타입 정의 |
+| 3 | fetch 에러 처리 없음 | 높음 | `try/catch`, `res.ok` 체크, 에러 상태 추가 |
+| 4 | 로딩 상태 없음 | 중간 | `isLoading` 상태 + 로딩 UI |
+| 5 | 미사용 상태 변수 5개 | 중간 | 전부 제거 |
+| 6 | useEffect 의존성 누락 | 중간 | 의존성 추가 또는 호출 패턴 변경 |
+| 7 | store가 컴포넌트 파일 내부에 정의 | 중간 | 별도 파일로 분리 |
+| 8 | 불완전한 페이지네이션 | 낮음 | UI 추가 또는 제거, filter 리셋은 이벤트 핸들러에서 |
+| 9 | CSR 데이터 페칭 | 낮음 | Server Component 활용 검토 |
+</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 147.7s | $0.5048</p>
+</div>
+</div>
+<textarea placeholder="이 결과에 대한 피드백을 입력하세요..." id="feedback-1"></textarea>
+</div>
+<div class="eval-card"><h2>Eval 2: test-writing</h2>
+<p style="color:#8b949e;margin-bottom:15px">LoginForm 컴포넌트 테스트 코드 작성 — Vitest + RTL + MSW, 사용자 관점 테스트...</p>
+<div class="comparison">
+<div class="variant with-skill"><h4>✅ With Skill</h4>
+<details><summary>📁 handlers.ts (489 chars)</summary><pre>import { http, HttpResponse } from &#x27;msw&#x27;;
+
+export const handlers = [
+  http.post(&#x27;/api/auth/login&#x27;, async ({ request }) =&gt; {
+    const { email, password } = (await request.json()) as {
+      email: string;
+      password: string;
+    };
+
+    if (email === &#x27;fail@example.com&#x27;) {
+      return HttpResponse.json(
+        { message: &#x27;이메일 또는 비밀번호가 올바르지 않습니다&#x27; },
+        { status: 401 },
+      );
+    }
+
+    return HttpResponse.json({
+      user: { id: &#x27;user-1&#x27;, name: &#x27;홍길동&#x27; },
+    });
+  }),
+];
+</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 56.1s | $0.4253</p>
+</div>
+<div class="variant without-skill"><h4>🟡 Without Skill</h4>
+<p><span class="badge badge-pass">Pass rate: 6/6 (100%)</span></p>
+<div class="assertion passed">✅ fireEvent 대신 userEvent.setup()을 사용한다</div>
+<div class="assertion passed">✅ getByRole/getByLabelText 등 접근성 쿼리를 우선 사용하고 getByTestId를 사용하지 않는다</div>
+<div class="assertion passed">✅ API 모킹에 MSW를 사용한다</div>
+<div class="assertion passed">✅ it/test 설명이 사용자 행동 기반이다</div>
+<div class="assertion passed">✅ 로그인 성공과 실패 시나리오를 모두 테스트한다</div>
+<div class="assertion passed">✅ test-utils에서 커스텀 render를 import하여 사용한다</div>
+<details><summary>📁 LoginForm.test.tsx (5088 chars)</summary><pre>import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from &#x27;vitest&#x27;;
+import { render, screen, waitFor } from &#x27;@/test-utils&#x27;;
+import userEvent from &#x27;@testing-library/user-event&#x27;;
+import { setupServer } from &#x27;msw/node&#x27;;
+import { http, HttpResponse } from &#x27;msw&#x27;;
+import { LoginForm } from &#x27;@/components/LoginForm&#x27;;
+import { handlers } from &#x27;./handlers&#x27;;
+
+const server = setupServer(...handlers);
+
+beforeAll(() =&gt; server.listen());
+afterEach(() =&gt; server.resetHandlers());
+afterAll(() =&gt; server.close());
+
+describe(&#x27;LoginForm&#x27;, () =&gt; {
+  const mockOnSuccess = vi.fn();
+
+  afterEach(() =&gt; {
+    mockOnSuccess.mockClear();
+  });
+
+  it(&#x27;이메일과 비밀번호 입력 필드를 렌더링한다&#x27;, () =&gt; {
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    expect(screen.getByLabelText(&#x27;이메일&#x27;)).toBeInTheDocument();
+    expect(screen.getByLabelText(&#x27;비밀번호&#x27;)).toBeInTheDocument();
+    expect(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; })).toBeInTheDocument();
+  });
+
+  it(&#x27;폼에 aria-label이 설정되어 있다&#x27;, () =&gt; {
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    expect(screen.getByRole(&#x27;form&#x27;, { name: &#x27;로그인&#x27; })).toBeInTheDocument();
+  });
+
+  it(&#x27;이메일에 @가 없으면 로그인 버튼이 비활성화된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;invalid-email&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;password123&#x27;);
+
+    expect(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; })).toBeDisabled();
+  });
+
+  it(&#x27;비밀번호가 8자 미만이면 로그인 버튼이 비활성화된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;user@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;short&#x27;);
+
+    expect(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; })).toBeDisabled();
+  });
+
+  it(&#x27;유효한 이메일과 비밀번호 입력 시 로그인 버튼이 활성화된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;user@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;password123&#x27;);
+
+    expect(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; })).toBeEnabled();
+  });
+
+  it(&#x27;로그인 성공 시 onSuccess 콜백이 user 데이터와 함께 호출된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;user@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;password123&#x27;);
+    await user.click(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; }));
+
+    await waitFor(() =&gt; {
+      expect(mockOnSuccess).toHaveBeenCalledWith({ id: &#x27;1&#x27;, name: &#x27;Test User&#x27; });
+    });
+  });
+
+  it(&#x27;로그인 요청 중 버튼 텍스트가 &quot;로그인 중...&quot;으로 변경되고 비활성화된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;user@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;password123&#x27;);
+    await user.click(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; }));
+
+    expect(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인 중...&#x27; })).toBeDisabled();
+
+    await waitFor(() =&gt; {
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it(&#x27;로그인 실패 시 에러 메시지를 표시한다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;wrong@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;wrongpassword&#x27;);
+    await user.click(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; }));
+
+    await waitFor(() =&gt; {
+      expect(screen.getByRole(&#x27;alert&#x27;)).toHaveTextContent(
+        &#x27;이메일 또는 비밀번호가 올바르지 않습니다.&#x27;,
+      );
+    });
+
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it(&#x27;로그인 실패 시 이메일 입력에 aria-invalid가 true로 설정된다&#x27;, async () =&gt; {
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;wrong@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;wrongpassword&#x27;);
+    await user.click(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; }));
+
+    await waitFor(() =&gt; {
+      expect(screen.getByLabelText(&#x27;이메일&#x27;)).toHaveAttribute(&#x27;aria-invalid&#x27;, &#x27;true&#x27;);
+    });
+  });
+
+  it(&#x27;네트워크 오류 발생 시 에러 메시지를 표시한다&#x27;, async () =&gt; {
+    server.use(
+      http.post(&#x27;/api/auth/login&#x27;, () =&gt; {
+        return HttpResponse.error();
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    await user.type(screen.getByLabelText(&#x27;이메일&#x27;), &#x27;user@example.com&#x27;);
+    await user.type(screen.getByLabelText(&#x27;비밀번호&#x27;), &#x27;password123&#x27;);
+    await user.click(screen.getByRole(&#x27;button&#x27;, { name: &#x27;로그인&#x27; }));
+
+    await waitFor(() =&gt; {
+      expect(screen.getByRole(&#x27;alert&#x27;)).toBeInTheDocument();
+    });
+
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it(&#x27;placeholder 텍스트가 올바르게 표시된다&#x27;, () =&gt; {
+    render(&lt;LoginForm onSuccess={mockOnSuccess} /&gt;);
+
+    expect(screen.getByPlaceholderText(&#x27;이메일을 입력하세요&#x27;)).toBeInTheDocument()</pre></details>
+<details><summary>📁 handlers.ts (519 chars)</summary><pre>import { http, HttpResponse } from &#x27;msw&#x27;;
+
+export const handlers = [
+  http.post(&#x27;/api/auth/login&#x27;, async ({ request }) =&gt; {
+    const { email, password } = (await request.json()) as {
+      email: string;
+      password: string;
+    };
+
+    if (email === &#x27;user@example.com&#x27; &amp;&amp; password === &#x27;password123&#x27;) {
+      return HttpResponse.json({
+        user: { id: &#x27;1&#x27;, name: &#x27;Test User&#x27; },
+      });
+    }
+
+    return HttpResponse.json(
+      { message: &#x27;이메일 또는 비밀번호가 올바르지 않습니다.&#x27; },
+      { status: 401 },
+    );
+  }),
+];
+</pre></details>
+<p style="color:#8b949e;font-size:12px;margin-top:8px">⏱ 138.3s | $0.5926</p>
+</div>
+</div>
+<textarea placeholder="이 결과에 대한 피드백을 입력하세요..." id="feedback-2"></textarea>
+</div>
+
+<button class="submit-btn" onclick="submitFeedback()">Submit All Reviews</button>
+</div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function submitFeedback() {
+  const reviews = [];
+  document.querySelectorAll('textarea').forEach((el, i) => {
+    reviews.push({eval_id: i, feedback: el.value, timestamp: new Date().toISOString()});
+  });
+  const blob = new Blob([JSON.stringify({reviews, status: 'complete'}, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'feedback.json';
+  a.click();
+}
+</script>
+</body></html>

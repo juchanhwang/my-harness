@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "서버 데이터를 Zustand에 저장하는 안티패턴을 지적한다",
+      "passed": true,
+      "evidence": "Identified Zustand server data anti-pattern"
+    },
+    {
+      "text": "useEffect+setState로 파생 값 계산하는 안티패턴을 지적한다",
+      "passed": true,
+      "evidence": "Identified derived state anti-pattern"
+    },
+    {
+      "text": "서버 상태를 TanStack Query로 전환할 것을 제안한다",
+      "passed": true,
+      "evidence": "Suggested TanStack Query"
+    },
+    {
+      "text": "파생 값은 렌더링 중 계산(useMemo 또는 변수)하라고 제안한다",
+      "passed": true,
+      "evidence": "Suggested useMemo/rendering calculation"
+    },
+    {
+      "text": "컴포넌트가 너무 크거나 역할이 많다는 점을 지적하고 분리를 제안한다",
+      "passed": true,
+      "evidence": "Identified God Component / suggested splitting"
+    },
+    {
+      "text": "접근성(a11y) 관련 이슈를 지적한다",
+      "passed": false,
+      "evidence": "Did not mention accessibility"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  }
+}

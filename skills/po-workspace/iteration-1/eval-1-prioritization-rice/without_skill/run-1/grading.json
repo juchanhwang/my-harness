@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "RICE 공식 '(Reach × Impact × Confidence) / Effort'이 명시적으로 언급된다",
+      "passed": true,
+      "evidence": "'RICE 공식 정의' 섹션에 'RICE Score = (Reach × Impact × Confidence) / Effort' 명시."
+    },
+    {
+      "text": "5개 기능 모두에 대해 R, I, C, E 네 값이 모두 제시된다 (하나라도 빠지면 실패)",
+      "passed": true,
+      "evidence": "5개 기능 모두 추정값 테이블에 Reach, Impact, Confidence, Effort 네 값 제시. 최종 종합 순위 테이블에서도 5 × 4값 모두 존재."
+    },
+    {
+      "text": "Impact 값이 RICE 표준 스케일(3/2/1/0.5/0.25) 중 하나를 사용한다",
+      "passed": true,
+      "evidence": "RICE 공식 정의에 '1~5 점 척도 (배수) 3=대형, 2=중형, 1=소형, 0.5=최소, 0.25=무시 가능' 명시. 사용 값: 다크모드 1, Slack 2, 커스텀 필드 3, 모바일 2, API 3 — 표준 스케일 값."
+    },
+    {
+      "text": "Confidence가 백분율(%)로 표현된다",
+      "passed": true,
+      "evidence": "Confidence 값을 0.80, 0.75, 0.80, 0.60, 0.70 소수점 형태로 표기하며 RICE 공식 정의에 '% (소수)'로 명시. 공식 스케일은 아님."
+    },
+    {
+      "text": "Effort가 person-months 또는 그에 상응하는 공수 단위로 표현된다",
+      "passed": true,
+      "evidence": "1.0 PM, 1.5 PM, 2.0 PM, 4.0 PM, 2.0 PM — person-months 단위 일관."
+    },
+    {
+      "text": "각 기능에 계산된 RICE 숫자 점수가 포함된다",
+      "passed": true,
+      "evidence": "다크모드 7,200 / Slack 9,750 / 커스텀 필드 14,400 / 모바일 1,800 / API 1,575 — 계산식 포함."
+    },
+    {
+      "text": "5개 기능이 RICE 점수에 따라 순위가 매겨진다",
+      "passed": true,
+      "evidence": "'RICE 스코어 종합 순위' 테이블에 1위(커스텀 필드 14,400) ~ 5위(API v2 1,575) 정렬."
+    },
+    {
+      "text": "상위 2개 선택 이유와 나머지 3개 탈락 이유가 구체적으로 설명된다",
+      "passed": true,
+      "evidence": "'Q1 상위 2개 선택 권고' 섹션에 커스텀 필드 + Slack 선택 이유 구체 기술. '나머지 3개 제외 이유' 섹션에 다크 모드/모바일/API 각각 제외 이유 + '언제 해야 하는가' 조건 명시."
+    },
+    {
+      "text": "리소스 제약(6 person-months)이 의사결정에 반영된다",
+      "passed": true,
+      "evidence": "'합계 Effort: 2.0 + 1.5 = 3.5 PM → 6 PM 예산 내, 버퍼 2.5 PM 확보' 명시. 단, 상위 1+2위 합계가 3.5 PM으로 2.5 PM 여유가 생기는데 이를 다른 기능에 쓰거나 품질에 투자할지에 대한 논의는 없음."
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0,
+    "total": 9,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "RICE 숫자가 with_skill과 상이 (추정값이 다름). without_skill이 Impact를 더 후하게 줌 (커스텀 필드 3 vs with_skill 2) — 결과적으로 순위가 다름",
+    "with_skill은 RICE 2위를 정성적으로 override하는 전략적 판단을 보여주나, without_skill은 단순 RICE 순위 그대로 상위 2개 선택",
+    "RICE 주의사항 ('전략적 중요도는 별도 고려') 언급 없음",
+    "Assumptions 섹션 별도 정리 — 이건 강점",
+    "181줄로 with_skill의 344줄 대비 간결"
+  ]
+}

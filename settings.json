@@ -1,6 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000"
   },
   "permissions": {
     "allow": [
@@ -15,9 +16,35 @@
       "NotebookEdit(*)",
       "Task(*)",
       "mcp__*",
+      "mcp__playwright",
+      "mcp__playwright__*",
+      "mcp__plugin_github_github",
+      "mcp__plugin_github_github__*",
+      "mcp__plugin_context7_context7",
+      "mcp__plugin_context7_context7__*",
+      "mcp__plugin_vercel_vercel",
+      "mcp__plugin_vercel_vercel__*",
       "Skill(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(rm -r:*)",
+      "Bash(rm -fr:*)",
+      "Bash(sudo:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(shutdown:*)",
+      "Bash(reboot:*)",
+      "Bash(halt:*)",
+      "Bash(chmod 777:*)",
+      "Bash(chmod -R 777:*)"
+    ],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "/Users/JuChan"
     ]
   },
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
@@ -70,5 +97,9 @@
     "superpowers@claude-plugins-official": true
   },
   "effortLevel": "high",
-  "autoDreamEnabled": true
+  "autoDreamEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "auto",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }

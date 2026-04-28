@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "fe-performance", "runs": [{"id": "eval-0-ssr-boundary-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# PR \ub9ac\ubdf0 \ucf54\uba58\ud2b8 \u2014 `layout.tsx` `'use client'` \uacbd\uacc4 \uc774\uc288 \ubc0f LCP 4\ucd08 \ubb38\uc81c\n\n## \uc694\uc57d\n\n**\ub3d9\ub8cc\uc758 \uc81c\uc548(`next/dynamic` lazy load)\uc740 \uc798\ubabb\ub41c \ubc29\ud5a5\uc785\ub2c8\ub2e4.** \uadfc\ubcf8 \uc6d0\uc778\uc744 \ud574\uacb0\ud558\uc9c0 \ubabb\ud558\uace0 \uc624\ud788\ub824 LCP\ub97c \uc545\ud654\uc2dc\ud0ac \uc218 \uc788\uc2b5\ub2c8\ub2e4. \uc62c\ubc14\ub978 \ud574\uacb0\ucc45\uc740 **`'use client'` \uacbd\uacc4\ub97c \ucd5c\uc0c1\uc704 layout\uc5d0\uc11c \uc81c\uac70\ud558\uace0 ThemeProvider\ub97c \ubcc4\ub3c4 Client Component\ub85c \ubd84\ub9ac\ud574 push down**\ud558\ub294 \uac83\uc785\ub2c8\ub2e4.\n\n---\n\n## 1. \uc9c4\ub2e8 \u2014 \ubb34\uc5c7\uc774 \ubb38\uc81c\uc778\uac00\n\n### \ud604\uc7ac \ucf54\ub4dc\uc758 \uad6c\uc870\uc801 \ubb38\uc81c\n\n```tsx\n// \u274c \ud604\uc7ac \u2014 app/layout.tsx\n'use client'\n\nexport default function RootLayout({ children }) {\n  return (\n    <html lang=\"ko\">\n      <body>\n        <ThemeProvider>{children}</ThemeProvider>\n      </body>\n    </html>\n  )\n}\n```\n\n\uc774 \uad6c\uc870\uac00 LCP 4\ucd08\ub97c \ub9cc\ub4dc\ub294 \uc9c1\uc811\uc801 \uc6d0\uc778\uc785\ub2c8\ub2e4.\n\n**Next.js \uacf5\uc2dd \ubb38\uc11c \uc778\uc6a9:**\n\n> \"`'use client'` is used to declare a **boundary** between the Server and Client module graphs. Once a file is marked with `'use client'`, **all its imports and child components are considered part of the client bundle**.\"\n>\n> \u2014 [Next.js Docs \u00b7 Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)\n\n`layout.tsx`\uc5d0 `'use client'`\ub97c \uc120\uc5b8\ud558\ub294 \uc21c\uac04 **\uc571 \uc804\uccb4 \ud2b8\ub9ac\uac00 Client Bundle\uc5d0 \ud3ec\ud568**\ub429\ub2c8\ub2e4. \uad6c\uccb4\uc801\uc73c\ub85c \ubc1c\uc0dd\ud558\ub294 \ubb38\uc81c\ub294 \ub2e4\uc74c\uacfc \uac19\uc2b5\ub2c8\ub2e4.\n\n| \uc99d\uc0c1 | \uc6d0\uc778 |\n|---|---|\n| JS \ubc88\ub4e4 \ud06c\uae30 \ud3ed\uc99d | Server \uc804\uc6a9 \ucf54\ub4dc(DB \ud638\ucd9c, \uc11c\ubc84 \ub77c\uc774\ube0c\ub7ec\ub9ac)\uac00 client\uc5d0 \ud3ec\ud568\ub428 |\n| FCP \uc9c0\uc5f0 | \uc11c\ubc84\uac00 \uc815\uc801\uc73c\ub85c \ub80c\ub354\ud560 \uc218 \uc788\ub294 \uc601\uc5ed\uc774 \uc5c6\uc5b4\uc9d0 |\n| LCP \uc9c0\uc5f0 | Streaming\uc774 \ubd88\uac00\ub2a5\ud574 \ubaa8\ub4e0 \ub370\uc774\ud130 fetch\uac00 \uc644\ub8cc\ub420 \ub54c\uae4c\uc9c0 \uccab paint\uac00 \ucc28\ub2e8\ub428 |\n| Streaming \ubb34\ub825\ud654 | static shell\uc774 \uc5c6\uc73c\ubbc0\ub85c `<Suspense>` \uacbd\uacc4\uc758 \ud6a8\uacfc\uac00 \uc0ac\ub77c\uc9d0 |\n\n**\ud300 \ub0b4\ubd80 knowledge base (performance-ssr.md) \uc548\ud2f0\ud328\ud134 \uc139\uc158\uc5d0\ub3c4 \uba85\uc2dc:**\n\n> \u274c **`'use client'`\ub97c root layout\uc5d0 \ucd94\uac00** \u2014 \uc804\uccb4 \ud2b8\ub9ac\uac00 client bundle\uc5d0 \ub4e4\uc5b4\uac04\ub2e4. boundary\ub294 \uac00\ub2a5\ud55c \ud55c \uae4a\uac8c.\n\n---\n\n## 2. \ub3d9\ub8cc\uc758 \uc81c\uc548\uc774 \ud2c0\ub9b0 \uc774\uc720 \u2014 `next/dynamic` lazy load\n\n```tsx\n// \u274c \ub3d9\ub8cc \uc81c\uc548 \u2014 \uc798\ubabb\ub41c \uc811\uadfc\n'use client'\n\nconst ThemeProvider = dynamic(() => import('./theme-provider'), { ssr: false })\n\nexport default function RootLayout({ children }) {\n  return (\n    <html lang=\"ko\">\n      <body>\n        <ThemeProvider>{children}</ThemeProvider>\n      </body>\n    </html>\n  )\n}\n```\n\n\uc774 \ubc29\ubc95\uc740 \ub2e4\uc74c \uc774\uc720\ub85c \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.\n\n**\u2460 \uadfc\ubcf8 \uc6d0\uc778 \ubbf8\ud574\uacb0**: `layout.tsx`\uc5d0 `'use client'`\uac00 \uadf8\ub300\ub85c \uc788\uc73c\ubbc0\ub85c **\uc804\uccb4 \ud2b8\ub9ac\uac00 Client Bundle\uc5d0 \ud3ec\ud568\ub418\ub294 \ubb38\uc81c\ub294 \ub3d9\uc77c**\ud569\ub2c8\ub2e4. ThemeProvider\ub9cc lazy load\ub41c\ub2e4\uace0 \ud574\uc11c \uacbd\uacc4 \ubb38\uc81c\uac00 \ud574\uacb0\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.\n\n**\u2461 `ssr: false`\ub294 LCP\ub97c \uc545\ud654\uc2dc\ud0b5\ub2c8\ub2e4**: `ssr: false` \uc635\uc158\uc740 \ud574\ub2f9 \ucef4\ud3ec\ub10c\ud2b8\ub97c CSR \uc804\uc6a9\uc73c\ub85c \ub9cc\ub4ed\ub2c8\ub2e4. ThemeProvider\uac00 `children` \uc804\uccb4\ub97c \uac10\uc2f8\uace0 \uc788\uc73c\ubbc0\ub85c, ThemeProvider\uac00 hydrate\ub418\uae30 \uc804\uae4c\uc9c0 **\uc790\uc2dd \ud2b8\ub9ac \uc804\uccb4\uac00 \ub80c\ub354\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.** LCP \uc694\uc18c\uac00 ThemeProvider \uc548\uc5d0 \uc788\ub2e4\uba74 LCP\ub294 \uc624\ud788\ub824 \ub354 \ub2a6\uc5b4\uc9d1\ub2c8\ub2e4.\n\n**\u2462 \uc62c\ubc14\ub978 `next/dynamic` \uc6a9\ub3c4**: `next/dynamic`\uc740 \ud2b9\uc815 \ucef4\ud3ec\ub10c\ud2b8\uc758 \ucf54\ub4dc \uc2a4\ud50c\ub9ac\ud305\uc744 \uc704\ud55c \ub3c4\uad6c\uc785\ub2c8\ub2e4. `'use client'` \uacbd\uacc4 \ubb38\uc81c\ub97c \ud574\uacb0\ud558\ub294 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4.\n\n---\n\n## 3. \uc62c\ubc14\ub978 \ud574\uacb0\ucc45 \u2014 ThemeProvider\ub97c \ubcc4\ub3c4 Client Component\ub85c \ubd84\ub9ac\n\n**\uacf5\uc2dd \uad8c\uace0 \ud328\ud134:**\n\n> \"ThemeProvider\uac00 `<html>` \uc804\uccb4\uac00 \uc544\ub2c8\ub77c `{children}`\ub9cc \uac10\uc2f8\ub3c4\ub85d \ud574\uc11c Next.js\uac00 Server Components\uc758 static \ubd80\ubd84\uc744 \ucd5c\uc801\ud654\ud558\uae30 \uc27d\uac8c \ub9cc\ub4e4\uc5b4\ub77c.\"\n>\n> \u2192 \ucd5c\uc0c1\uc704 layout\uc774 `'use client'`\uac00 \ub418\uba74 **\ud558\uc704 \ud2b8\ub9ac \uc804\uccb4\uac00 client bundle**\uc5d0 \ub4e4\uc5b4\uac04\ub2e4. Provider\ub294 \ud544\uc694\ud55c \uac00\uc7a5 \uae4a\uc740 \uc9c0\uc810\uc5d0 \ub454\ub2e4.\n>\n> \u2014 [Next.js Docs \u00b7 Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)\n\n### \uc218\uc815 \ubc29\ubc95\n\n**Step 1: ThemeProvider\ub97c \ubcc4\ub3c4 \ud30c\uc77c\ub85c \ubd84\ub9ac**\n\n```tsx\n// app/_components/theme-provider.tsx\n'use client'  // 'use client'\ub294 \uc774 \ud30c\uc77c\uc5d0\ub9cc\n\nimport { ThemeProvider as NextThemeProvider } from 'next-themes'\n\nexport function ThemeProvider({ children }: { children: React.ReactNode }) {\n  return (\n    <NextThemeProvider attribute=\"class\" defaultTheme=\"system\" enableSystem>\n      {children}\n    </NextThemeProvider>\n  )\n}\n```\n\n**Step 2: layout.tsx\uc5d0\uc11c `'use client'` \uc81c\uac70**\n\n```tsx\n// \u2705 \uc218\uc815 \ud6c4 \u2014 app/layout.tsx (Server Component)\n// 'use client' \uc5c6\uc74c!\n\nimport { ThemeProvider } from './_components/theme-provider'\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"ko\">\n      <body>\n        <ThemeProvider>\n          {children}\n        </ThemeProvider>\n      </body>\n    </html>\n  )\n}\n```\n\n\uc774\ub807\uac8c \ud558\uba74:\n- `layout.tsx`\ub294 Server Component\ub85c \uc720\uc9c0\ub429\ub2c8\ub2e4.\n- `ThemeProvider` \ud30c\uc77c\ub9cc Client Bundle\uc5d0 \ud3ec\ud568\ub429\ub2c8\ub2e4.\n- `children`(\uc790\uc2dd \ucef4\ud3ec\ub10c\ud2b8\ub4e4)\uc740 \uc5ec\uc804\ud788 Server Component\ub85c \ub80c\ub354\ub429\ub2c8\ub2e4.\n\n> **RSC children \ud569\uc131 \ud328\ud134 \uc6d0\ub9ac**: Server Component\uac00 Client Component\uc5d0 `children`\uc744 prop\uc73c\ub85c \ub118\uae30\ub294 \ubc29\uc2dd\uc740 \uc720\ud6a8\ud569\ub2c8\ub2e4. `children`\uc740 Server\uc5d0\uc11c \ubbf8\ub9ac \ub80c\ub354\ub418\uc5b4 \uc9c1\ub82c\ud654\ub41c \ud615\ud0dc\ub85c \uc804\ub2ec\ub418\uae30 \ub54c\ubb38\uc5d0 Client Component\uac00 \uac10\uc2f8\ub354\ub77c\ub3c4 `children` \ub0b4\ubd80\uc758 Server Component \ud2b9\uc131\uc774 \uc720\uc9c0\ub429\ub2c8\ub2e4.\n\n---\n\n## 4. Streaming\uc73c\ub85c LCP\ub97c \ucd94\uac00 \ucd5c\uc801\ud654\n\n`'use client'` \uacbd\uacc4 \uc218\uc815 \ud6c4\uc5d0\ub3c4 layout\uc774\ub098 page \uc0c1\ub2e8\uc5d0\uc11c `await`\uac00 \uc788\ub2e4\uba74 Streaming\uc774 \ub9c9\ud600 LCP\uac00 \uc9c0\uc5f0\ub420 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\n\n**\uacf5\uc2dd \ubb38\uc11c \uacbd\uace0:**\n\n> \"If you `await` any of these [`params`, `searchParams`, `cookies()`, `headers()`, data fetches] at the top of a layout or page, **everything below that point becomes dynamic and cannot be prerendered as part of the static shell**.\"\n>\n> \u2014 [Next.js Docs \u00b7 Streaming](https://nextjs.org/docs/app/guides/streaming)\n\n**Web Vitals\uc5d0 \ubbf8\uce58\ub294 \uc601\ud5a5:**\n\n| \uc9c0\ud45c | Streaming \uc801\uc6a9 \uc2dc \ud6a8\uacfc |\n|---|---|\n| **TTFB / FCP** | static shell\uc774 \uc989\uc2dc \uc804\uc1a1 \u2192 \ub370\uc774\ud130 fetch\uc640 \ubd84\ub9ac\ub428 |\n| **LCP** | LCP \uc694\uc18c\uac00 `<Suspense>` \uc548\uc5d0 \uc788\uc73c\uba74 boundary \ud574\uacb0 \uc804 paint \uc548 \ub428 \u2192 **LCP \uc694\uc18c\ub294 Suspense \ubc16(static shell)\uc5d0 \ub454\ub2e4** |\n| **CLS** | skeleton fallback\uc758 dimension\uc744 \uc2e4\uc81c \ucf58\ud150\uce20\uc640 \uc77c\uce58\uc2dc\ud0a8\ub2e4 |\n\n```tsx\n// \u274c layout \uc0c1\ub2e8\uc5d0\uc11c await \u2014 \uc804\uccb4 \ud2b8\ub9ac\uac00 dynamic, Streaming \ubd88\uac00\nexport default async function Layout({ children }) {\n  const cookieStore = await cookies()\n  return <div>{children}</div>\n}\n\n// \u2705 Suspense \uc548\uc5d0\uc11c \ud638\ucd9c \u2014 static shell + \uc810\uc9c4\uc801 stream\nexport default function Layout({ children }) {\n  return (\n    <div>\n      <Suspense fallback={<UserSkeleton />}>\n        <UserMenu /> {/* \ub0b4\ubd80\uc5d0\uc11c cookies() \ud638\ucd9c */}\n      </Suspense>\n      {children}\n    </div>\n  )\n}\n```\n\n---\n\n## 5. \uce21\uc815 \u2014 \ubcc0\uacbd \uc804\ud6c4 LCP\ub97c \ubc18\ub4dc\uc2dc \uce21\uc815\ud558\ub77c\n\n**\uc218\uc815 \ud6c4 \ubc18\ub4dc\uc2dc \ub2e4\uc74c \ub3c4\uad6c\ub85c \uac80\uc99d\ud558\uc138\uc694.**\n\n**LCP \uae30\uc900\uac12 (web.dev \uacf5\uc2dd):**\n\n| LCP | Good | Needs Improvement | Poor |\n|---|---|---|---|\n| \uc784\uacc4\uac12 | \u2264 2.5 s | 2.5 s ~ 4.0 s | > 4.0 s |\n\n> \"To ensure you're hitting the recommended target for these metrics for most of your users, a good threshold to measure is the **75th percentile** of page loads.\"\n>\n> \u2014 [web.dev \u00b7 Web Vitals](https://web.dev/articles/vitals)\n\n\ud604\uc7ac LCP 4\ucd08\ub294 **\"Poor\" \uad6c\uac04**\uc785\ub2c8\ub2e4.\n\n### \uc9c4\ub2e8 \ub3c4\uad6c\n\n| \ub3c4\uad6c | \uc6a9\ub3c4 |\n|---|---|\n| **Lighthouse** (DevTools) | \ub85c\uceec\uc5d0\uc11c before/after \ube44\uad50 (Lab \ub370\uc774\ud130) |\n| **Vercel Speed Insights** | \uc2e4 \uc0ac\uc6a9\uc790 \uae30\ubc18 Field \ub370\uc774\ud130 |\n| **PageSpeed Insights** | Lab + CrUX Field \ub370\uc774\ud130 \ub3d9\uc2dc \ud655\uc778 |\n| **Chrome DevTools Network** | JS \ubc88\ub4e4 \ud06c\uae30 \ubcc0\ud654 \ud655\uc778 |\n\n```tsx\n// Vercel Speed Insights \ucd94\uac00 (layout.tsx, 'use client' \uc5c6\uc5b4\ub3c4 \ub428)\nimport { SpeedInsights } from '@vercel/speed-insights/next'\n\nexport default function RootLayout({ children }) {\n  return (\n    <html lang=\"ko\">\n      <body>\n        <ThemeProvider>\n          {children}\n        </ThemeProvider>\n        <SpeedInsights />  {/* \ub0b4\ubd80\uc801\uc73c\ub85c 'use client' + Suspense \ucc98\ub9ac\ub428 */}\n      </body>\n    </html>\n  )\n}\n```\n\n> `@vercel/speed-insights/next` \uc5d4\ud2b8\ub9ac\ub294 \ub0b4\ubd80\uc801\uc73c\ub85c `'use client'` + `<Suspense>`\ub85c \uac10\uc2f8\uc838 \uc788\uc5b4, Server Component\uc778 `layout.tsx`\uc5d0\uc11c \uc9c1\uc811 import\ud574\ub3c4 client boundary\uac00 \ud328\ud0a4\uc9c0 \ub0b4\ubd80\uc5d0\uc11c \ucc98\ub9ac\ub429\ub2c8\ub2e4.\n>\n> \ucd9c\ucc98: [vercel/speed-insights \u00b7 packages/web/src/nextjs/index.tsx](https://github.com/vercel/speed-insights/blob/main/packages/web/src/nextjs/index.tsx)\n\n---\n\n## 6. \ubcc0\uacbd \uc694\uc57d\n\n| \ud56d\ubaa9 | Before | After |\n|---|---|---|\n| `layout.tsx` directive | `'use client'` | (\uc5c6\uc74c, Server Component) |\n| Client Bundle \ubc94\uc704 | \uc571 \uc804\uccb4 \ud2b8\ub9ac | ThemeProvider \ud30c\uc77c\ub9cc |\n| Streaming \uac00\ub2a5 \uc5ec\ubd80 | \ubd88\uac00 | \uac00\ub2a5 |\n| LCP \uc608\uc0c1 | > 4.0 s (Poor) | \u2264 2.5 s (Good) \ubaa9\ud45c |\n\n---\n\n## Action Items\n\n- [ ] `app/layout.tsx`\uc5d0\uc11c `'use client'` \uc81c\uac70\n- [ ] `app/_components/theme-provider.tsx` \ud30c\uc77c \uc2e0\uaddc \uc0dd\uc131 (`'use client'` \uc774\ub3d9)\n- [ ] layout \ub610\ub294 page \uc0c1\ub2e8\uc758 `await cookies()` / `await headers()` \ud328\ud134\uc774 \uc788\ub2e4\uba74 `<Suspense>` \uc548\uc73c\ub85c push down\n- [ ] \uc218\uc815 \ud6c4 Lighthouse\ub85c before/after LCP \ube44\uad50 \uce21\uc815\n- [ ] `@vercel/speed-insights` \ucd94\uac00\ud558\uc5ec Field \ub370\uc774\ud130 \ubaa8\ub2c8\ud130\ub9c1 \uc2dc\uc791\n\n---\n\n**\ucc38\uace0 \ubb38\uc11c**\n- [Next.js Docs \u00b7 Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)\n- [Next.js Docs \u00b7 Streaming](https://nextjs.org/docs/app/guides/streaming)\n- [web.dev \u00b7 Web Vitals](https://web.dev/articles/vitals)\n- [web.dev \u00b7 LCP](https://web.dev/articles/lcp)\n- [Next.js Docs \u00b7 useReportWebVitals](https://nextjs.org/docs/app/api-reference/functions/use-report-web-vitals)\n- [Vercel Docs \u00b7 Speed Insights](https://vercel.com/docs/speed-insights)\n"}], "grading": {"eval_id": 0, "eval_name": "ssr-boundary", "config": "with_skill", "expectations": [{"text": "Identifies 'lazy load Provider' as the wrong approach", "passed": true, "evidence": "Line 5: '\ub3d9\ub8cc\uc758 \uc81c\uc548(next/dynamic lazy load)\uc740 \uc798\ubabb\ub41c \ubc29\ud5a5\uc785\ub2c8\ub2e4'. Section 2 explicitly titled '\ub3d9\ub8cc\uc758 \uc81c\uc548\uc774 \ud2c0\ub9b0 \uc774\uc720'."}, {"text": "Explains 'use client' as a module-graph boundary", "passed": true, "evidence": "Line 32 direct official quote: 'boundary between the Server and Client module graphs... all its imports and child components are considered part of the client bundle' with nextjs.org URL."}, {"text": "Recommends pushing Provider deeper ({children} only)", "passed": true, "evidence": "Line 84: official quote 'ThemeProvider\uac00 <html> \uc804\uccb4\uac00 \uc544\ub2c8\ub77c {children}\ub9cc \uac10\uc2f8\ub3c4\ub85d'. Step 1+2 implementation example shows ThemeProvider extracted to separate client component file."}, {"text": "Cites Next.js official documentation URL", "passed": true, "evidence": "Multiple URLs: nextjs.org/docs/app/getting-started/server-and-client-components, nextjs.org/docs/app/guides/streaming, web.dev/articles/vitals, web.dev/articles/lcp."}, {"text": "Mentions concrete performance benefits (JS bundle / FCP / streaming)", "passed": true, "evidence": "Line 38-43 table lists: 'JS \ubc88\ub4e4 \ud06c\uae30 \ud3ed\uc99d', 'FCP \uc9c0\uc5f0', 'LCP \uc9c0\uc5f0', 'Streaming \ubb34\ub825\ud654'."}], "summary": {"passed": 5, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-0-ssr-boundary-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# PR \ub9ac\ubdf0: LCP 4\ucd08 \ucd08\uacfc \u2014 `layout.tsx` `'use client'` \uacbd\uacc4 \ubb38\uc81c\n\n## TL;DR\n\n\ub3d9\ub8cc\uc758 \uc81c\uc548(ThemeProvider\ub97c `next/dynamic`\uc73c\ub85c lazy load)\uc740 **\ubd80\ubd84\uc801\uc73c\ub85c\ub9cc \ub9de\uace0, \uadfc\ubcf8 \uc6d0\uc778 \uc9c4\ub2e8\uc744 \ube60\ub728\ub838\uc2b5\ub2c8\ub2e4.** `next/dynamic` \ub2e8\ub3c5\uc73c\ub85c\ub294 LCP\ub97c \uc720\uc758\ubbf8\ud558\uac8c \uac1c\uc120\ud558\uc9c0 \ubabb\ud558\uba70, \uc624\ud788\ub824 \uc0c1\ud669\uc5d0 \ub530\ub77c \ub354 \ub098\ube60\uc9c8 \uc218 \uc788\uc2b5\ub2c8\ub2e4. \uc62c\ubc14\ub978 \uc811\uadfc\uc740 **`'use client'` \uacbd\uacc4\ub97c root layout\uc5d0\uc11c \uc81c\uac70\ud558\uace0, ThemeProvider \uc790\uccb4\ub97c \uaca9\ub9ac\ub41c Client Component\ub85c \ubd84\ub9ac**\ud558\ub294 \uac83\uc785\ub2c8\ub2e4.\n\n---\n\n## 1. \ud604\uc7ac \ucf54\ub4dc\uc758 \ubb38\uc81c\n\n```tsx\n// app/layout.tsx (\ud604\uc7ac \u2014 \uc798\ubabb\ub41c \ud328\ud134)\n'use client'  // \u2190 \uc774 \ud55c \uc904\uc774 \ubaa8\ub4e0 \ubb38\uc81c\uc758 \uc6d0\uc778\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html>\n      <body>\n        <ThemeProvider>{children}</ThemeProvider>\n      </body>\n    </html>\n  )\n}\n```\n\n### \ubb38\uc81c\uc810 1: \uc804\uccb4 \ud2b8\ub9ac\uac00 Client Component\ub85c \uac15\ub4f1\n\n`'use client'`\ub97c `layout.tsx` \ucd5c\uc0c1\ub2e8\uc5d0 \uc120\uc5b8\ud558\uba74, **\uc774 \ud30c\uc77c \uc544\ub798\uc5d0 import\ub41c \ubaa8\ub4e0 \ubaa8\ub4c8**\uc774 \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc5d0 \ud3ec\ud568\ub429\ub2c8\ub2e4. Next.js App Router\uc758 \ud575\uc2ec \uac00\uce58\uc778 \"\uc11c\ubc84\uc5d0\uc11c \ub80c\ub354\ub9c1\ud574 HTML\uc744 \uc989\uc2dc \uc804\uc1a1\"\ud558\ub294 \ub2a5\ub825\uc744 \ub808\uc774\uc544\uc6c3 \uc804\uccb4\uc5d0\uc11c \ud3ec\uae30\ud558\ub294 \uc148\uc785\ub2c8\ub2e4.\n\n> **\uadfc\uac70**: Next.js \uacf5\uc2dd \ubb38\uc11c \u2014 [Server and Client Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)\n> > \"Moving Client Components down the tree\" \uc139\uc158\uc5d0\uc11c, `'use client'` \uacbd\uacc4\ub97c \ud2b8\ub9ac \uc0c1\ub2e8\uc5d0 \ub450\uba74 \ud558\uc704 \ubaa8\ub4e0 \ucef4\ud3ec\ub10c\ud2b8\uac00 \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc5d0 \ub4e4\uc5b4\uac04\ub2e4\uace0 \uba85\uc2dc\ud569\ub2c8\ub2e4.\n\n### \ubb38\uc81c\uc810 2: RSC \uc2a4\ud2b8\ub9ac\ubc0d \ube44\ud65c\uc131\ud654\n\nApp Router\ub294 \uc11c\ubc84\uc5d0\uc11c HTML\uc744 \uc2a4\ud2b8\ub9ac\ubc0d\ud558\uc5ec LCP\ub97c \ub2e8\ucd95\ud569\ub2c8\ub2e4. `layout.tsx`\uac00 Client Component\uac00 \ub418\uba74 \uc774 \ub808\uc774\uc544\uc6c3 \uc544\ub798\uc758 \ucf58\ud150\uce20\ub294 **JavaScript \ubc88\ub4e4\uc774 \ub85c\ub4dc\u00b7\ud30c\uc2f1\u00b7\uc2e4\ud589\ub41c \ud6c4\uc5d0\uc57c** \ud654\uba74\uc5d0 \ub098\ud0c0\ub0a9\ub2c8\ub2e4. LCP 4\ucd08\uc758 \uc9c1\uc811 \uc6d0\uc778\uc785\ub2c8\ub2e4.\n\n### \ubb38\uc81c\uc810 3: `children`\uc774 Server Component\uc5ec\uc57c \ud558\ub294 \ud398\uc774\uc9c0\ub4e4\uc744 \ud074\ub77c\uc774\uc5b8\ud2b8 \ucee8\ud14d\uc2a4\ud2b8\uc5d0 \uac00\ub460\n\n`children`\uc73c\ub85c \uc804\ub2ec\ub418\ub294 \uac01 `page.tsx`\uac00 \uc11c\ubc84 \ucef4\ud3ec\ub10c\ud2b8\ub85c \uc120\uc5b8\ub418\uc5b4 \uc788\uc5b4\ub3c4, `'use client'` \ub808\uc774\uc544\uc6c3\uc774 \uadf8\uac83\ub4e4\uc744 \uac10\uc2f8\uba74 \ubc88\ub4e4\ub9c1 \uacbd\uacc4\uac00 \uc774\uc0c1\ud558\uac8c \ud615\uc131\ub429\ub2c8\ub2e4. Hydration \ube44\uc6a9\uc774 \uc804\uccb4 \ud2b8\ub9ac\ub85c \ud655\uc0b0\ub429\ub2c8\ub2e4.\n\n---\n\n## 2. \ub3d9\ub8cc \uc81c\uc548 \ubd84\uc11d: `next/dynamic`\uc73c\ub85c ThemeProvider lazy load\n\n```tsx\n// \ub3d9\ub8cc\uac00 \uc81c\uc548\ud55c \ubc29\ud5a5\nconst ThemeProvider = dynamic(() => import('./ThemeProvider'), { ssr: false })\n```\n\n### \uc65c \uc774 \uc811\uadfc\uc774 \ud2c0\ub838\ub294\uac00\n\n| \ud56d\ubaa9 | \uc124\uba85 |\n|------|------|\n| **\uadfc\ubcf8 \uc6d0\uc778 \ubbf8\ud574\uacb0** | `'use client'`\uac00 `layout.tsx`\uc5d0 \ub0a8\uc544 \uc788\uc73c\uba74 \uc804\uccb4 \ud2b8\ub9ac\uc758 \uc11c\ubc84 \ub80c\ub354\ub9c1 \ubd88\uac00 \ubb38\uc81c\uac00 \uadf8\ub300\ub85c\uc785\ub2c8\ub2e4. |\n| **`ssr: false`\uc758 \ubd80\uc791\uc6a9** | ThemeProvider\uac00 \ud074\ub77c\uc774\uc5b8\ud2b8\uc5d0\uc11c\ub9cc \ub9c8\uc6b4\ud2b8\ub418\ubbc0\ub85c, children \uc804\uccb4\uac00 hydration \uc804\uae4c\uc9c0 theme\uc774 \uc801\uc6a9\ub418\uc9c0 \uc54a\uc544 **FOUC(Flash of Unstyled Content)**\uac00 \ubc1c\uc0dd\ud569\ub2c8\ub2e4. |\n| **LCP \uac1c\uc120 \uc5c6\uc74c** | `next/dynamic`\uc740 \ucf54\ub4dc \uc2a4\ud50c\ub9ac\ud305\uc73c\ub85c \ubc88\ub4e4 \ud06c\uae30\ub97c \uc904\uc774\ub294 \ub3c4\uad6c\uc785\ub2c8\ub2e4. SSR \ub80c\ub354\ub9c1 \uacbd\uacc4 \uc790\uccb4\ub97c \ubc14\uafb8\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4. LCP\ub294 \uccab HTML \uc751\ub2f5 \uc18d\ub3c4\uc5d0 \uc758\uc874\ud558\ub294\ub370, \uc774 \uc811\uadfc\uc740 \uadf8 \uacbd\ub85c\ub97c \uac74\ub4dc\ub9ac\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4. |\n| **\uc624\ud788\ub824 LCP \uc545\ud654 \uac00\ub2a5** | `ssr: false`\ub85c ThemeProvider\ub97c defer\ud558\uba74 children \ub80c\ub354\ub9c1\ub3c4 \uc9c0\uc5f0\ub420 \uc218 \uc788\uc5b4, \ub808\uc774\uc544\uc6c3 \uc2dc\ud504\ud2b8 + LCP \uc545\ud654\ub85c \uc774\uc5b4\uc9c8 \uc704\ud5d8\uc774 \uc788\uc2b5\ub2c8\ub2e4. |\n\n> **\uadfc\uac70**: Next.js \uacf5\uc2dd \ubb38\uc11c \u2014 [Lazy Loading](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading)\n> > \"`next/dynamic`\uc740 \ucef4\ud3ec\ub10c\ud2b8\uac00 \ucc98\uc74c \ub80c\ub354\ub9c1\ub420 \ub54c\uae4c\uc9c0 \ub85c\ub529\uc744 \uc9c0\uc5f0\"\ud569\ub2c8\ub2e4. SSR \uacbd\uacc4 \ucd5c\uc801\ud654 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4.\n\n---\n\n## 3. \uc62c\ubc14\ub978 \ud574\uacb0\ucc45\n\n### Step 1: `layout.tsx`\uc5d0\uc11c `'use client'` \uc81c\uac70\n\n```tsx\n// app/layout.tsx (\uc218\uc815 \ud6c4)\n// 'use client' \uc81c\uac70 \u2014 layout\uc740 Server Component\ub85c \uc720\uc9c0\n\nimport { Providers } from './providers'\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html>\n      <body>\n        <Providers>{children}</Providers>\n      </body>\n    </html>\n  )\n}\n```\n\n### Step 2: Client Component\ub97c \ubcc4\ub3c4 \ud30c\uc77c\ub85c \ubd84\ub9ac\n\n```tsx\n// app/providers.tsx\n'use client'  // \u2190 \uc5ec\uae30\uc5d0\ub9cc \uc120\uc5b8\n\nimport { ThemeProvider } from 'next-themes' // \ub610\ub294 \uc0ac\uc6a9 \uc911\uc778 \ub77c\uc774\ube0c\ub7ec\ub9ac\n\nexport function Providers({ children }: { children: React.ReactNode }) {\n  return <ThemeProvider>{children}</ThemeProvider>\n}\n```\n\n### \uc65c \uc774 \ud328\ud134\uc774 \uc62c\ubc14\ub978\uac00\n\n- `layout.tsx`\ub294 Server Component\ub85c \uc720\uc9c0 \u2192 \uc11c\ubc84\uc5d0\uc11c HTML\uc744 \uc989\uc2dc \uc0dd\uc131\u00b7\uc2a4\ud2b8\ub9ac\ubc0d\n- `'use client'` \uacbd\uacc4\uac00 `Providers`\ub77c\ub294 \uc791\uc740 \ucef4\ud3ec\ub10c\ud2b8\uc5d0\ub9cc \uad6d\ud55c\n- `children`(\uac01 page\uc758 \uc11c\ubc84 \ucef4\ud3ec\ub10c\ud2b8 \ucf58\ud150\uce20)\uc740 **\uc11c\ubc84\uc5d0\uc11c \ub80c\ub354\ub9c1\ub41c \ud6c4** Providers\uc5d0 \uc8fc\uc785\ub418\ubbc0\ub85c, Hydration \ub300\uc0c1\uc774 \ucd5c\uc18c\ud654\ub428\n\n> **\uadfc\uac70**: Next.js \uacf5\uc2dd \ubb38\uc11c \u2014 [Rendering: Composition Patterns](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns)\n> > \"Supported Pattern: Passing Server Components to Client Components as Props\" \u2014 `children`\uc744 \uc11c\ubc84 \ucef4\ud3ec\ub10c\ud2b8\ub85c \uc720\uc9c0\ud55c \ucc44 Client Component\uc5d0 \uc8fc\uc785\ud558\ub294 \ud328\ud134\uc744 \uad8c\uc7a5\ud569\ub2c8\ub2e4.\n\n---\n\n## 4. \ucd94\uac00 \uc9c4\ub2e8: LCP 4\ucd08\uc758 \ub2e4\ub978 \uc6d0\uc778 \uac00\ub2a5\uc131\n\n`'use client'` \uc81c\uac70 \uc678\uc5d0\ub3c4 \ub2e4\uc74c\uc744 \ud568\uaed8 \ud655\uc778\ud574\uc57c \ud569\ub2c8\ub2e4.\n\n### 4-1. LCP \ub300\uc0c1 \uc774\ubbf8\uc9c0 \ucd5c\uc801\ud654\n\n```tsx\n// \ub098\uc05c \ud328\ud134\n<img src=\"/hero.jpg\" />\n\n// \uc62c\ubc14\ub978 \ud328\ud134\nimport Image from 'next/image'\n<Image src=\"/hero.jpg\" priority alt=\"...\" fill />\n```\n\nLCP \uc694\uc18c\uac00 \uc774\ubbf8\uc9c0\ub77c\uba74 `priority` prop\uc744 \ubc18\ub4dc\uc2dc \ucd94\uac00\ud558\uc138\uc694. \uc774 prop\uc774 \uc5c6\uc73c\uba74 Next.js\uac00 \ud574\ub2f9 \uc774\ubbf8\uc9c0\ub97c preload\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.\n\n> **\uadfc\uac70**: Next.js \uacf5\uc2dd \ubb38\uc11c \u2014 [Image Optimization: priority](https://nextjs.org/docs/app/api-reference/components/image#priority)\n\n### 4-2. \ud3f0\ud2b8 \ub80c\ub354\ub9c1 \ube14\ub85c\ud0b9\n\n```tsx\n// \uc62c\ubc14\ub978 \ud328\ud134 \u2014 next/font \uc0ac\uc6a9\nimport { Inter } from 'next/font/google'\nconst inter = Inter({ subsets: ['latin'] })\n```\n\n\uc678\ubd80 `@import`\ub098 `<link>` \ud0dc\uadf8\ub85c Google Fonts\ub97c \ubd88\ub7ec\uc624\uba74 \ub80c\ub354\ub9c1\uc774 \ucc28\ub2e8\ub429\ub2c8\ub2e4. `next/font`\ub97c \uc0ac\uc6a9\ud558\uba74 \ube4c\ub4dc \ud0c0\uc784\uc5d0 \ud3f0\ud2b8\ub97c \ucd5c\uc801\ud654\ud558\uace0 FOUT\ub97c \ubc29\uc9c0\ud569\ub2c8\ub2e4.\n\n### 4-3. \ubd88\ud544\uc694\ud55c \uc11c\ub4dc\ud30c\ud2f0 \uc2a4\ud06c\ub9bd\ud2b8\n\nThemeProvider \uc678\uc5d0 `layout.tsx`\uc5d0 analytics, \uad11\uace0, \ucc57 \uc704\uc82f \ub4f1\uc758 \uc2a4\ud06c\ub9bd\ud2b8\uac00 \ud3ec\ud568\ub418\uc5b4 \uc788\ub2e4\uba74 `next/script`\uc758 `strategy=\"lazyOnload\"` \ub610\ub294 `afterInteractive`\ub85c \uc9c0\uc5f0 \ub85c\ub529\ud574\uc57c \ud569\ub2c8\ub2e4.\n\n---\n\n## 5. \uc9c4\ub2e8 \ubc29\ubc95\n\n```bash\n# \ubc88\ub4e4 \ubd84\uc11d\nANALYZE=true next build\n\n# Lighthouse CI\ub85c LCP \uce21\uc815\nnpx lhci autorun\n\n# React DevTools Profiler\n# Chrome DevTools \u2192 Performance \ud0ed\uc5d0\uc11c \"Server-side rendered\" \ud56d\ubaa9 \ud655\uc778\n```\n\n\ub610\ud55c Chrome DevTools Network \ud0ed\uc5d0\uc11c \uccab HTML \uc751\ub2f5 \ud06c\uae30\uc640 TTFB\ub97c \ud655\uc778\ud558\uc138\uc694. TTFB\uac00 200ms \uc774\ub0b4\ub77c\uba74 \ub80c\ub354\ub9c1 \uacbd\uacc4 \ubb38\uc81c, \uadf8 \uc774\uc0c1\uc774\ub77c\uba74 \uc11c\ubc84/DB \uc131\ub2a5 \ubb38\uc81c\uc785\ub2c8\ub2e4.\n\n---\n\n## 6. \ubcc0\uacbd \uc694\uc57d\n\n| | \ubcc0\uacbd \uc804 | \ubcc0\uacbd \ud6c4 |\n|--|---------|---------|\n| `layout.tsx` | `'use client'` \uc120\uc5b8, ThemeProvider \uc9c1\uc811 \ud3ec\ud568 | Server Component, `<Providers>` import\ub9cc |\n| `providers.tsx` | \uc5c6\uc74c | `'use client'` + ThemeProvider \ucea1\uc290\ud654 |\n| SSR \uc801\uc6a9 \ubc94\uc704 | \ub808\uc774\uc544\uc6c3 \uc804\uccb4 \ud074\ub77c\uc774\uc5b8\ud2b8 \ub80c\ub354\ub9c1 | \ud398\uc774\uc9c0 \ucf58\ud150\uce20 \uc804\uccb4 \uc11c\ubc84 \ub80c\ub354\ub9c1 |\n| \uc608\uc0c1 LCP \uac1c\uc120 | \u2014 | 2\ucd08 \uc774\ub0b4 (TTFB + \uc2a4\ud2b8\ub9ac\ubc0d \uae30\uc900) |\n\n---\n\n## \uacb0\ub860\n\n**\ub3d9\ub8cc\uc758 `next/dynamic` \uc81c\uc548\uc740 \ucc44\ud0dd\ud558\uc9c0 \ub9c8\uc138\uc694.** \ud574\uacb0\ucc45\uc740 `'use client'`\ub97c root layout\uc5d0\uc11c \uc81c\uac70\ud558\uace0 ThemeProvider\ub97c \uaca9\ub9ac\ub41c `providers.tsx`\ub85c \ubd84\ub9ac\ud558\ub294 \uac83\uc785\ub2c8\ub2e4. \uc774 \ud328\ud134\uc740 Next.js \uacf5\uc2dd \ubb38\uc11c\uc5d0\uc11c \uad8c\uc7a5\ud558\ub294 \"Composition Pattern\"\uc774\uba70, LCP\ub97c \ud3ec\ud568\ud55c Core Web Vitals \uc804\ubc18\uc744 \uac1c\uc120\ud569\ub2c8\ub2e4.\n"}], "grading": {"eval_id": 0, "eval_name": "ssr-boundary", "config": "without_skill", "expectations": [{"text": "Identifies 'lazy load Provider' as the wrong approach", "passed": true, "evidence": "Line 5: '\ubd80\ubd84\uc801\uc73c\ub85c\ub9cc \ub9de\uace0, \uadfc\ubcf8 \uc6d0\uc778 \uc9c4\ub2e8\uc744 \ube60\ub728\ub838\uc2b5\ub2c8\ub2e4'. Line 174: '\ub3d9\ub8cc\uc758 next/dynamic \uc81c\uc548\uc740 \ucc44\ud0dd\ud558\uc9c0 \ub9c8\uc138\uc694'. Conclusion clear though softer than with_skill."}, {"text": "Explains 'use client' as a module-graph boundary", "passed": true, "evidence": "Line 28: 'use client \ub97c layout.tsx \ucd5c\uc0c1\ub2e8\uc5d0 \uc120\uc5b8\ud558\uba74, \uc774 \ud30c\uc77c \uc544\ub798\uc5d0 import\ub41c \ubaa8\ub4e0 \ubaa8\ub4c8\uc774 \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc5d0 \ud3ec\ud568\ub429\ub2c8\ub2e4.' Line 38: '\ubc88\ub4e4\ub9c1 \uacbd\uacc4\uac00 \uc774\uc0c1\ud558\uac8c \ud615\uc131\ub429\ub2c8\ub2e4'. Concept conveyed (boundary + client bundle), no direct official quote."}, {"text": "Recommends pushing Provider deeper ({children} only)", "passed": true, "evidence": "Step 1 (Line 68-83) + Step 2 (Line 86-96) shows extracted Providers pattern. References Composition Patterns docs."}, {"text": "Cites Next.js official documentation URL", "passed": true, "evidence": "Multiple Next.js URLs cited: nextjs.org/docs/app/building-your-application/rendering/server-components, /lazy-loading, /composition-patterns. URLs are from older docs structure (Pages Router era) but still valid."}, {"text": "Mentions concrete performance benefits", "passed": true, "evidence": "Line 35: 'LCP 4\ucd08\uc758 \uc9c1\uc811 \uc6d0\uc778'. Mentions '\uc11c\ubc84\uc5d0\uc11c HTML\uc744 \uc989\uc2dc \uc804\uc1a1' / 'Hydration \ube44\uc6a9 \ud655\uc0b0'. Performance impact explained."}], "summary": {"passed": 5, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-1-react-compiler-memo-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# PR \ub9ac\ubdf0: React.memo / useCallback / useMemo \uc804\uba74 \ub3c4\ubc30 \u2014 \ubc18\ub824 \uc758\uacac\n\n> **\uacb0\ub860**: \uc774 PR\uc740 \ubc18\ub824\ud569\ub2c8\ub2e4. React Compiler\ub97c \ub3c4\uc785\ud55c \ud504\ub85c\uc81d\ud2b8\uc5d0\uc11c \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc744 \uc120\uc81c\uc801\uc73c\ub85c \uc804\uba74 \uc801\uc6a9\ud558\ub294 \uac83\uc740 \uacf5\uc2dd \ubb38\uc11c\uac00 \uba85\uc2dc\uc801\uc73c\ub85c \uad8c\uace0\ud558\uc9c0 \uc54a\ub294 \ubc29\uc2dd\uc774\uba70, \uc2e4\uc9c8\uc801\uc778 \uc131\ub2a5 \uc774\ub4dd \uc5c6\uc774 \ucf54\ub4dc \ubcf5\uc7a1\ub3c4\ub9cc \ub192\uc785\ub2c8\ub2e4.\n\n---\n\n## 1. \uc774 \ud504\ub85c\uc81d\ud2b8\uc758 \uc804\uc81c \u2014 React Compiler\ub294 \"now stable\"\n\n\uc774 \ud504\ub85c\uc81d\ud2b8\ub294 React 19 + React Compiler\ub97c \ub3c4\uc785\ud588\uc2b5\ub2c8\ub2e4. React Compiler\ub294 \ub354 \uc774\uc0c1 \uc2e4\ud5d8\uc801 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4.\n\n> \"React Compiler is a new build-time tool that automatically optimizes your React app. It works with plain JavaScript, and understands the Rules of React, so you don't need to rewrite any code to use it.\"\n>\n> \"We encourage everyone to start using React Compiler. While the compiler is still an optional addition to React today, in the future some features may require the compiler in order to fully work.\"\n>\n> \u2014 [React Docs \u00b7 React Compiler / Introduction](https://react.dev/learn/react-compiler/introduction)\n\n\uacf5\uc2dd \ubb38\uc11c\ub294 React Compiler\ub97c **\"now stable\"**\ub85c \ud45c\uae30\ud558\uba70 Meta \ub4f1\uc5d0\uc11c \ud504\ub85c\ub355\uc158 \uc0ac\uc6a9 \uc911\uc784\uc744 \uba85\uc2dc\ud569\ub2c8\ub2e4. **\ucef4\ud30c\uc77c\ub7ec\ub294 \ube4c\ub4dc \ud0c0\uc784\uc5d0 \ucef4\ud3ec\ub10c\ud2b8\uc640 \uac12\uc744 \uc790\ub3d9\uc73c\ub85c \uba54\ubaa8\uc774\uc81c\uc774\uc158\ud558\uba70, \uc218\ub3d9 `memo`/`useMemo`/`useCallback`\uc744 \ub300\uccb4\ud558\ub294 \uac83\uc774 \ubaa9\uc801\uc785\ub2c8\ub2e4.**\n\n---\n\n## 2. \uacf5\uc2dd \ubb38\uc11c\uc758 \uba85\uc2dc\uc801 \uad8c\uace0 \u2014 \uc2e0\uaddc \ucf54\ub4dc\ub294 \ucef4\ud30c\uc77c\ub7ec\uc5d0 \ub9e1\uae34\ub2e4\n\n> \"**For new code**, we recommend relying on the compiler for memoization and using `useMemo`/`useCallback` where needed to achieve precise control.\"\n>\n> \"By default, React Compiler will memoize your code based on its analysis and heuristics. **In most cases, this memoization will be as precise, or moreso, than what you may have written.**\"\n>\n> \"However, in some cases developers may need more control over memoization. The `useMemo` and `useCallback` hooks can continue to be used **as an escape hatch**.\"\n>\n> \u2014 [React Docs \u00b7 React Compiler / Introduction](https://react.dev/learn/react-compiler/introduction)\n\n\uc2e0\uaddc \ucf54\ub4dc\uc5d0\uc11c `useMemo`/`useCallback`\uc740 **escape hatch(\ud0c8\ucd9c\uad6c)**\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12\uc774 \uc544\ub2d9\ub2c8\ub2e4. \uc774 PR\uc740 escape hatch\ub97c \uc804\uccb4 \ucf54\ub4dc\ubca0\uc774\uc2a4\uc5d0 \uae30\ubcf8 \uc801\uc6a9\ud55c \uc148\uc785\ub2c8\ub2e4.\n\n---\n\n## 3. \"\uc548\uc804 \ucc28\uc6d0\uc5d0\uc11c \ub2e4 \uba54\ubaa8\uc774\uc81c\uc774\uc158\ud558\uc790\"\uac00 \uc548 \ub418\ub294 \uc774\uc720\n\n### 3.1 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uce90\uc2dc\ub97c \ubcf4\uc7a5\ud558\uc9c0 \uc54a\ub294\ub2e4\n\n> \"**\uc131\ub2a5 \ucd5c\uc801\ud654\ub97c \uc704\ud574\uc11c\ub9cc `useMemo`\ub97c \uc0ac\uc6a9\ud574\uc57c \ud569\ub2c8\ub2e4.** \uc774 \uae30\ub2a5\uc774 \uc5c6\uc5b4\uc11c \ucf54\ub4dc\uac00 \uc791\ub3d9\ud558\uc9c0 \uc54a\ub294\ub2e4\uba74 \uadfc\ubcf8\uc801\uc778 \ubb38\uc81c\ub97c \uba3c\uc800 \ucc3e\uc544\uc11c \uc218\uc815\ud558\uc138\uc694.\"\n>\n> \"React\ub294 \uce90\uc2f1 \ub41c \uac12\uc744 \ubc84\ub824\uc57c \ud560 \ud2b9\ubcc4\ud55c \uc774\uc720\uac00 \uc5c6\ub294 \ud55c \ubc84\ub9ac\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 useMemo](https://react.dev/reference/react/useMemo)\n\n> \"\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uc131\ub2a5\uc744 \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc774\uc9c0, \ubcf4\uc7a5\ud558\ub294 \uac83\uc740 \uc544\ub2c8\uae30 \ub54c\ubb38\uc5d0 React\ub294 \uc5ec\uc804\ud788 \ub2e4\uc2dc \ub80c\ub354\ub9c1\ub420 \uc218\ub3c4 \uc788\uc2b5\ub2c8\ub2e4.\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 memo](https://react.dev/reference/react/memo)\n\n**\"\uc548\uc804 \ucc28\uc6d0\"\uc774\ub77c\ub294 \uc804\uc81c \uc790\uccb4\uac00 \ud2c0\ub838\uc2b5\ub2c8\ub2e4.** `React.memo`\ub85c \uac10\uc2f8\ub3c4 React\ub294 \ud544\uc694 \uc2dc \uc5b8\uc81c\ub4e0 \uce90\uc2dc\ub97c \ubc84\ub9b4 \uc218 \uc788\uc2b5\ub2c8\ub2e4. \uc815\ud655\uc131\uc744 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc5d0 \uc758\uc874\ud558\ub294 \ucf54\ub4dc\ub294 \uc798\ubabb\ub41c \ucf54\ub4dc\uc785\ub2c8\ub2e4.\n\n### 3.2 `React.memo` 4\uac00\uc9c0 \uc870\uac74 \uccb4\ud06c\ub9ac\uc2a4\ud2b8\n\n\uacf5\uc2dd \ubb38\uc11c\ub294 `memo`\uac00 \uc720\uc6a9\ud55c \uc870\uac74\uc744 \ub2e4\uc74c\uacfc \uac19\uc774 \uc81c\uc2dc\ud569\ub2c8\ub2e4.\n\n> \"`memo`\ub85c \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc740 \ucef4\ud3ec\ub10c\ud2b8\uac00 \uc815\ud655\ud788 \ub3d9\uc77c\ud55c Props\ub85c \uc790\uc8fc \ub9ac\ub80c\ub354\ub9c1 \ub418\uace0, \ub9ac\ub80c\ub354\ub9c1 \ub85c\uc9c1\uc774 \ube44\uc6a9\uc774 \ub9ce\uc774 \ub4dc\ub294 \uacbd\uc6b0\uc5d0\ub9cc \uc720\uc6a9\ud569\ub2c8\ub2e4. ... **`memo`\ub294 \uac1d\uccb4 \ub610\ub294 \ub80c\ub354\ub9c1 \uc911\uc5d0 \uc815\uc758\ub41c \uc77c\ubc18 \ud568\uc218\ucc98\ub7fc *\ud56d\uc0c1 \ub2e4\ub978* Props\uac00 \ucef4\ud3ec\ub10c\ud2b8\uc5d0 \uc804\ub2ec\ub418\ub294 \uacbd\uc6b0\uc5d0 \uc644\uc804\ud788 \ubb34\uc6a9\uc9c0\ubb3c\uc785\ub2c8\ub2e4.**\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 memo](https://react.dev/reference/react/memo)\n\n`memo`\ub97c \uc801\uc6a9\ud558\ub824\uba74 **\uc544\ub798 4\uac00\uc9c0 \ubaa8\ub450 YES**\uc5ec\uc57c \ud569\ub2c8\ub2e4. \ud558\ub098\ub77c\ub3c4 NO\uba74 \ube44\uad50 \ube44\uc6a9\ub9cc \ub354\ud558\uace0 \ud6a8\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.\n\n- [ ] **\uac19\uc740 props\ub85c \uc790\uc8fc \ub9ac\ub80c\ub354\ub9c1**\ub418\ub294\uac00? (\ubd80\ubaa8\ub294 \uc790\uc8fc \ub9ac\ub80c\ub354\ub418\uc9c0\ub9cc \uc774 \ucef4\ud3ec\ub10c\ud2b8\uc758 props\ub294 \uc548 \ubc14\ub00c\ub294 \uc0c1\ud669)\n- [ ] **\ub80c\ub354\ub9c1 \ube44\uc6a9\uc774 \ud070\uac00?** (\ubcf5\uc7a1\ud55c DOM \ud2b8\ub9ac, \uc790\uc2dd \ucef4\ud3ec\ub10c\ud2b8 \uc218, \ub0b4\ubd80 \uacc4\uc0b0 \ube44\uc6a9)\n- [ ] **React DevTools Profiler\ub85c \uc778\uc9c0\ud560 \uc218 \uc788\ub294 \uc9c0\uc5f0\uc774 \ud655\uc778**\ub418\ub294\uac00? (\ucd94\uce21 \uae08\uc9c0 \u2014 \uce21\uc815 \ud544\uc218)\n- [ ] **props\uac00 \ub9e4\ubc88 \ub2e4\ub978 \ucc38\uc870\ub294 \uc544\ub2cc\uac00?** (\uc778\ub77c\uc778 \uac1d\uccb4/\ud568\uc218\uac00 prop\uc73c\ub85c \ub4e4\uc5b4\uac00\uba74 `memo`\ub294 \uc989\uc2dc \ubb34\ub825\ud654\ub428)\n\n\uc774 PR\uc758 \ucef4\ud3ec\ub10c\ud2b8\ub4e4\uc740 Profiler \uce21\uc815 \uc5c6\uc774 \uc704 \uc870\uac74\ub4e4\uc744 \ud1b5\uacfc\ud588\ub294\uc9c0 \uc54c \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.\n\n### 3.3 `memo` + \uc778\ub77c\uc778 prop \uc870\ud569\uc740 \uc989\uc2dc \ubb34\ub825\ud654\ub41c\ub2e4\n\n> \"React\ub294 \uae30\ubcf8\uc801\uc73c\ub85c `Object.is`\ub85c \uac01 Props\ub97c \ube44\uad50\ud569\ub2c8\ub2e4. \uc989, \uac01\uac01\uc758 \uc0c8\ub85c\uc6b4 Prop\uac00 \uc774\uc804 Prop\uc640 \ucc38\uc870\uac00 \ub3d9\uc77c\ud55c\uc9c0 \uc5ec\ubd80\ub97c \uace0\ub824\ud569\ub2c8\ub2e4.\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 memo](https://react.dev/reference/react/memo)\n\n```tsx\n// \u274c memo \ubb34\uc6a9\uc9c0\ubb3c \u2014 config\uc640 onClick\uc774 \ub9e4 \ub80c\ub354\ub9c8\ub2e4 \uc0c8 \ucc38\uc870\nconst UserCard = memo(function UserCard({ config, onClick }) { ... });\n\n<UserCard config={{ theme: 'dark' }} onClick={() => log()} />\n```\n\n\uc774 PR\uc5d0\uc11c `memo`\ub85c \uac10\uc2fc \ucef4\ud3ec\ub10c\ud2b8\uc5d0 \uc778\ub77c\uc778 \uac1d\uccb4\ub098 \uc778\ub77c\uc778 \ud568\uc218\ub97c prop\uc73c\ub85c \ub118\uae30\ub294 \ucf54\ub4dc\uac00 \uc788\ub2e4\uba74, `memo`\ub294 \uc989\uc2dc \ubb34\ub825\ud654\ub418\uc5b4 **\ube44\uad50 \ube44\uc6a9\ub9cc \ucd94\uac00**\ub429\ub2c8\ub2e4.\n\n### 3.4 `memo` \uc5c6\ub294 \uc790\uc2dd\uc5d0 `useCallback`\uc740 \ubb34\uc6a9\uc9c0\ubb3c\n\n`useCallback`\uc758 \uacf5\uc2dd \uc0ac\uc6a9 \uc870\uac74:\n\n> **`useCallback`\uc73c\ub85c \ud568\uc218\ub97c \uce90\uc2f1\ud558\ub294 \uac83\uc740 \uba87 \uac00\uc9c0 \uacbd\uc6b0\uc5d0\ub9cc \uac00\uce58 \uc788\uc2b5\ub2c8\ub2e4.**\n> - `memo`\ub85c \uac10\uc2f8\uc9c4 \ucef4\ud3ec\ub10c\ud2b8\uc5d0 prop\uc73c\ub85c \ub118\uae41\ub2c8\ub2e4. \uc774 \uac12\uc774 \ubcc0\ud558\uc9c0 \uc54a\uc73c\uba74 \ub9ac\ub80c\ub354\ub9c1\uc744 \uac74\ub108\ub6f0\uace0 \uc2f6\uc2b5\ub2c8\ub2e4.\n> - \ub118\uae34 \ud568\uc218\uac00 \ub098\uc911\uc5d0 \uc5b4\ub5a4 Hook\uc758 \uc758\uc874\uc131\uc73c\ub85c \uc0ac\uc6a9\ub429\ub2c8\ub2e4.\n>\n> **\ub2e4\ub978 \uacbd\uc6b0\uc5d0\uc11c `useCallback`\uc73c\ub85c \ud568\uc218\ub97c \uac10\uc2f8\ub294 \uac83\uc740 \uc544\ubb34\ub7f0 \uc774\uc775\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.**\n>\n> \u2014 [React \ubb38\uc11c \u00b7 useCallback](https://react.dev/reference/react/useCallback)\n\n`memo` \uc5c6\ub294 \uc790\uc2dd\uc740 \uc5b4\ucc28\ud53c \ubd80\ubaa8 \ub9ac\ub80c\ub354 \uc2dc \ud568\uaed8 \ub9ac\ub80c\ub354\ub429\ub2c8\ub2e4. \ubd80\ubaa8\uc5d0\uc11c \ud568\uc218 \ucc38\uc870\ub97c \uc548\uc815\ud654\ud574\ub3c4 \uc790\uc2dd \uc785\uc7a5\uc5d0\uc11c \uc5bb\ub294 \uac83\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.\n\n### 3.5 `useMemo`\uc758 \uacf5\uc2dd \uc0ac\uc6a9 \uc870\uac74 \u2014 1ms \ub8f0\n\n> **`useMemo`\ub85c \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc740 \uba87\uba87 \uacbd\uc6b0\uc5d0\ub9cc \uc720\uc6a9\ud569\ub2c8\ub2e4.**\n> - `useMemo`\uc5d0 \uc785\ub825\ud558\ub294 \uacc4\uc0b0\uc774 \ub208\uc5d0 \ub744\uac8c \ub290\ub9ac\uace0 \uc885\uc18d\uc131\uc774 \uac70\uc758 \ubcc0\uacbd\ub418\uc9c0 \uc54a\ub294 \uacbd\uc6b0.\n> - `memo`\ub85c \uac10\uc2f8\uc9c4 \ucef4\ud3ec\ub10c\ud2b8\uc5d0 prop\ub85c \uc804\ub2ec\ud560 \uacbd\uc6b0.\n> - \uc804\ub2ec\ud55c \uac12\uc744 \ub098\uc911\uc5d0 \ub2e4\ub978 Hook\uc758 \uc885\uc18d\uc131\uc73c\ub85c \uc774\uc6a9\ud560 \uacbd\uc6b0.\n>\n> **\uc774 \uc678\ub294 \uacc4\uc0b0\uc744 `useMemo`\ub85c \uac10\uc2f8\ub294 \uac83\uc5d0 \ub300\ud55c \uc774\ub4dd\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.**\n>\n> \u2014 [React \ubb38\uc11c \u00b7 useMemo](https://react.dev/reference/react/useMemo)\n\n\uacf5\uc2dd \ubb38\uc11c\uac00 \uc81c\uc2dc\ud558\ub294 \ud310\ub2e8 \uae30\uc900\uc740 **1ms**\uc785\ub2c8\ub2e4.\n\n> \"\uc804\uccb4\uc801\uc73c\ub85c \uae30\ub85d\ub41c \uc2dc\uac04\uc774 \ud074 \ub54c(\uc608\uc2dc: `1ms` \uc774\uc0c1) \ud574\ub2f9 \uacc4\uc0b0\uc744 \uba54\ubaa8\ud574 \ub450\ub294 \uac83\uc774 \uc88b\uc2b5\ub2c8\ub2e4.\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 useMemo](https://react.dev/reference/react/useMemo)\n\n```tsx\n// \u274c \uc808\ub300 1ms\ub97c \ub118\uc9c0 \uc54a\ub294 \ub2e8\uc21c \uc5f0\uc0b0 \u2014 useMemo \ub0ad\ube44\nconst fullName = useMemo(() => `${first} ${last}`, [first, last]);\nconst isActive = useMemo(() => status === 'active', [status]);\n\n// \u2705 \ube44\uc2fc \uc815\ub82c/\ud544\ud130\ub9c1/\ud30c\uc2f1 (console.time\uc73c\ub85c 1ms \uc774\uc0c1 \ud655\uc778 \ud6c4 \uc801\uc6a9)\nconst sortedOrders = useMemo(\n  () => orders.sort((a, b) => b.createdAt - a.createdAt),\n  [orders]\n);\n```\n\n---\n\n## 4. \uba54\ubaa8\uc774\uc81c\uc774\uc158 \uc804\uc5d0 \uba3c\uc800 \uc2dc\ub3c4\ud560 \uad6c\uc870 \uac1c\uc120\n\n\uacf5\uc2dd \ubb38\uc11c\ub294 \uba54\ubaa8\uc774\uc81c\uc774\uc158 \uc804\uc5d0 \ub2e4\uc74c 5\uac00\uc9c0 \uad6c\uc870\uc801 \uac1c\uc120\uc744 \uc6b0\uc120 \uc2dc\ub3c4\ud558\ub77c\uace0 \uad8c\uace0\ud569\ub2c8\ub2e4.\n\n> 1. \ucef4\ud3ec\ub10c\ud2b8\uac00 \ub2e4\ub978 \ucef4\ud3ec\ub10c\ud2b8\ub97c \uac10\uc2fc\ub2e4\uba74 \"JSX\ub97c \uc790\uc2dd\uc73c\ub85c \ubc1b\uac8c \ud558\uc138\uc694\"\n> 2. \"\uac00\ub2a5\ud55c \ud55c \ub85c\uceec State\ub97c \uc120\ud638\ud558\uace0, \ucef4\ud3ec\ub10c\ud2b8 \uac04 \uc0c1\ud0dc \uacf5\uc720\ub97c \ud544\uc694 \uc774\uc0c1\uc73c\ub85c \ud558\uc9c0 \ub9c8\uc138\uc694\"\n> 3. \"\ub80c\ub354\ub9c1 \ub85c\uc9c1\uc744 \uc21c\uc218\ud558\uac8c \uc720\uc9c0\ud558\uc138\uc694\"\n> 4. \"State\ub97c \uc5c5\ub370\uc774\ud2b8\ud558\ub294 \ubd88\ud544\uc694\ud55c Effect\ub97c \ud53c\ud558\uc138\uc694\"\n> 5. \"Effect\uc5d0\uc11c \ubd88\ud544\uc694\ud55c \uc758\uc874\uc131\uc744 \uc81c\uac70\ud558\uc138\uc694\"\n>\n> \u2014 [React \ubb38\uc11c \u00b7 useCallback](https://react.dev/reference/react/useCallback)\n\n\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uad6c\uc870 \ubb38\uc81c\ub97c \uac00\ub9ac\ub294 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4. \ud2b9\ud788 Wrapper \ucef4\ud3ec\ub10c\ud2b8\ub294 `memo` \ub300\uc2e0 `children` composition\uc774 \ub354 \uadfc\ubcf8\uc801\uc778 \ud574\uacb0\ucc45\uc785\ub2c8\ub2e4.\n\n```tsx\n// \u274c Wrapper\uc5d0 memo \u2014 \uc0c8 prop\uc774 \ucd94\uac00\ub420 \ub54c\ub9c8\ub2e4 \uc548\uc815\ud654 \ucc45\uc784\uc774 \ub298\uc5b4\ub09c\ub2e4\nconst Shell = memo(function Shell({ header, sidebar, content }) {\n  return (\n    <div className=\"shell\">\n      <div className=\"shell__header\">{header}</div>\n      <div className=\"shell__sidebar\">{sidebar}</div>\n      <div className=\"shell__content\">{content}</div>\n    </div>\n  );\n});\n\n// \u2705 children composition \u2014 Shell\uc740 \ub2e8\uc21c\ud574\uc9c0\uace0, \uc790\uc2dd \ub80c\ub354\ub294 \ubd80\ubaa8\uac00 \uad00\ub9ac\nfunction Shell({ children }: { children: React.ReactNode }) {\n  return <div className=\"shell\">{children}</div>;\n}\n```\n\n`children`\uc73c\ub85c \ubc1b\ub294 \uad6c\uc870\uc5d0\uc11c\ub294 \ubd80\ubaa8\uac00 \ub9ac\ub80c\ub354\ub3fc\ub3c4 `children` \ucc38\uc870\uac00 \uc548\uc815\uc801\uc774\uc5b4\uc11c `memo` \uc5c6\uc774\ub3c4 \uc790\uc2dd \ud2b8\ub9ac \ub9ac\ub80c\ub354\ub97c \ud68c\ud53c\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\n\n---\n\n## 5. \uc815\ub9d0 \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \ud544\uc694\ud55c Escape Hatch 3\uac00\uc9c0\n\nReact Compiler\ub97c \uc0ac\uc6a9\ud558\ub294 \uc2e0\uaddc \ucf54\ub4dc\uc5d0\uc11c \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc815\ub2f9\ud654\ub418\ub294 \uacbd\uc6b0\ub294 \ub2e4\uc74c\uc73c\ub85c \ud55c\uc815\ub429\ub2c8\ub2e4.\n\n> \"The `useMemo` and `useCallback` hooks can continue to be used **as an escape hatch**. **A common use-case for this is if a memoized value is used as an effect dependency**.\"\n>\n> \u2014 [React Docs \u00b7 React Compiler / Introduction](https://react.dev/learn/react-compiler/introduction)\n\n| # | Escape Hatch | \uc774\uc720 |\n|---|---|---|\n| **1** | \uba54\ubaa8\uc774\uc988\ub41c \uac12/\ud568\uc218\uac00 `useEffect` \uc758\uc874\uc131\uc73c\ub85c \ub4e4\uc5b4\uac00 effect \uc7ac\uc2e4\ud589\uc744 \ub9c9\uc544\uc57c \ud560 \ub54c | \ucef4\ud30c\uc77c\ub7ec \ud734\ub9ac\uc2a4\ud2f1\uacfc \ubb34\uad00\ud558\uac8c \ucc38\uc870 \uc548\uc815\uc131\uc774 `useEffect` \uc815\ud655\uc131\uc5d0 \uc601\ud5a5 |\n| **2** | \ucef4\ud30c\uc77c\ub7ec \ud734\ub9ac\uc2a4\ud2f1\ubcf4\ub2e4 \ub354 \uc815\ubc00\ud55c \uc81c\uc5b4\uac00 \ud544\uc694\ud55c \ud2b9\uc218 \ucf00\uc774\uc2a4 | \uc608: \ub80c\ub354 \uc911 \ube44\uc2fc \uacc4\uc0b0\uc774 1ms \uc774\uc0c1\uc784\uc744 console.time\uc73c\ub85c \ud655\uc778\ud55c \uacbd\uc6b0 |\n| **3** | \ud2b9\uc815 \ucef4\ud3ec\ub10c\ud2b8\uc5d0\uc11c \ucef4\ud30c\uc77c\uc774 \ubb38\uc81c\ub97c \uc77c\uc73c\ud0ac \ub54c | `\"use no memo\"` \ub514\ub809\ud2f0\ube0c + TODO \uc8fc\uc11d + \ud2b8\ub798\ud0b9 \uc774\uc288\ub85c \uad00\ub9ac |\n\n```tsx\n// Escape Hatch 1 \u2014 effect \uc758\uc874\uc131\uc73c\ub85c \uc778\ud55c \ucc38\uc870 \uc548\uc815\ud654\nfunction Search({ onResults }: { onResults: (r: Result[]) => void }) {\n  useEffect(() => {\n    fetchResults(query).then(onResults);\n  }, [query, onResults]); // onResults\uac00 \ub9e4 \ub80c\ub354\ub9c8\ub2e4 \uc0c8 \ucc38\uc870\uba74 \ubb34\ud55c \uc7ac\uc2e4\ud589\n  return null;\n}\n\n// Escape Hatch 3 \u2014 \ucef4\ud30c\uc77c \uc81c\uc678\nfunction ProblematicComponent() {\n  \"use no memo\"; // TODO: [ISSUE-123] \ucef4\ud30c\uc77c\ub7ec \ud638\ud658\uc131 \ud655\uc778 \ud6c4 \uc81c\uac70\n  // ...\n}\n```\n\n---\n\n## 6. \uc694\uccad\ud558\ub294 \uc218\uc815 \ubc29\ud5a5\n\n1. **\ubaa8\ub4e0 \ucef4\ud3ec\ub10c\ud2b8\uc758 `React.memo` \uc81c\uac70** \u2014 \ucef4\ud30c\uc77c\ub7ec\uac00 \uc790\ub3d9 \ucc98\ub9ac. Profiler\uc5d0\uc11c \uc2e4\uc81c \uc131\ub2a5 \ubb38\uc81c\uac00 \ud655\uc778\ub41c \ucef4\ud3ec\ub10c\ud2b8\uc5d0\ub9cc \uc704 4\uac00\uc9c0 \uc870\uac74 \uccb4\ud06c\ub9ac\uc2a4\ud2b8\ub97c \ud1b5\uacfc\ud55c \ub4a4 \uc7ac\uc801\uc6a9.\n2. **\ubaa8\ub4e0 \ud568\uc218\uc758 `useCallback` \uc81c\uac70** \u2014 `memo` \uc790\uc2dd\uc758 prop \uc804\ub2ec \ub610\ub294 `useEffect` \uc758\uc874\uc131 \ubaa9\uc801\uc774 \uc544\ub2cc \uac83\uc740 \uc804\ubd80 \uc81c\uac70.\n3. **\ubaa8\ub4e0 \uacc4\uc0b0\uc758 `useMemo` \uc81c\uac70** \u2014 `console.time`\uc73c\ub85c 1ms \uc774\uc0c1\uc784\uc744 \ud655\uc778\ud588\uac70\ub098, `memo` \uc790\uc2dd prop \uc804\ub2ec \ub610\ub294 `useEffect` \uc758\uc874\uc131 \ubaa9\uc801\uc774 \uc544\ub2cc \uac83\uc740 \uc804\ubd80 \uc81c\uac70.\n4. \uc81c\uac70 \ud6c4\uc5d0\ub3c4 \uc131\ub2a5 \ubb38\uc81c\uac00 \uc2e4\uc81c\ub85c \uce21\uc815\ub418\ub294 \uacf3\uc774 \uc788\ub2e4\uba74, **React DevTools Profiler + Chrome DevTools Performance (CPU 4x slowdown)** \uacb0\uacfc\ub97c PR\uc5d0 \ucca8\ubd80\ud558\uace0 \uc7ac\ub17c\uc758.\n\n---\n\n## \ucc38\uace0 \ubb38\uc11c\n\n- [React Docs \u00b7 React Compiler / Introduction](https://react.dev/learn/react-compiler/introduction)\n- [React \ubb38\uc11c \u00b7 useMemo](https://react.dev/reference/react/useMemo)\n- [React \ubb38\uc11c \u00b7 useCallback](https://react.dev/reference/react/useCallback)\n- [React \ubb38\uc11c \u00b7 memo](https://react.dev/reference/react/memo)\n- [Rules of React](https://react.dev/reference/rules)\n"}], "grading": {"eval_id": 1, "eval_name": "react-compiler-memo", "config": "with_skill", "expectations": [{"text": "Cites React Compiler 'now stable' status", "passed": true, "evidence": "Line 9: 'React Compiler\ub294 \ub354 \uc774\uc0c1 \uc2e4\ud5d8\uc801 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4'. Line 17: '\uacf5\uc2dd \ubb38\uc11c\ub294 React Compiler\ub97c \"now stable\"\ub85c \ud45c\uae30\ud558\uba70 Meta \ub4f1\uc5d0\uc11c \ud504\ub85c\ub355\uc158 \uc0ac\uc6a9 \uc911\uc784\uc744 \uba85\uc2dc'. Direct quote with react.dev URL."}, {"text": "Frames manual hooks as 'escape hatch' only", "passed": true, "evidence": "Line 27: official quote 'as an escape hatch'. Line 31: '\uc2e0\uaddc \ucf54\ub4dc\uc5d0\uc11c useMemo/useCallback\uc740 escape hatch(\ud0c8\ucd9c\uad6c)\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12\uc774 \uc544\ub2d9\ub2c8\ub2e4.'"}, {"text": "Includes React.memo conditions OR 'memo is not a guarantee'", "passed": true, "evidence": "BOTH present. Line 47: '\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uc131\ub2a5\uc744 \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc774\uc9c0, \ubcf4\uc7a5\ud558\ub294 \uac83\uc740 \uc544\ub2c8\uae30 \ub54c\ubb38\uc5d0' (official quote). Line 52-65: 4-condition checklist (same props, expensive render, Profiler verified, no inline props)."}, {"text": "Names at least 2 valid escape hatch cases", "passed": true, "evidence": "Line 174-176 explicit table of 3 cases: (1) useEffect \uc758\uc874\uc131, (2) \ucef4\ud30c\uc77c\ub7ec \ud734\ub9ac\uc2a4\ud2f1\ubcf4\ub2e4 \uc815\ubc00 \uc81c\uc5b4 (1ms+), (3) use no memo \ub514\ub809\ud2f0\ube0c. Plus 1ms rule explanation in \u00a73.5."}, {"text": "Cites react.dev URL", "passed": true, "evidence": "Multiple react.dev URLs: react.dev/learn/react-compiler/introduction, react.dev/reference/react/useMemo, /useCallback, /memo, /reference/rules."}, {"text": "Explains why blanket memoization is harmful", "passed": true, "evidence": "Three reasons covered: (1) Line 80-82 inline prop defeats memo with Object.is comparison, (2) Line 95 memo-less child useCallback is useless, (3) Line 66 'Profiler \uce21\uc815 \uc5c6\uc774 \uc704 \uc870\uac74\ub4e4\uc744 \ud1b5\uacfc\ud588\ub294\uc9c0 \uc54c \uc218 \uc5c6\uc2b5\ub2c8\ub2e4'."}], "summary": {"passed": 6, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-1-react-compiler-memo-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# PR \ub9ac\ubdf0: React.memo / useCallback / useMemo \uacfc\ub3c4\ud55c \uc0ac\uc6a9\n\n> **\uacb0\ub860: \ubc18\ub824 \uc694\uccad** \u2014 React 19 + React Compiler \ud658\uacbd\uc5d0\uc11c \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \ub300\ubd80\ubd84 \ubd88\ud544\uc694\ud558\uba70, \uc624\ud788\ub824 \ucf54\ub4dc \ubcf5\uc7a1\uc131\uacfc \uc720\uc9c0\ubcf4\uc218 \ube44\uc6a9\uc744 \ub192\uc785\ub2c8\ub2e4. \uc544\ub798 \uadfc\uac70\ub97c \ubc14\ud0d5\uc73c\ub85c \uc804\uba74 \uc7ac\uac80\ud1a0\ub97c \uc694\uccad\ud569\ub2c8\ub2e4.\n\n---\n\n## 1. React Compiler\uac00 \uc774\ubbf8 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc744 \uc218\ud589\ud55c\ub2e4\n\nReact Compiler(\uad6c React Forget)\ub294 \ube4c\ub4dc \ud0c0\uc784\uc5d0 \ucef4\ud3ec\ub10c\ud2b8\uc640 \ud6c5\uc744 \uc815\uc801 \ubd84\uc11d\ud558\uc5ec **\uc790\ub3d9\uc73c\ub85c \uba54\ubaa8\uc774\uc81c\uc774\uc158**\uc744 \uc0bd\uc785\ud569\ub2c8\ub2e4. \ucef4\ud30c\uc77c\ub7ec\uac00 \uc0dd\uc131\ud55c \ucf54\ub4dc\ub97c \ubcf4\uba74 \ub0b4\ubd80\uc801\uc73c\ub85c `c` (cache) \uc2ac\ub86f\uc744 \ud65c\uc6a9\ud574 \uac12\uc758 \ubcc0\uacbd \uc5ec\ubd80\ub97c \ucd94\uc801\ud569\ub2c8\ub2e4.\n\n\uc989, \uac1c\ubc1c\uc790\uac00 `useMemo` / `useCallback` / `React.memo`\ub97c \uc218\ub3d9\uc73c\ub85c \uc791\uc131\ud558\uc9c0 \uc54a\uc544\ub3c4, **\ucef4\ud30c\uc77c\ub7ec\uac00 \uc548\uc804\ud558\ub2e4\uace0 \ud310\ub2e8\ud558\ub294 \ubaa8\ub4e0 \uc704\uce58\uc5d0 \uc790\ub3d9\uc73c\ub85c \ucd5c\uc801\ud654\ub97c \uc801\uc6a9**\ud569\ub2c8\ub2e4.\n\n\uacf5\uc2dd \ucc38\uace0:\n- React Compiler \uacf5\uc2dd \ubb38\uc11c: https://react.dev/learn/react-compiler\n- React \ube14\ub85c\uadf8 \"React Compiler\" \ubc1c\ud45c (React Conf 2024)\n\n> \"React Compiler is a build-time only tool that automatically optimizes your React app. [...] you no longer need to manually memoize with useMemo, useCallback, and React.memo.\"\n>\n> \u2014 https://react.dev/learn/react-compiler\n\n---\n\n## 2. \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc548\ud2f0\ud328\ud134\uc778 \uc774\uc720\n\n### 2-1. \ucef4\ud30c\uc77c\ub7ec\uc640\uc758 \ucda9\ub3cc \uac00\ub2a5\uc131\n\nReact Compiler\ub294 \ucf54\ub4dc\uac00 **React\uc758 \uaddc\uce59(Rules of React)**\uc744 \ub530\ub978\ub2e4\ub294 \uc804\uc81c \ud558\uc5d0 \ucd5c\uc801\ud654\ub97c \uc218\ud589\ud569\ub2c8\ub2e4. \uc218\ub3d9 `useMemo` / `useCallback`\uc774 \uc11e\uc5ec \uc788\uc73c\uba74:\n\n- \ucef4\ud30c\uc77c\ub7ec\uac00 \ud574\ub2f9 \ucf54\ub4dc\uc758 \uc758\uc874\uc131 \ucd94\ub860\uc744 \ubc29\ud574\ubc1b\uc744 \uc218 \uc788\uc74c\n- \ucef4\ud30c\uc77c\ub7ec\uac00 \ud574\ub2f9 \ubd80\ubd84\uc758 \ucd5c\uc801\ud654\ub97c **\uc2a4\ud0b5(bail-out)** \ud560 \uc218 \uc788\uc74c\n- \uacb0\uacfc\uc801\uc73c\ub85c \ucef4\ud30c\uc77c\ub7ec\uc758 \ud6a8\uacfc\uac00 \ubc18\uac10\ub428\n\n### 2-2. \ube44\uc6a9\uc774 \uacf5\uc9dc\uac00 \uc544\ub2c8\ub2e4\n\n`useMemo` / `useCallback`\uc740 **\uc2e4\ud589 \ube44\uc6a9\uc774 0\uc774 \uc544\ub2d9\ub2c8\ub2e4**:\n\n- \uc758\uc874\uc131 \ubc30\uc5f4\uc758 **shallow \ube44\uad50 \ube44\uc6a9** \ub9e4 \ub80c\ub354\ub9c1\ub9c8\ub2e4 \ubc1c\uc0dd\n- \ud074\ub85c\uc800 \uc0dd\uc131 \ube44\uc6a9\n- \uce90\uc2dc \uc2ac\ub86f \uba54\ubaa8\ub9ac \uc810\uc720\n\nReact \uacf5\uc2dd \ubb38\uc11c(https://react.dev/reference/react/useMemo)\uc5d0\uc11c\ub3c4 \uba85\uc2dc\ud569\ub2c8\ub2e4:\n\n> \"You should only rely on useMemo as a performance optimization. If your code doesn't work without it, find the underlying problem and fix it first.\"\n\n\uadf8\ub9ac\uace0:\n\n> \"In practice, you can make a lot of memoization unnecessary by following a few principles: [...] When a component visually wraps other components, let it accept JSX as children. [...] Prefer local state and don't lift state any higher than necessary.\"\n\n### 2-3. React.memo\uc758 \uc5ed\uc124\n\n`React.memo`\ub85c \uac10\uc2fc \ucef4\ud3ec\ub10c\ud2b8\ub294 **props\uc758 shallow \ube44\uad50**\ub97c \uc218\ud589\ud569\ub2c8\ub2e4. \ubb38\uc81c\ub294:\n\n- \ubd80\ubaa8\uac00 \ub9e4 \ub80c\ub354\ub9c1\ub9c8\ub2e4 \uc0c8 \uac1d\uccb4/\ubc30\uc5f4/\ud568\uc218\ub97c props\ub85c \ub0b4\ub824\uc8fc\uba74 \u2192 `React.memo`\ub294 \ubb34\uc758\ubbf8\n- \uc774\ub97c \ub9c9\uc73c\ub824\uace0 `useCallback` / `useMemo`\ub97c \ucd94\uac00 \u2192 \ucf54\ub4dc \ubcf5\uc7a1\ub3c4 \ud3ed\ubc1c\n- **\uacb0\uad6d \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc744 \uc694\uad6c\ud558\ub294 \uc545\uc21c\ud658**\n\nReact \uacf5\uc2dd \ubb38\uc11c(https://react.dev/reference/react/memo):\n\n> \"React will still re-render a component if it re-renders itself (regardless of memo).\"\n\n### 2-4. \uc758\uc874\uc131 \ubc30\uc5f4 \uad00\ub9ac \uc2e4\uc218 \uc720\ubc1c\n\n\uc218\ub3d9 `useCallback` / `useMemo`\ub294 `exhaustive-deps` ESLint \uaddc\uce59\uacfc \uc2f8\uc6b0\uac8c \ub429\ub2c8\ub2e4. \uc758\uc874\uc131\uc744 \uc798\ubabb \uc120\uc5b8\ud558\uba74:\n\n- **stale closure \ubc84\uadf8** \ubc1c\uc0dd\n- \ubb34\ud55c \ub9ac\ub80c\ub354\ub9c1 \ub8e8\ud504 \uac00\ub2a5\uc131\n- \ub514\ubc84\uae45 \ub09c\uc774\ub3c4 \uae09\uc0c1\uc2b9\n\n\uc774 \ubaa8\ub4e0 \ubb38\uc81c\ub97c React Compiler\ub294 \uc815\uc801 \ubd84\uc11d\uc73c\ub85c **\uc790\ub3d9 \ucc98\ub9ac**\ud569\ub2c8\ub2e4.\n\n---\n\n## 3. \"\uc548\uc804 \ucc28\uc6d0\uc5d0\uc11c \ub2e4 \uc4f0\uc790\"\ub294 \ub17c\ub9ac\uc758 \ubc18\ubc15\n\n| \uc8fc\uc7a5 | \ubc18\ubc15 |\n|------|------|\n| \"\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \ub9ce\uc73c\uba74 \ub354 \ube60\ub974\ub2e4\" | \ube44\uad50 \ube44\uc6a9 > \uc7ac\uacc4\uc0b0 \ube44\uc6a9\uc778 \uacbd\uc6b0 \uc624\ud788\ub824 \ub290\ub824\uc9c4\ub2e4 |\n| \"\ucef4\ud30c\uc77c\ub7ec\uac00 \uc788\uc5b4\ub3c4 \ub354 \uba85\uc2dc\uc801\uc778 \uac8c \ub0ab\ub2e4\" | \ucef4\ud30c\uc77c\ub7ec \ucd5c\uc801\ud654\ub97c \ubc29\ud574\ud558\uace0 bail-out\uc744 \uc720\ubc1c\ud55c\ub2e4 |\n| \"\ub098\uc911\uc5d0 \ucef4\ud30c\uc77c\ub7ec \uc5c6\uc560\uba74 \ub300\ube44\uac00 \ub41c\ub2e4\" | \ucef4\ud30c\uc77c\ub7ec\ub97c \uc5c6\uc560\uc57c \ud560 \uc774\uc720\uac00 \uc5c6\uace0, \uc788\ub2e4\uba74 \uadf8\ub54c \ucd94\uac00\ud558\uba74 \ub41c\ub2e4 |\n| \"\ucf54\ub4dc\uac00 \ub354 \uc548\uc804\ud574 \ubcf4\uc778\ub2e4\" | \uc798\ubabb\ub41c \uc758\uc874\uc131 \ubc30\uc5f4\ub85c \uc778\ud55c stale closure\uac00 \ub354 \uc704\ud5d8\ud558\ub2e4 |\n\n---\n\n## 4. \uc9c4\uc9dc \ud544\uc694\ud55c Escape Hatch: \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc815\ub2f9\ud654\ub418\ub294 \uacbd\uc6b0\n\nReact Compiler\uac00 \uc788\uc5b4\ub3c4 **\ub2e4\uc74c \ucf00\uc774\uc2a4\uc5d0\uc11c\ub294 \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \ud544\uc694**\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\n\n### 4-1. \ucef4\ud30c\uc77c\ub7ec\uac00 bail-out\ud558\ub294 \uacbd\uc6b0\n\nReact Compiler\ub294 \ucf54\ub4dc\uac00 Rules of React\ub97c \uc704\ubc18\ud558\uac70\ub098, \ud328\ud134\uc774 \ub108\ubb34 \ubcf5\uc7a1\ud558\uba74 \ud574\ub2f9 \ud568\uc218 \ucd5c\uc801\ud654\ub97c **\uc2a4\ud0b5**\ud569\ub2c8\ub2e4. \ucef4\ud30c\uc77c\ub7ec \ucd9c\ub825(`react-compiler-healthcheck` \ub610\ub294 babel \ud50c\ub7ec\uadf8\uc778 \ub85c\uadf8)\uc744 \ud655\uc778\ud588\uc744 \ub54c bail-out\uc774 \ubc1c\uc0dd\ud55c \ucef4\ud3ec\ub10c\ud2b8\ub294 \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc744 \uac80\ud1a0\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\n\n### 4-2. \ucc38\uc870 \ub3d9\uc77c\uc131\uc774 \uc678\ubd80 \ub77c\uc774\ube0c\ub7ec\ub9ac\uc758 \uacc4\uc57d(contract)\uc778 \uacbd\uc6b0\n\n```tsx\n// react-virtuoso, react-window \ub4f1 \ub808\ud37c\ub7f0\uc2a4 \ub3d9\uc77c\uc131 \uc694\uad6c \ub77c\uc774\ube0c\ub7ec\ub9ac\nconst renderRow = useCallback(({ index }) => (\n  <Row data={data[index]} />\n), [data]);\n```\n\n\uac00\uc0c1\ud654 \ub77c\uc774\ube0c\ub7ec\ub9ac, D3, \uc77c\ubd80 WebSocket \uad6c\ub3c5 \ub4f1\uc740 **\ud568\uc218 \ub808\ud37c\ub7f0\uc2a4 \ub3d9\uc77c\uc131\uc744 API \uacc4\uc57d\uc73c\ub85c \uc694\uad6c**\ud569\ub2c8\ub2e4. \uc774 \uacbd\uc6b0 `useCallback`\uc740 \uc815\ub2f9\ud569\ub2c8\ub2e4.\n\n### 4-3. \uc2e4\uc81c\ub85c \ube44\uc6a9\uc774 \ud070 \uc21c\uc218 \uacc4\uc0b0\n\n```tsx\n// \uc218\ub9cc \uac1c \ub370\uc774\ud130 \ud544\ud130\ub9c1 / \uc815\ub82c / \uc9d1\uacc4\nconst sortedData = useMemo(() => {\n  return hugeArray.filter(...).sort(...);\n}, [hugeArray, sortKey]);\n```\n\n**\ud504\ub85c\ud30c\uc77c\ub9c1\uc73c\ub85c \uc2e4\uc81c \ubcd1\ubaa9\uc774 \ud655\uc778\ub41c** \uace0\ube44\uc6a9 \uacc4\uc0b0\uc5d0\ub294 `useMemo`\uac00 \uc720\ud6a8\ud569\ub2c8\ub2e4. \ub2e8, \ucd94\uce21\uc774 \uc544\ub2c8\ub77c `React DevTools Profiler` \ub610\ub294 `Performance` \ud0ed\uc73c\ub85c \uce21\uc815 \ud6c4 \uc801\uc6a9\ud574\uc57c \ud569\ub2c8\ub2e4.\n\n### 4-4. Context \ubd84\ub9ac\uac00 \uc5b4\ub824\uc6b4 \uc0c1\ud669\uc5d0\uc11c \ub9ac\ub80c\ub354 \ud3ed\ubc1c \ubc29\uc9c0\n\n```tsx\n// Context value\uac00 \ub9e4 \ub80c\ub354\ub9c8\ub2e4 \uc0c8 \uac1d\uccb4\uba74 \ubaa8\ub4e0 \uc18c\ube44\uc790\uac00 \ub9ac\ub80c\ub354\nconst value = useMemo(() => ({ user, logout }), [user, logout]);\n```\n\nContext\uc758 `value` prop\uc5d0 \uc9c1\uc811 \uac1d\uccb4 \ub9ac\ud130\ub7f4\uc744 \ub118\uae38 \uacbd\uc6b0 \uc18c\ube44 \ucef4\ud3ec\ub10c\ud2b8\uac00 \uc804\ubd80 \ub9ac\ub80c\ub354\ub429\ub2c8\ub2e4. \uc774 \uacbd\uc6b0 `useMemo`\ub85c \uc548\uc815\uc801\uc778 \ub808\ud37c\ub7f0\uc2a4\ub97c \uc81c\uacf5\ud558\ub294 \uac83\uc740 \uc815\ub2f9\ud569\ub2c8\ub2e4.\n\n### 4-5. `useEffect` \uc758\uc874\uc131\uc5d0\uc11c \ud568\uc218 \uc548\uc815\uc131\uc774 \ud544\uc694\ud55c \uacbd\uc6b0\n\n```tsx\n// fetchData\uac00 \ub9e4 \ub80c\ub354\ub9c8\ub2e4 \uc0c8 \ucc38\uc870\uba74 \ubb34\ud55c \ub8e8\ud504\nconst fetchData = useCallback(async () => {\n  const res = await api.get('/data');\n  setData(res);\n}, []);\n\nuseEffect(() => {\n  fetchData();\n}, [fetchData]);\n```\n\n`useEffect` \uc758\uc874\uc131\uc5d0 \ud3ec\ud568\ub41c \ud568\uc218\uac00 \ub9e4 \ub80c\ub354\ub9c8\ub2e4 \uc0c8\ub85c \uc0dd\uc131\ub418\uba74 effect\uac00 \ubb34\ud55c\ud788 \uc2e4\ud589\ub429\ub2c8\ub2e4. \uc774 \ud328\ud134\uc5d0\uc11c\ub294 `useCallback`\uc774 \ud544\uc694\ud569\ub2c8\ub2e4. (\ub2e8, `useEffectEvent` \u2014 React 19 \uc2e4\ud5d8\uc801 API \u2014 \ub85c \ub300\uccb4 \uac00\ub2a5\ud55c\uc9c0 \uba3c\uc800 \uac80\ud1a0)\n\n---\n\n## 5. \uad8c\uc7a5 \uc811\uadfc\ubc95\n\n```\n\uce21\uc815 \u2192 \ud655\uc778 \u2192 \uc801\uc6a9\n```\n\n1. **React Compiler \uc801\uc6a9 \ud655\uc778**: `react-compiler-healthcheck` \ub85c \ud504\ub85c\uc81d\ud2b8 \ud638\ud658\uc131 \uc810\uac80\n2. **\ud504\ub85c\ud30c\uc77c\ub9c1 \uba3c\uc800**: `React DevTools Profiler`\ub85c \uc2e4\uc81c \ub9ac\ub80c\ub354 \ubcd1\ubaa9 \ud655\uc778\n3. **\ucef4\ud30c\uc77c\ub7ec bail-out \ucef4\ud3ec\ub10c\ud2b8\ub9cc \uc218\ub3d9 \ucd5c\uc801\ud654** \uac80\ud1a0\n4. **\ub77c\uc774\ube0c\ub7ec\ub9ac \uacc4\uc57d, \uace0\ube44\uc6a9 \uacc4\uc0b0, Context value** \ub4f1 \uc704\uc758 Escape Hatch\uc5d0 \ud55c\uc815\n\n---\n\n## 6. \uad6c\uccb4\uc801 \ubcc0\uacbd \uc694\uccad\n\n\uc774 PR\uc5d0\uc11c \uc694\uccad\ud558\ub294 \ubcc0\uacbd\uc0ac\ud56d:\n\n- [ ] **\ubaa8\ub4e0 \ucef4\ud3ec\ub10c\ud2b8\uc758 `React.memo` \uc81c\uac70** \u2014 \ucef4\ud30c\uc77c\ub7ec\uac00 \uc790\ub3d9 \ucc98\ub9ac\n- [ ] **\uacc4\uc0b0 \ube44\uc6a9\uc774 \uce21\uc815\uc73c\ub85c \uc99d\uba85\ub418\uc9c0 \uc54a\uc740 `useMemo` \uc81c\uac70** \u2014 \ucef4\ud30c\uc77c\ub7ec\uac00 \uc790\ub3d9 \ucc98\ub9ac\n- [ ] **\ub77c\uc774\ube0c\ub7ec\ub9ac \uacc4\uc57d/Effect \uc758\uc874\uc131 \ubaa9\uc801\uc774 \uc5c6\ub294 `useCallback` \uc81c\uac70** \u2014 \ucef4\ud30c\uc77c\ub7ec\uac00 \uc790\ub3d9 \ucc98\ub9ac\n- [ ] **`react-compiler-healthcheck` \uc2e4\ud589 \uacb0\uacfc \uacf5\uc720** \u2014 bail-out \ubc1c\uc0dd \ucef4\ud3ec\ub10c\ud2b8 \ubaa9\ub85d \ud655\uc778\n- [ ] \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \ub0a8\uc544 \uc788\ub2e4\uba74 **\uc8fc\uc11d\uc73c\ub85c \uc774\uc720 \uba85\uc2dc** (\uc5b4\ub5a4 Escape Hatch \ucf00\uc774\uc2a4\uc778\uc9c0)\n\n---\n\n## \ucc38\uace0 \ubb38\uc11c\n\n- React Compiler \uacf5\uc2dd \ubb38\uc11c: https://react.dev/learn/react-compiler\n- `useMemo` \uacf5\uc2dd \ubb38\uc11c: https://react.dev/reference/react/useMemo\n- `useCallback` \uacf5\uc2dd \ubb38\uc11c: https://react.dev/reference/react/useCallback\n- `memo` \uacf5\uc2dd \ubb38\uc11c: https://react.dev/reference/react/memo\n- Rules of React: https://react.dev/reference/rules\n\n---\n\n> \uc218\uace0 \ub9ce\uc73c\uc168\uc2b5\ub2c8\ub2e4. \uc131\ub2a5\uc5d0 \ub300\ud55c \uad00\uc2ec\uc740 \uc88b\uc740 \uc790\uc138\uc785\ub2c8\ub2e4. \ub2e4\ub9cc React 19 + Compiler \ud658\uacbd\uc5d0\uc11c\ub294 \"\uce21\uc815 \uc5c6\ub294 \uba54\ubaa8\uc774\uc81c\uc774\uc158 = \ucf54\ub4dc \ubcf5\uc7a1\ub3c4 \uc99d\uac00\"\ub85c \uadc0\uacb0\ub429\ub2c8\ub2e4. \ud504\ub85c\ud30c\uc77c\ub9c1 \uacb0\uacfc\ub97c \uae30\ubc18\uc73c\ub85c \ud544\uc694\ud55c \uacf3\uc5d0\ub9cc \uc801\uc6a9\ud558\uba74 \ud6e8\uc52c \uae54\ub054\ud558\uace0 \uc720\uc9c0\ubcf4\uc218 \uac00\ub2a5\ud55c \ucf54\ub4dc\uac00 \ub429\ub2c8\ub2e4.\n"}], "grading": {"eval_id": 1, "eval_name": "react-compiler-memo", "config": "without_skill", "expectations": [{"text": "Cites React Compiler 'now stable' status", "passed": false, "evidence": "Answer describes React Compiler functionality but does NOT cite its 'now stable' / 'stable' / '\uc548\uc815' status. Quote on Line 17 says 'React Compiler is a build-time only tool' but omits the stability claim. No mention of 'stable', '\uc548\uc815', or 'production-ready'."}, {"text": "Frames manual hooks as 'escape hatch' only", "passed": true, "evidence": "Section 4 titled '\uc9c4\uc9dc \ud544\uc694\ud55c Escape Hatch: \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc815\ub2f9\ud654\ub418\ub294 \uacbd\uc6b0'. Term used explicitly."}, {"text": "Includes React.memo conditions OR 'memo is not a guarantee'", "passed": true, "evidence": "Line 60 quotes: 'React will still re-render a component if it re-renders itself (regardless of memo)'. Quote conveys 'not a guarantee' principle. 4-condition checklist NOT explicitly present, but 'not guarantee' alternative satisfies the OR criterion."}, {"text": "Names at least 2 valid escape hatch cases", "passed": true, "evidence": "Lists 5 cases in Section 4: (4-1) compiler bail-out, (4-2) library reference contracts, (4-3) expensive computation with profiling, (4-4) Context value stabilization, (4-5) useEffect deps. Exceeds 2-case minimum."}, {"text": "Cites react.dev URL", "passed": true, "evidence": "Multiple react.dev URLs cited (compiler, useMemo, useCallback, memo, rules)."}, {"text": "Explains why blanket memoization is harmful", "passed": true, "evidence": "Multiple reasons: Line 51-55 (parent re-render makes memo useless), Line 53-54 ('memoization-of-memoization vicious cycle'), Line 63-67 (stale closure risk from manual deps), Line 35-39 (shallow comparison cost not free)."}], "summary": {"passed": 5, "total": 6, "pass_rate": 0.833}}}, {"id": "eval-2-code-splitting-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Next.js 16 App Router \u2014 \ucf54\ub4dc \uc2a4\ud50c\ub9ac\ud305 \uacb0\uc815 \uac00\uc774\ub4dc\n\n> \uae30\uc900 \ubb38\uc11c: [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\n---\n\n## 1. `next/dynamic` vs `React.lazy` \u2014 \uacf5\uc2dd \uc815\uc758\n\nNext.js \uacf5\uc2dd \ubb38\uc11c\ub294 lazy loading \uad6c\ud604 \ubc29\ubc95\uc744 **2\uac00\uc9c0**\ub85c \uc81c\uc2dc\ud55c\ub2e4.\n\n> \"There are two ways you can implement lazy loading in Next.js:\n> 1. Using Dynamic Imports with `next/dynamic`\n> 2. Using `React.lazy()` with Suspense\"\n>\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\n\uadf8\ub9ac\uace0 `next/dynamic`\uc758 \uc815\uccb4\ub97c \uba85\ud655\ud788 \uc815\uc758\ud55c\ub2e4.\n\n> \"**`next/dynamic` is a composite of `React.lazy()` and Suspense.** It behaves the same way in the `app` and `pages` directories to allow for incremental migration.\"\n>\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\n\uc989, `next/dynamic`\uc740 `React.lazy + <Suspense>`\ub97c \ud558\ub098\ub85c \ud569\uce5c composite API\ub2e4. \ub0b4\ubd80 `loading` \uc635\uc158\uc774 Suspense fallback \uc5ed\ud560\uc744 \ud55c\ub2e4.\n\n---\n\n## 2. \"`React.lazy`\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\" \u2014 Outdated \ud1b5\ub150 \ud310\uc815\n\n**\uacb0\ub860: \ud2c0\ub9b0 \uc815\ubcf4\ub2e4.** Next.js 16 App Router \uae30\uc900\uc73c\ub85c \uc774\ubbf8 outdated\ub41c \ud1b5\ub150\uc774\ub2e4.\n\n\uacf5\uc2dd \ubb38\uc11c\uac00 \uc815\ubc18\ub300\ub97c \uba85\uc2dc\ud55c\ub2e4.\n\n> \"When using `React.lazy()` and Suspense, **Client Components will be prerendered (SSR) by default**.\"\n>\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\nReact 18\uc758 streaming SSR \ub3c4\uc785 \uc774\ud6c4 `React.lazy + Suspense`\ub294 \uc11c\ubc84\uc5d0\uc11c \uc815\uc0c1 prerender\ub41c\ub2e4. **\ub450 API\uc758 \ucc28\uc774\ub294 SSR \uc9c0\uc6d0 \uc5ec\ubd80\uac00 \uc544\ub2c8\ub2e4.**\n\n---\n\n## 3. \uc2e4\uc81c \ucc28\uc774 \u2014 \uc120\ud0dd \uae30\uc900\n\n\uacf5\uc2dd \ubb38\uc11c \uc778\uc6a9 \uc0ac\uc2e4\uc5d0\uc11c \ub3c4\ucd9c\ud55c 3\uac00\uc9c0 \ucc28\uc774\uc810\uc774\ub2e4.\n\n| \ud56d\ubaa9 | `next/dynamic` | `React.lazy` |\n|---|---|---|\n| \ub0b4\ubd80 \uad6c\ud604 | `React.lazy + Suspense` composite | React \ub0b4\uc7a5 API |\n| `ssr: false` opt-out | \uc9c0\uc6d0 (Client Component \uc804\uc6a9) | \ubbf8\uc9c0\uc6d0 |\n| fallback \uc9c0\uc815 \ubc29\uc2dd | `loading` \uc635\uc158\uc73c\ub85c \ud638\ucd9c\uc5d0 \ubb36\uc5b4 \uc9c0\uc815 | \ubcc4\ub3c4 `<Suspense fallback>` \ub798\ud551 \ud544\uc694 |\n| pages/app \ud638\ud658 | \uc591\ucabd\uc5d0\uc11c \ub3d9\uc77c \ub3d9\uc791 | \u2014 |\n\n**\uc120\ud0dd \uc9c0\uce68:**\n\n- **\uae30\ubcf8\uac12: `next/dynamic`** \u2014 `ssr: false`\uac00 \ud544\uc694\ud558\uac70\ub098, fallback\uc744 \uc120\uc5b8 \uc704\uce58\uc5d0 \ubb36\uace0 \uc2f6\uc744 \ub54c \uba85\ud655\ud55c \uc774\uc720\uac00 \uc0dd\uae34\ub2e4.\n- **`React.lazy` \uc120\ud0dd \uc774\uc720**: SSR \ube44\ud65c\uc131\ud654\uac00 \ud544\uc694 \uc5c6\uace0, \ud558\ub098\uc758 `<Suspense>`\ub85c \uc5ec\ub7ec lazy \ucef4\ud3ec\ub10c\ud2b8\ub97c \ubb36\uc5b4 \uadf8\ub8f9 fallback\uc744 \uad00\ub9ac\ud558\uace0 \uc2f6\uc744 \ub54c \ub354 \uc790\uc5f0\uc2a4\ub7fd\ub2e4.\n\n> \uc8fc\uc758: \"`loading` \uc635\uc158 vs `<Suspense fallback>` \uc120\ud0dd \uae30\uc900\"\uc740 Next.js/React \uacf5\uc2dd \ubb38\uc11c \uc5b4\ub514\uc5d0\ub3c4 \uc9c1\uc811 \ube44\uad50 \uc9c4\uc220\uc774 \uc5c6\ub2e4. \uc704\uc758 \uc120\ud0dd \uc9c0\uce68\uc740 \uacf5\uc2dd \uc778\uc6a9 \uc0ac\uc2e4\uc5d0\uc11c \ucd94\ub860\ud55c \uac83\uc774\ub2e4.\n\n---\n\n## 4. \ub124 \ucf00\uc774\uc2a4 \uc801\uc6a9\n\n### 4-1. recharts (\ucc28\ud2b8 \ub77c\uc774\ube0c\ub7ec\ub9ac) \u2014 \ucd08\uae30 \ub85c\ub4dc \ubd84\ub9ac\n\n\ucc28\ud2b8\ub294 \ud398\uc774\uc9c0 \uc9c4\uc785 \uc2dc \uc989\uc2dc \ud544\uc694\ud560 \uc218\ub3c4 \uc788\uc73c\ub098, **\uccab \ud398\uc778\ud2b8\uc5d0\ub294 \ubd88\ud544\uc694**\ud558\ub2e4\uba74 lazy loading\uc774 \uc801\ud569\ud558\ub2e4.\n\n```tsx\n// app/dashboard/page.tsx (Server Component)\nimport dynamic from 'next/dynamic'\n\nconst RechartsChart = dynamic(\n  () => import('../components/recharts-chart'),\n  {\n    loading: () => <div className=\"h-64 w-full animate-pulse bg-gray-100\" />,\n    // ssr: true (\uae30\ubcf8\uac12) \u2014 \uc11c\ubc84\uc5d0\uc11c prerender, \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc740 \ubd84\ub9ac\n  }\n)\n\nexport default function DashboardPage() {\n  return (\n    <main>\n      <RechartsChart />\n    </main>\n  )\n}\n```\n\n> \ucc38\uace0: `recharts`\ub294 Next.js\uc758 `optimizePackageImports` **\uc790\ub3d9 \ucd5c\uc801\ud654 \ubaa9\ub85d\uc5d0 \uc774\ubbf8 \ud3ec\ud568**\ub418\uc5b4 \uc788\ub2e4. named import\ub9cc \uc368\ub3c4 \ubcc4\ub3c4 \uc124\uc815 \uc5c6\uc774 tree-shaking\uc774 \uc801\uc6a9\ub41c\ub2e4.\n>\n> \u2014 [Next.js Docs \u00b7 optimizePackageImports](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports)\n\n### 4-2. \ub9c8\ud06c\ub2e4\uc6b4 \uc5d0\ub514\ud130 \u2014 \uc0ac\uc6a9\uc790 \ud074\ub9ad \ud6c4\uc5d0\ub9cc \ud544\uc694\n\n\uacf5\uc2dd \ubb38\uc11c\uac00 \uc9c1\uc811 \uc5b8\uae09\ud558\ub294 \ucf00\uc774\uc2a4\ub2e4.\n\n> \"For example, you might want to defer loading a modal until a user clicks to open it.\"\n>\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\n\uc5d0\ub514\ud130\ucc98\ub7fc \ud074\ub77c\uc774\uc5b8\ud2b8 \uc804\uc6a9 API(window, document)\uc5d0 \uc758\uc874\ud558\ub294 \ubb34\uac70\uc6b4 \ucef4\ud3ec\ub10c\ud2b8\ub294 `ssr: false`\uac00 \ud544\uc694\ud560 \uc218 \uc788\ub2e4.\n\n```tsx\n// components/editor-wrapper.tsx\n'use client'  // \u2190 ssr: false\ub294 Client Component\uc5d0\uc11c\ub9cc \uc0ac\uc6a9 \uac00\ub2a5\n\nimport dynamic from 'next/dynamic'\nimport { useState } from 'react'\n\nconst MarkdownEditor = dynamic(\n  () => import('./markdown-editor'),\n  {\n    ssr: false,  // \uc5d0\ub514\ud130\uac00 window/document\uc5d0 \uc758\uc874\ud558\ub294 \uacbd\uc6b0\n    loading: () => <div className=\"h-64 w-full animate-pulse bg-gray-100\" />,\n  }\n)\n\nexport function EditorSection() {\n  const [isOpen, setIsOpen] = useState(false)\n\n  return (\n    <div>\n      <button onClick={() => setIsOpen(true)}>\uc5d0\ub514\ud130 \uc5f4\uae30</button>\n      {isOpen && <MarkdownEditor />}\n    </div>\n  )\n}\n```\n\n---\n\n## 5. `ssr: false`\uac00 \ud544\uc694\ud55c \uacbd\uc6b0\n\n\uacf5\uc2dd \ubb38\uc11c\ub294 `ssr: false`\uc758 \uc5d0\ub7ec \uc870\uac74\uae4c\uc9c0 \uba85\uc2dc\ud55c\ub2e4.\n\n> \"`ssr: false` option is not supported in Server Components. You will see an error if you try to use it in Server Components. **`ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component.**\"\n>\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading)\n\n### `ssr: false`\ub97c \uc0ac\uc6a9\ud558\ub294 \uacbd\uc6b0:\n- \ucef4\ud3ec\ub10c\ud2b8\uac00 `window`, `document`, `navigator` \uac19\uc740 \ube0c\ub77c\uc6b0\uc800 \uc804\uc6a9 API\uc5d0 \uc758\uc874\n- `localStorage`, `sessionStorage`\ub97c mount \uc2dc\uc810\uc5d0 \ubc14\ub85c \uc811\uadfc\n- SSR \uc2dc hydration mismatch\uac00 \ubd88\uac00\ud53c\ud55c \uc11c\ub4dc\ud30c\ud2f0 \ub77c\uc774\ube0c\ub7ec\ub9ac\n\n### `ssr: false` \uc0ac\uc6a9 \uaddc\uce59:\n\n```tsx\n// \u274c Server Component\uc5d0\uc11c \ud638\ucd9c \u2014 \ube4c\ub4dc/\ub7f0\ud0c0\uc784 \uc5d0\ub7ec \ubc1c\uc0dd\n// app/page.tsx\nimport dynamic from 'next/dynamic'\nconst Editor = dynamic(() => import('./editor'), { ssr: false }) // Error!\n\n// \u2705 Client Component \uc548\uc5d0\uc11c\ub9cc \ud638\ucd9c\n// components/editor-wrapper.tsx\n'use client'\nimport dynamic from 'next/dynamic'\n\nexport const Editor = dynamic(() => import('./editor'), {\n  ssr: false,\n  loading: () => <div className=\"h-64 w-full bg-gray-100\" />,\n})\n```\n\n---\n\n## 6. Named Export \ub3d9\uc801 import \ud328\ud134\n\n\uacf5\uc2dd \ubb38\uc11c\uac00 \uc81c\uc2dc\ud558\ub294 \ubc29\ubc95\uc774\ub2e4.\n\n```tsx\n// components/charts/bar-chart.tsx\n'use client'\nexport function BarChart({ data }: { data: ChartData[] }) {\n  return <BarChartImpl data={data} />\n}\n\n// app/dashboard/page.tsx\nimport dynamic from 'next/dynamic'\n\n// .then((mod) => mod.Named) \ud328\ud134\ub9cc \uacf5\uc2dd \ubb38\uc11c\uac00 \uc81c\uc2dc\ud55c\ub2e4\nconst BarChart = dynamic(() =>\n  import('../components/charts/bar-chart').then((mod) => mod.BarChart)\n)\n```\n\n> \u2014 [Next.js \u00b7 Lazy Loading](https://nextjs.org/docs/app/guides/lazy-loading) (\uc6d0\ubb38 \uc608\uc2dc)\n\n---\n\n## 7. Route \uc790\ub3d9 \ubd84\ud560 \u2014 \uba3c\uc800 \ud655\uc778\ud560 \uac83\n\n\uc218\ub3d9 \ubd84\ud560 \uc804\uc5d0 \uc774\ubbf8 \uc5bb\ub294 \uac83\uc744 \ud655\uc778\ud55c\ub2e4.\n\n> \"Server Components enable automatic code-splitting by route segments.\"\n>\n> \u2014 [Next.js \u00b7 Production Checklist](https://nextjs.org/docs/app/guides/production-checklist)\n\nApp Router\uc5d0\uc11c Server Component\ub85c \uc720\uc9c0\ub418\ub294 \ucef4\ud3ec\ub10c\ud2b8\ub294 \uc774\ubbf8 route segment \ub2e8\uc704\ub85c \ubd84\ub9ac\ub41c\ub2e4. \uc218\ub3d9 `dynamic()`\uc740 \"route \uc790\ub3d9 \ubd84\ud560\uc774 \ubd80\uc871\ud55c \uad6c\uccb4 \ucf00\uc774\uc2a4\"\uc5d0\uc11c\ub9cc \ucd94\uac00\ud55c\ub2e4.\n\n---\n\n## 8. \uc8fc\uc758: \ucc28\ud2b8/\uc5d0\ub514\ud130 split\uc740 \"\uacf5\uc2dd \uad8c\uc7a5\"\uc774 \uc544\ub2d8\n\n> \uc911\uc694: Next.js/React \uacf5\uc2dd \ubb38\uc11c \uc5b4\ub514\uc5d0\ub3c4 \"recharts\ub098 \ub9c8\ud06c\ub2e4\uc6b4 \uc5d0\ub514\ud130\ub97c split\ud558\ub77c\"\ub294 \uc9c1\uc811 \uc9c4\uc220\uc774 \uc5c6\ub2e4.\n\n\uacf5\uc2dd\uc774 \uba85\uc2dc\ud55c split \ub300\uc0c1\uc740 \ubaa8\ub2ec, \uc870\uac74\ubd80 \ub80c\ub354 \ucef4\ud3ec\ub10c\ud2b8, \uc0ac\uc6a9\uc790 \uc785\ub825 \ud6c4 \ud544\uc694\ud55c \uc678\ubd80 \ub77c\uc774\ube0c\ub7ec\ub9ac 3\uac00\uc9c0\ub2e4. recharts/\uc5d0\ub514\ud130 \ubd84\ub9ac\ub294 \uc2e4\ubb34 \uacbd\ud5d8\uce59\uc774\uba70, \ub9ac\ubdf0\ub098 PR \ucf54\uba58\ud2b8\uc5d0\uc11c \"\uacf5\uc2dd \uad8c\uc7a5\"\uc774\ub77c\uace0 \ud45c\uae30\ud558\uc9c0 \uc54a\ub294\ub2e4.\n\n---\n\n## \uc694\uc57d\n\n| \uc9c8\ubb38 | \ub2f5 |\n|---|---|\n| `next/dynamic` vs `React.lazy` \uc120\ud0dd | \uae30\ubcf8\uc740 `next/dynamic`. `ssr: false` \ubd88\ud544\uc694 + \uadf8\ub8f9 fallback\uc774 \ud544\uc694\ud558\uba74 `React.lazy` |\n| \"`React.lazy`\ub294 SSR \uc548 \ub41c\ub2e4\" | Outdated. Next.js 16\uc5d0\uc11c `React.lazy + Suspense`\ub3c4 \uae30\ubcf8 SSR(prerender)\ub41c\ub2e4 |\n| `ssr: false` \ud544\uc694\ud55c \uacbd\uc6b0 | \ube0c\ub77c\uc6b0\uc800 \uc804\uc6a9 API \uc758\uc874, hydration mismatch \ubd88\uac00\ud53c \ucf00\uc774\uc2a4 |\n| Server Component\uc5d0\uc11c `ssr: false` | \ubd88\uac00. `'use client'` \ubaa8\ub4c8 \uc548\uc5d0\uc11c\ub9cc \ud638\ucd9c\ud574\uc57c \ud55c\ub2e4 |\n| Named export dynamic import | `.then((mod) => mod.Named)` \ud328\ud134 \uc0ac\uc6a9 |\n"}], "grading": {"eval_id": 2, "eval_name": "code-splitting", "config": "with_skill", "expectations": [{"text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect", "passed": true, "evidence": "Line 29: '\uacb0\ub860: \ud2c0\ub9b0 \uc815\ubcf4\ub2e4. Next.js 16 App Router \uae30\uc900\uc73c\ub85c \uc774\ubbf8 outdated\ub41c \ud1b5\ub150\uc774\ub2e4.' Section 2 titled 'Outdated \ud1b5\ub150 \ud310\uc815'."}, {"text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'", "passed": true, "evidence": "Line 33: direct quote 'When using React.lazy() and Suspense, Client Components will be prerendered (SSR) by default.' with nextjs.org/docs/app/guides/lazy-loading URL."}, {"text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'", "passed": true, "evidence": "Line 19: direct quote 'next/dynamic is a composite of React.lazy() and Suspense. It behaves the same way in the app and pages directories'. Word 'composite' used explicitly."}, {"text": "States that ssr: false is Client Component only (Server Component \u2192 error)", "passed": true, "evidence": "Line 135: direct quote 'ssr: false is not allowed with next/dynamic in Server Components. Please move it into a Client Component.' Plus \u274c Server / \u2705 Client code example."}, {"text": "Cites Next.js Lazy Loading guide URL", "passed": true, "evidence": "Multiple instances of nextjs.org/docs/app/guides/lazy-loading (the correct Next.js 16 URL, not the old building-your-application path)."}, {"text": "Includes named export dynamic import pattern", "passed": true, "evidence": "Line 180-182: official pattern shown 'dynamic(() => import(.../bar-chart).then((mod) => mod.BarChart))'. Uses correct .then((mod) => mod.X) pattern from Next.js 16 docs."}], "summary": {"passed": 6, "total": 6, "pass_rate": 1.0}}}, {"id": "eval-2-code-splitting-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Next.js 16 App Router\uc5d0\uc11c Dynamic Import: next/dynamic vs React.lazy\n\n## \uacb0\ub860 \uc694\uc57d\n\n| \ud56d\ubaa9 | `next/dynamic` | `React.lazy` |\n|---|---|---|\n| SSR \uc9c0\uc6d0 | \uae30\ubcf8 \uc9c0\uc6d0 (\uc635\uc158\uc73c\ub85c \ube44\ud65c\uc131\ud654 \uac00\ub2a5) | **Next.js 15+\uc5d0\uc11c \uc9c0\uc6d0\ub428** (\uc774\uc804\uc5d4 \ubbf8\uc9c0\uc6d0) |\n| App Router \uc9c0\uc6d0 | Client Component\uc5d0\uc11c\ub9cc \uc0ac\uc6a9 \uac00\ub2a5 | Client Component\uc5d0\uc11c\ub9cc \uc0ac\uc6a9 \uac00\ub2a5 |\n| Server Component\uc5d0\uc11c \ud638\ucd9c | \ubd88\uac00 | \ubd88\uac00 |\n| loading \uc2ac\ub86f | `loading` prop\uc73c\ub85c \uc778\ub77c\uc778 \uc9c0\uc815 \uac00\ub2a5 | `<Suspense fallback>` \uc0ac\uc6a9 |\n| `ssr: false` \uc635\uc158 | \uc788\uc74c | \uc5c6\uc74c (Suspense\ub85c \ub300\uccb4) |\n\n---\n\n## 1. \"React.lazy\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\"\ub294 \uc8fc\uc7a5, \uc0ac\uc2e4\uc778\uac00?\n\n**\uc608\uc804\uc5d4 \uc0ac\uc2e4\uc774\uc5c8\uc9c0\ub9cc, \ud604\uc7ac\ub294 \ub2e4\ub974\ub2e4.**\n\n- React 18 \uc774\uc804: `React.lazy`\ub294 \uc11c\ubc84 \uc0ac\uc774\ub4dc \ub80c\ub354\ub9c1\uc744 \uc9c0\uc6d0\ud558\uc9c0 \uc54a\uc558\ub2e4. \uc11c\ubc84\uc5d0\uc11c \ud638\ucd9c \uc2dc \uc5d0\ub7ec\uac00 \ubc1c\uc0dd\ud588\ub2e4.\n- **React 18 \uc774\ud6c4**: `React.lazy` + `<Suspense>`\uac00 \uc11c\ubc84 \uc2a4\ud2b8\ub9ac\ubc0d(`renderToPipeableStream`, `renderToReadableStream`)\uacfc \ud568\uaed8 \uc0ac\uc6a9 \uac00\ub2a5\ud574\uc84c\ub2e4.\n- **Next.js 13+ App Router** \ud658\uacbd\uc5d0\uc11c\ub294 `React.lazy`\uac00 Client Component \ub0b4\uc5d0\uc11c SSR\uacfc \ud568\uaed8 \uc815\uc0c1\uc801\uc73c\ub85c \ub3d9\uc791\ud55c\ub2e4.\n\n\uc989, \"React.lazy\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\"\ub294 \uc8fc\uc7a5\uc740 **React 17 \uc774\uc804 \uae30\uc900\uc758 \uad6c\uc2dd \uc815\ubcf4**\ub2e4.\n\n---\n\n## 2. `next/dynamic`\uacfc `React.lazy`\uc758 \ud604\uc7ac \ucc28\uc774\n\n### next/dynamic\n\n```tsx\n// app/components/ChartWrapper.tsx\n'use client'\n\nimport dynamic from 'next/dynamic'\n\nconst RechartsChart = dynamic(() => import('./RechartsChart'), {\n  loading: () => <p>\ucc28\ud2b8 \ub85c\ub529 \uc911...</p>,\n  ssr: false, // \ud544\uc694\ud55c \uacbd\uc6b0\uc5d0\ub9cc\n})\n```\n\n- Next.js \uacf5\uc2dd \ucd94\ucc9c \ubc29\uc2dd\n- `loading` prop\uc73c\ub85c fallback\uc744 \uc778\ub77c\uc778\uc73c\ub85c \uc9c0\uc815\ud560 \uc218 \uc788\ub2e4\n- `ssr: false` \uc635\uc158 \uc0ac\uc6a9 \uac00\ub2a5\n- \ub0b4\ubd80\uc801\uc73c\ub85c `React.lazy` + `<Suspense>`\ub97c \ub798\ud551\ud55c Next.js \uc804\uc6a9 \uc720\ud2f8\ub9ac\ud2f0\n\n### React.lazy\n\n```tsx\n// app/components/ChartWrapper.tsx\n'use client'\n\nimport { lazy, Suspense } from 'react'\n\nconst RechartsChart = lazy(() => import('./RechartsChart'))\n\nexport function ChartWrapper() {\n  return (\n    <Suspense fallback={<p>\ucc28\ud2b8 \ub85c\ub529 \uc911...</p>}>\n      <RechartsChart />\n    </Suspense>\n  )\n}\n```\n\n- React \ud45c\uc900 API, \ud504\ub808\uc784\uc6cc\ud06c \uc885\uc18d\uc131 \uc5c6\uc74c\n- `ssr: false`\uc5d0 \ud574\ub2f9\ud558\ub294 \uae30\ub2a5\uc774 \uc5c6\ub2e4 (CSR \uc804\uc6a9\uc73c\ub85c \ub9cc\ub4e4\ub824\uba74 \ubcc4\ub3c4 \ucc98\ub9ac \ud544\uc694)\n\n---\n\n## 3. `ssr: false`\uac00 \ud544\uc694\ud55c \uacbd\uc6b0\n\n`ssr: false`\ub294 **\ucef4\ud3ec\ub10c\ud2b8\ub97c \uc11c\ubc84\uc5d0\uc11c \ub80c\ub354\ub9c1\ud558\uc9c0 \uc54a\uace0 \ud074\ub77c\uc774\uc5b8\ud2b8\uc5d0\uc11c\ub9cc \ub80c\ub354\ub9c1**\ud558\uac8c \ud55c\ub2e4.\n\n### \ud544\uc694\ud55c \uacbd\uc6b0\n\n1. **`window`, `document`, `navigator` \ub4f1 \ube0c\ub77c\uc6b0\uc800 \uc804\uc6a9 API\ub97c \uc9c1\uc811 \uc0ac\uc6a9\ud558\ub294 \ub77c\uc774\ube0c\ub7ec\ub9ac**\n   - \uc608: `react-quill`, \uc77c\ubd80 \ub9c8\ud06c\ub2e4\uc6b4 \uc5d0\ub514\ud130, canvas \uae30\ubc18 \ub77c\uc774\ube0c\ub7ec\ub9ac\n2. **\uc11c\ubc84\uc5d0\uc11c import \uc2dc \uc5d0\ub7ec\uac00 \ub098\ub294 \ud328\ud0a4\uc9c0** (CommonJS-only, DOM \uc811\uadfc \ub4f1)\n3. **SSR \uacb0\uacfc\uc640 CSR \uacb0\uacfc\uac00 \ub2ec\ub77c\uc11c hydration mismatch\uac00 \ubc1c\uc0dd\ud558\ub294 \ucef4\ud3ec\ub10c\ud2b8**\n\n### \ud544\uc694 \uc5c6\ub294 \uacbd\uc6b0\n\n- recharts: \uc11c\ubc84\uc5d0\uc11c \ub80c\ub354\ub9c1\ud574\ub3c4 \ubb38\uc81c\uc5c6\ub2e4. HTML\uc744 \uc0dd\uc131\ud558\ubbc0\ub85c `ssr: false` \uc5c6\uc774 \uc0ac\uc6a9 \uac00\ub2a5.\n- \ub2e8\uc21c\ud788 \"\ucd08\uae30 \ubc88\ub4e4\uc5d0 \ud3ec\ud568\ud558\uace0 \uc2f6\uc9c0 \uc54a\uc544\uc11c\" dynamic import\ub97c \uc4f0\ub294 \uacbd\uc6b0 \u2192 `ssr: false` \ubd88\ud544\uc694\n\n---\n\n## 4. Server Component\uc5d0\uc11c \ud638\ucd9c\ud574\ub3c4 \ub418\ub294\uac00?\n\n**\uc548 \ub41c\ub2e4.** `next/dynamic`\uacfc `React.lazy` \ubaa8\ub450 **Client Component\uc5d0\uc11c\ub9cc \uc0ac\uc6a9\ud574\uc57c \ud55c\ub2e4.**\n\n\uc774\uc720:\n- Server Component\ub294 \uc11c\ubc84\uc5d0\uc11c \ud55c \ubc88\ub9cc \uc2e4\ud589\ub418\uba70, lazy loading \uac1c\ub150 \uc790\uccb4\uac00 \uc801\uc6a9\ub418\uc9c0 \uc54a\ub294\ub2e4.\n- Server Component\uc5d0\uc11c `dynamic()`\uc774\ub098 `lazy()`\ub97c \ud638\ucd9c\ud558\uba74 \uc5d0\ub7ec\uac00 \ubc1c\uc0dd\ud55c\ub2e4.\n- Server Component\uc5d0\uc11c \ud074\ub77c\uc774\uc5b8\ud2b8 \uc804\uc6a9 \ucef4\ud3ec\ub10c\ud2b8\ub97c \ubd84\ub9ac\ud558\ub824\uba74, \ud30c\uc77c \ucd5c\uc0c1\ub2e8\uc5d0 `'use client'`\ub97c \uc120\uc5b8\ud55c \ubcc4\ub3c4 \ud30c\uc77c\ub85c wrapping\ud574\uc57c \ud55c\ub2e4.\n\n```tsx\n// app/page.tsx (Server Component)\nimport { ChartSection } from './ChartSection' // 'use client' \ud3ec\ud568\ub41c \ud30c\uc77c\n\nexport default function Page() {\n  return <ChartSection />\n}\n\n// app/ChartSection.tsx\n'use client'\nimport dynamic from 'next/dynamic'\n\nconst RechartsChart = dynamic(() => import('./RechartsChart'))\nconst MarkdownEditor = dynamic(() => import('./MarkdownEditor'), { ssr: false })\n```\n\n---\n\n## 5. \uc774\ubc88 \ucf00\uc774\uc2a4\uc5d0 \ub300\ud55c \uad8c\uc7a5 \uad6c\ud604\n\n### recharts (\ubb34\uac70\uc6b4 \ucc28\ud2b8 \ub77c\uc774\ube0c\ub7ec\ub9ac)\n\n```tsx\n'use client'\nimport dynamic from 'next/dynamic'\n\nconst RechartsChart = dynamic(() => import('recharts').then(m => ({ default: m.LineChart })), {\n  loading: () => <div>\ucc28\ud2b8 \ub85c\ub529 \uc911...</div>,\n  // ssr: false \ubd88\ud544\uc694 \u2014 recharts\ub294 \uc11c\ubc84 \ub80c\ub354\ub9c1 \uc9c0\uc6d0\n})\n```\n\n### \ub9c8\ud06c\ub2e4\uc6b4 \uc5d0\ub514\ud130 (\ud074\ub9ad \ud6c4\uc5d0\ub9cc \ud544\uc694)\n\n```tsx\n'use client'\nimport { useState } from 'react'\nimport dynamic from 'next/dynamic'\n\nconst MarkdownEditor = dynamic(() => import('./MarkdownEditor'), {\n  loading: () => <div>\uc5d0\ub514\ud130 \ub85c\ub529 \uc911...</div>,\n  ssr: false, // \ub300\ubd80\ubd84\uc758 \ub9c8\ud06c\ub2e4\uc6b4 \uc5d0\ub514\ud130\ub294 window\uc5d0 \uc758\uc874\ud558\ubbc0\ub85c \ud544\uc694\n})\n\nexport function EditorSection() {\n  const [open, setOpen] = useState(false)\n\n  return (\n    <>\n      <button onClick={() => setOpen(true)}>\uc5d0\ub514\ud130 \uc5f4\uae30</button>\n      {open && <MarkdownEditor />}\n    </>\n  )\n}\n```\n\n\ud074\ub9ad \ud6c4\uc5d0\ub9cc \ud544\uc694\ud55c \ucef4\ud3ec\ub10c\ud2b8\ub294 \uc870\uac74\ubd80 \ub80c\ub354\ub9c1(`{open && <Component />}`)\uacfc dynamic import\ub97c \ud568\uaed8 \uc368\uc57c **\uc2e4\uc81c\ub85c \uc9c0\uc5f0 \ub85c\ub529**\ub41c\ub2e4. dynamic import\ub9cc \ud558\uace0 \ud56d\uc0c1 \ub80c\ub354\ub9c1\ud558\uba74 \ubc88\ub4e4\uc740 \ubd84\ub9ac\ub418\uc9c0\ub9cc \ucd08\uae30 \ud398\uc774\uc9c0 \ub85c\ub4dc \uc2dc fetch\uac00 \ubc1c\uc0dd\ud55c\ub2e4.\n\n---\n\n## 6. \uc5b4\ub5a4 \uac78 \uc368\uc57c \ud558\ub098?\n\n- **Next.js \ud504\ub85c\uc81d\ud2b8**: `next/dynamic` \uad8c\uc7a5. `ssr: false`, `loading` prop \ub4f1 Next.js \ud2b9\ud654 \uae30\ub2a5\uc744 \uc0ac\uc6a9\ud560 \uc218 \uc788\uace0, \uacf5\uc2dd \ubb38\uc11c\uc5d0\uc11c \uba85\uc2dc\uc801\uc73c\ub85c \uad8c\uc7a5\ud55c\ub2e4.\n- **\ud504\ub808\uc784\uc6cc\ud06c \ub3c5\ub9bd\uc801\uc778 \ucef4\ud3ec\ub10c\ud2b8 \ub77c\uc774\ube0c\ub7ec\ub9ac**: `React.lazy` + `<Suspense>` \uc0ac\uc6a9 \uac00\ub2a5.\n- \ub450 \ubc29\ubc95\uc740 \ud604\uc7ac(React 18 + Next.js 15+) \uae30\uc900\uc73c\ub85c SSR \uc9c0\uc6d0 \uc5ec\ubd80\uc5d0\uc11c **\uc2e4\uc9c8\uc801\uc778 \ucc28\uc774\uac00 \uc5c6\ub2e4**. \ub2e8, `ssr: false`\uac00 \ud544\uc694\ud55c \uc0c1\ud669\uc740 `next/dynamic`\ub9cc \ucc98\ub9ac\ud560 \uc218 \uc788\ub2e4.\n\n---\n\n## \ucc38\uace0\n\n- Next.js \uacf5\uc2dd \ubb38\uc11c \u2014 Lazy Loading: https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading\n- React \uacf5\uc2dd \ubb38\uc11c \u2014 lazy: https://react.dev/reference/react/lazy\n- React \uacf5\uc2dd \ubb38\uc11c \u2014 Suspense: https://react.dev/reference/react/Suspense\n"}], "grading": {"eval_id": 2, "eval_name": "code-splitting", "config": "without_skill", "expectations": [{"text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect", "passed": true, "evidence": "Line 19: '\uc608\uc804\uc5d4 \uc0ac\uc2e4\uc774\uc5c8\uc9c0\ub9cc, \ud604\uc7ac\ub294 \ub2e4\ub974\ub2e4.' Line 24: '\"React.lazy\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\"\ub294 \uc8fc\uc7a5\uc740 React 17 \uc774\uc804 \uae30\uc900\uc758 \uad6c\uc2dd \uc815\ubcf4\ub2e4.' Correctly identifies outdated assumption."}, {"text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'", "passed": false, "evidence": "Says 'Next.js 13+ App Router \ud658\uacbd\uc5d0\uc11c\ub294 React.lazy\uac00 Client Component \ub0b4\uc5d0\uc11c SSR\uacfc \ud568\uaed8 \uc815\uc0c1\uc801\uc73c\ub85c \ub3d9\uc791\ud55c\ub2e4' but does NOT cite the official Next.js docs quote about 'prerendered (SSR) by default'. No keyword 'prerender'/'prerendered' used. Information is correct but lacks direct official citation."}, {"text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'", "passed": true, "evidence": "Line 47: '\ub0b4\ubd80\uc801\uc73c\ub85c React.lazy + <Suspense>\ub97c \ub798\ud551\ud55c Next.js \uc804\uc6a9 \uc720\ud2f8\ub9ac\ud2f0'. Concept conveyed via 'wrapping' equivalent. Word 'composite' not used but concept captured."}, {"text": "States that ssr: false is Client Component only (Server Component \u2192 error)", "passed": true, "evidence": "Line 92-97: 'Server Component\uc5d0\uc11c dynamic()\uc774\ub098 lazy()\ub97c \ud638\ucd9c\ud558\uba74 \uc5d0\ub7ec\uac00 \ubc1c\uc0dd\ud55c\ub2e4.' Plus example showing 'use client' wrapping pattern for ssr: false usage."}, {"text": "Cites Next.js Lazy Loading guide URL", "passed": true, "evidence": "Line 169: 'https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading'. URL is OUTDATED structure (Next.js 13/14 era), correct Next.js 16 URL is /docs/app/guides/lazy-loading. Lenient pass since 'or equivalent' specified in criterion, but flag outdated URL."}, {"text": "Includes named export dynamic import pattern", "passed": true, "evidence": "Line 125: shows '() => import(\"recharts\").then(m => ({ default: m.LineChart }))'. This is the OLDER workaround pattern (wraps named export in default). Pattern is technically present but uses outdated wrapping convention vs Next.js 16 official .then((mod) => mod.X)."}], "summary": {"passed": 5, "total": 6, "pass_rate": 0.833}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "fe-performance", "skill_path": "/Users/JuChan/.claude/skills/fe", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-04-08T02:45:11Z", "evals_run": [0, 1, 2], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 99.9, "tokens": 35806, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Identifies 'lazy load Provider' as the wrong approach", "passed": true, "evidence": "Line 5: '\ub3d9\ub8cc\uc758 \uc81c\uc548(next/dynamic lazy load)\uc740 \uc798\ubabb\ub41c \ubc29\ud5a5\uc785\ub2c8\ub2e4'. Section 2 explicitly titled '\ub3d9\ub8cc\uc758 \uc81c\uc548\uc774 \ud2c0\ub9b0 \uc774\uc720'."}, {"text": "Explains 'use client' as a module-graph boundary", "passed": true, "evidence": "Line 32 direct official quote: 'boundary between the Server and Client module graphs... all its imports and child components are considered part of the client bundle' with nextjs.org URL."}, {"text": "Recommends pushing Provider deeper ({children} only)", "passed": true, "evidence": "Line 84: official quote 'ThemeProvider\uac00 <html> \uc804\uccb4\uac00 \uc544\ub2c8\ub77c {children}\ub9cc \uac10\uc2f8\ub3c4\ub85d'. Step 1+2 implementation example shows ThemeProvider extracted to separate client component file."}, {"text": "Cites Next.js official documentation URL", "passed": true, "evidence": "Multiple URLs: nextjs.org/docs/app/getting-started/server-and-client-components, nextjs.org/docs/app/guides/streaming, web.dev/articles/vitals, web.dev/articles/lcp."}, {"text": "Mentions concrete performance benefits (JS bundle / FCP / streaming)", "passed": true, "evidence": "Line 38-43 table lists: 'JS \ubc88\ub4e4 \ud06c\uae30 \ud3ed\uc99d', 'FCP \uc9c0\uc5f0', 'LCP \uc9c0\uc5f0', 'Streaming \ubb34\ub825\ud654'."}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 109.0, "tokens": 40716, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Cites React Compiler 'now stable' status", "passed": true, "evidence": "Line 9: 'React Compiler\ub294 \ub354 \uc774\uc0c1 \uc2e4\ud5d8\uc801 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4'. Line 17: '\uacf5\uc2dd \ubb38\uc11c\ub294 React Compiler\ub97c \"now stable\"\ub85c \ud45c\uae30\ud558\uba70 Meta \ub4f1\uc5d0\uc11c \ud504\ub85c\ub355\uc158 \uc0ac\uc6a9 \uc911\uc784\uc744 \uba85\uc2dc'. Direct quote with react.dev URL."}, {"text": "Frames manual hooks as 'escape hatch' only", "passed": true, "evidence": "Line 27: official quote 'as an escape hatch'. Line 31: '\uc2e0\uaddc \ucf54\ub4dc\uc5d0\uc11c useMemo/useCallback\uc740 escape hatch(\ud0c8\ucd9c\uad6c)\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12\uc774 \uc544\ub2d9\ub2c8\ub2e4.'"}, {"text": "Includes React.memo conditions OR 'memo is not a guarantee'", "passed": true, "evidence": "BOTH present. Line 47: '\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uc131\ub2a5\uc744 \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc774\uc9c0, \ubcf4\uc7a5\ud558\ub294 \uac83\uc740 \uc544\ub2c8\uae30 \ub54c\ubb38\uc5d0' (official quote). Line 52-65: 4-condition checklist (same props, expensive render, Profiler verified, no inline props)."}, {"text": "Names at least 2 valid escape hatch cases", "passed": true, "evidence": "Line 174-176 explicit table of 3 cases: (1) useEffect \uc758\uc874\uc131, (2) \ucef4\ud30c\uc77c\ub7ec \ud734\ub9ac\uc2a4\ud2f1\ubcf4\ub2e4 \uc815\ubc00 \uc81c\uc5b4 (1ms+), (3) use no memo \ub514\ub809\ud2f0\ube0c. Plus 1ms rule explanation in \u00a73.5."}, {"text": "Cites react.dev URL", "passed": true, "evidence": "Multiple react.dev URLs: react.dev/learn/react-compiler/introduction, react.dev/reference/react/useMemo, /useCallback, /memo, /reference/rules."}, {"text": "Explains why blanket memoization is harmful", "passed": true, "evidence": "Three reasons covered: (1) Line 80-82 inline prop defeats memo with Object.is comparison, (2) Line 95 memo-less child useCallback is useless, (3) Line 66 'Profiler \uce21\uc815 \uc5c6\uc774 \uc704 \uc870\uac74\ub4e4\uc744 \ud1b5\uacfc\ud588\ub294\uc9c0 \uc54c \uc218 \uc5c6\uc2b5\ub2c8\ub2e4'."}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 93.8, "tokens": 31772, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect", "passed": true, "evidence": "Line 29: '\uacb0\ub860: \ud2c0\ub9b0 \uc815\ubcf4\ub2e4. Next.js 16 App Router \uae30\uc900\uc73c\ub85c \uc774\ubbf8 outdated\ub41c \ud1b5\ub150\uc774\ub2e4.' Section 2 titled 'Outdated \ud1b5\ub150 \ud310\uc815'."}, {"text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'", "passed": true, "evidence": "Line 33: direct quote 'When using React.lazy() and Suspense, Client Components will be prerendered (SSR) by default.' with nextjs.org/docs/app/guides/lazy-loading URL."}, {"text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'", "passed": true, "evidence": "Line 19: direct quote 'next/dynamic is a composite of React.lazy() and Suspense. It behaves the same way in the app and pages directories'. Word 'composite' used explicitly."}, {"text": "States that ssr: false is Client Component only (Server Component \u2192 error)", "passed": true, "evidence": "Line 135: direct quote 'ssr: false is not allowed with next/dynamic in Server Components. Please move it into a Client Component.' Plus \u274c Server / \u2705 Client code example."}, {"text": "Cites Next.js Lazy Loading guide URL", "passed": true, "evidence": "Multiple instances of nextjs.org/docs/app/guides/lazy-loading (the correct Next.js 16 URL, not the old building-your-application path)."}, {"text": "Includes named export dynamic import pattern", "passed": true, "evidence": "Line 180-182: official pattern shown 'dynamic(() => import(.../bar-chart).then((mod) => mod.BarChart))'. Uses correct .then((mod) => mod.X) pattern from Next.js 16 docs."}], "notes": []}, {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 72.0, "tokens": 21612, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Identifies 'lazy load Provider' as the wrong approach", "passed": true, "evidence": "Line 5: '\ubd80\ubd84\uc801\uc73c\ub85c\ub9cc \ub9de\uace0, \uadfc\ubcf8 \uc6d0\uc778 \uc9c4\ub2e8\uc744 \ube60\ub728\ub838\uc2b5\ub2c8\ub2e4'. Line 174: '\ub3d9\ub8cc\uc758 next/dynamic \uc81c\uc548\uc740 \ucc44\ud0dd\ud558\uc9c0 \ub9c8\uc138\uc694'. Conclusion clear though softer than with_skill."}, {"text": "Explains 'use client' as a module-graph boundary", "passed": true, "evidence": "Line 28: 'use client \ub97c layout.tsx \ucd5c\uc0c1\ub2e8\uc5d0 \uc120\uc5b8\ud558\uba74, \uc774 \ud30c\uc77c \uc544\ub798\uc5d0 import\ub41c \ubaa8\ub4e0 \ubaa8\ub4c8\uc774 \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc5d0 \ud3ec\ud568\ub429\ub2c8\ub2e4.' Line 38: '\ubc88\ub4e4\ub9c1 \uacbd\uacc4\uac00 \uc774\uc0c1\ud558\uac8c \ud615\uc131\ub429\ub2c8\ub2e4'. Concept conveyed (boundary + client bundle), no direct official quote."}, {"text": "Recommends pushing Provider deeper ({children} only)", "passed": true, "evidence": "Step 1 (Line 68-83) + Step 2 (Line 86-96) shows extracted Providers pattern. References Composition Patterns docs."}, {"text": "Cites Next.js official documentation URL", "passed": true, "evidence": "Multiple Next.js URLs cited: nextjs.org/docs/app/building-your-application/rendering/server-components, /lazy-loading, /composition-patterns. URLs are from older docs structure (Pages Router era) but still valid."}, {"text": "Mentions concrete performance benefits", "passed": true, "evidence": "Line 35: 'LCP 4\ucd08\uc758 \uc9c1\uc811 \uc6d0\uc778'. Mentions '\uc11c\ubc84\uc5d0\uc11c HTML\uc744 \uc989\uc2dc \uc804\uc1a1' / 'Hydration \ube44\uc6a9 \ud655\uc0b0'. Performance impact explained."}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.833, "passed": 5, "failed": 0, "total": 6, "time_seconds": 77.9, "tokens": 20656, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Cites React Compiler 'now stable' status", "passed": false, "evidence": "Answer describes React Compiler functionality but does NOT cite its 'now stable' / 'stable' / '\uc548\uc815' status. Quote on Line 17 says 'React Compiler is a build-time only tool' but omits the stability claim. No mention of 'stable', '\uc548\uc815', or 'production-ready'."}, {"text": "Frames manual hooks as 'escape hatch' only", "passed": true, "evidence": "Section 4 titled '\uc9c4\uc9dc \ud544\uc694\ud55c Escape Hatch: \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc815\ub2f9\ud654\ub418\ub294 \uacbd\uc6b0'. Term used explicitly."}, {"text": "Includes React.memo conditions OR 'memo is not a guarantee'", "passed": true, "evidence": "Line 60 quotes: 'React will still re-render a component if it re-renders itself (regardless of memo)'. Quote conveys 'not a guarantee' principle. 4-condition checklist NOT explicitly present, but 'not guarantee' alternative satisfies the OR criterion."}, {"text": "Names at least 2 valid escape hatch cases", "passed": true, "evidence": "Lists 5 cases in Section 4: (4-1) compiler bail-out, (4-2) library reference contracts, (4-3) expensive computation with profiling, (4-4) Context value stabilization, (4-5) useEffect deps. Exceeds 2-case minimum."}, {"text": "Cites react.dev URL", "passed": true, "evidence": "Multiple react.dev URLs cited (compiler, useMemo, useCallback, memo, rules)."}, {"text": "Explains why blanket memoization is harmful", "passed": true, "evidence": "Multiple reasons: Line 51-55 (parent re-render makes memo useless), Line 53-54 ('memoization-of-memoization vicious cycle'), Line 63-67 (stale closure risk from manual deps), Line 35-39 (shallow comparison cost not free)."}], "notes": []}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.833, "passed": 5, "failed": 0, "total": 6, "time_seconds": 58.6, "tokens": 21160, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect", "passed": true, "evidence": "Line 19: '\uc608\uc804\uc5d4 \uc0ac\uc2e4\uc774\uc5c8\uc9c0\ub9cc, \ud604\uc7ac\ub294 \ub2e4\ub974\ub2e4.' Line 24: '\"React.lazy\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\"\ub294 \uc8fc\uc7a5\uc740 React 17 \uc774\uc804 \uae30\uc900\uc758 \uad6c\uc2dd \uc815\ubcf4\ub2e4.' Correctly identifies outdated assumption."}, {"text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'", "passed": false, "evidence": "Says 'Next.js 13+ App Router \ud658\uacbd\uc5d0\uc11c\ub294 React.lazy\uac00 Client Component \ub0b4\uc5d0\uc11c SSR\uacfc \ud568\uaed8 \uc815\uc0c1\uc801\uc73c\ub85c \ub3d9\uc791\ud55c\ub2e4' but does NOT cite the official Next.js docs quote about 'prerendered (SSR) by default'. No keyword 'prerender'/'prerendered' used. Information is correct but lacks direct official citation."}, {"text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'", "passed": true, "evidence": "Line 47: '\ub0b4\ubd80\uc801\uc73c\ub85c React.lazy + <Suspense>\ub97c \ub798\ud551\ud55c Next.js \uc804\uc6a9 \uc720\ud2f8\ub9ac\ud2f0'. Concept conveyed via 'wrapping' equivalent. Word 'composite' not used but concept captured."}, {"text": "States that ssr: false is Client Component only (Server Component \u2192 error)", "passed": true, "evidence": "Line 92-97: 'Server Component\uc5d0\uc11c dynamic()\uc774\ub098 lazy()\ub97c \ud638\ucd9c\ud558\uba74 \uc5d0\ub7ec\uac00 \ubc1c\uc0dd\ud55c\ub2e4.' Plus example showing 'use client' wrapping pattern for ssr: false usage."}, {"text": "Cites Next.js Lazy Loading guide URL", "passed": true, "evidence": "Line 169: 'https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading'. URL is OUTDATED structure (Next.js 13/14 era), correct Next.js 16 URL is /docs/app/guides/lazy-loading. Lenient pass since 'or equivalent' specified in criterion, but flag outdated URL."}, {"text": "Includes named export dynamic import pattern", "passed": true, "evidence": "Line 125: shows '() => import(\"recharts\").then(m => ({ default: m.LineChart }))'. This is the OLDER workaround pattern (wraps named export in default). Pattern is technically present but uses outdated wrapping convention vs Next.js 16 official .then((mod) => mod.X)."}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 100.9, "stddev": 7.6492, "min": 93.8, "max": 109.0}, "tokens": {"mean": 36098.0, "stddev": 4479.1441, "min": 31772, "max": 40716}}, "without_skill": {"pass_rate": {"mean": 0.8887, "stddev": 0.0964, "min": 0.833, "max": 1.0}, "time_seconds": {"mean": 69.5, "stddev": 9.8899, "min": 58.6, "max": 77.9}, "tokens": {"mean": 21142.6667, "stddev": 478.2356, "min": 20656, "max": 21612}}, "delta": {"pass_rate": "+0.11", "time_seconds": "+31.4", "tokens": "+14955"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

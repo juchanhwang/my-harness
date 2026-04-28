@@ -1,0 +1,423 @@
+{
+  "metadata": {
+    "skill_name": "po",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-09T10:43:05Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 302.0,
+        "tokens": 50075,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "PRD\uac00 '\ubb38\uc81c'\ubd80\ud130 \uc2dc\uc791\ud558\uace0 \uc194\ub8e8\uc158/\uae30\ub2a5\ubd80\ud130 \uc2dc\uc791\ud558\uc9c0 \uc54a\ub294\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 1 '\ubc30\uacbd & \ubb38\uc81c'\uac00 \ubb38\uc11c \ucd5c\uc0c1\ub2e8\uc5d0 \uc704\uce58. 1.1 \ud604\uc7ac \uc0c1\ud669(AS-IS), 1.2 \ubb38\uc81c \uc815\uc758, 1.3 \uae30\ud68c \uc21c\uc11c. \uc194\ub8e8\uc158 \uac1c\uc694\ub294 \uc139\uc158 4\uc5d0\uc11c \ub4f1\uc7a5."
+        },
+        {
+          "text": "Goals \uc139\uc158\uc5d0 '\uc804\ud658\uc728 30% \u2192 50%'\ucc98\ub7fc \uce21\uc815 \uac00\ub2a5\ud55c \uc218\uce58 \ubaa9\ud45c\uac00 \uba85\uc2dc\ub3fc \uc788\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2.1 Goals \ud14c\uc774\ube14: 'G1 Activation rate \uac1c\uc120 \u2014 \uae30\uc900\uc120 30% \u2192 \ud0c0\uac9f 50% \u2014 6\uc8fc \ud6c4 \uce21\uc815'."
+        },
+        {
+          "text": "Non-Goals \uc139\uc158\uc774 \uc874\uc7ac\ud558\uace0 \uc774\ubc88\uc5d0 \ud558\uc9c0 \uc54a\uc744 \uac83\uc744 \uba85\uc2dc\uc801\uc73c\ub85c \uc801\ub294\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2.2 Non-Goals \uc874\uc7ac. 7\uac1c \uba85\uc2dc: \ud300\uc6d0 \ucd08\ub300 \uc628\ubcf4\ub529 \uac1c\uc120, \uc720\ub8cc \uc804\ud658 \ucd5c\uc801\ud654, \ubaa8\ubc14\uc77c \uc628\ubcf4\ub529, \uae30\uc874 \uc0ac\uc6a9\uc790 \ub9ac\uc628\ubcf4\ub529, \ucf58\ud150\uce20 \ud604\uc9c0\ud654, \uc18c\uc15c \ub85c\uadf8\uc778 \ucd94\uac00, \uc5d4\ud130\ud504\ub77c\uc774\uc988 \ucee4\uc2a4\ud130\ub9c8\uc774\uc9d5."
+        },
+        {
+          "text": "User Story\uac00 'As a [user], I want [action], So that [benefit]' \ud3ec\ub9f7 \ud639\uc740 \uba85\ud655\ud55c user story \uad6c\uc870\ub97c \ub530\ub978\ub2e4",
+          "passed": true,
+          "evidence": "Story 1~5 \ubaa8\ub450 \uc815\ud655\ud55c \ud3ec\ub9f7 \uc0ac\uc6a9. \uc608: 'As an engineering manager, I want to tell the product what kind of team I have when I first sign up, So that I get a more relevant starting experience without reading documentation.'"
+        },
+        {
+          "text": "Acceptance Criteria\uac00 \ucd5c\uc18c 1\uac1c \uc774\uc0c1 Given-When-Then \ud3ec\ub9f7 \ub610\ub294 \uba85\ud655\ud55c \uc870\uac74 \ub9ac\uc2a4\ud2b8\ub85c \uc791\uc131\ub3fc \uc788\ub2e4",
+          "passed": true,
+          "evidence": "Story 1-5 \ubaa8\ub450 Given-When-Then \ud3ec\ub9f7 \uc5c4\uaca9 \uc0ac\uc6a9. \uc608: 'Given \uc0ac\uc6a9\uc790\uac00 \uac00\uc785\uc744 \uc644\ub8cc\ud558\uace0 / When \ucc98\uc74c \ub300\uc2dc\ubcf4\ub4dc\uc5d0 \uc811\uadfc\ud558\uba74 / Then Welcome \ud654\uba74\uc774 \ud45c\uc2dc\ub418\uace0 / And \ud300 \uc720\ud615 \uc120\ud0dd\uc9c0(...)\uac00 \ubcf4\uc774\uba70'"
+        },
+        {
+          "text": "Success Metrics\uac00 Primary / Secondary / Guardrail \ud639\uc740 \ucd5c\uc18c \uadf8\uc5d0 \uc900\ud558\ub294 \uad6c\ubd84\uc73c\ub85c \uc81c\uc2dc\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 5\uc5d0 \uba85\uc2dc\uc801\uc73c\ub85c 5.1 Primary Metric, 5.2 Secondary Metrics, 5.3 Guardrail Metrics \uc138 \ud558\uc704 \uc139\uc158 \ubd84\ub9ac."
+        },
+        {
+          "text": "Target Users(Primary persona)\uac00 \uc694\uccad\ud55c '10-50\uba85 \uaddc\ubaa8 \uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ub9e4\ub2c8\uc800'\ub85c \uba85\uc2dc\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 3.1: 'Primary Persona: \uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ub9e4\ub2c8\uc800 \ubbfc\uc900, \uc5ed\ud560: Engineering Manager / Tech Lead, \ud300 \uaddc\ubaa8: 10~50\uba85 \uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ud300'"
+        },
+        {
+          "text": "Timeline \ub610\ub294 \ub9c8\uc77c\uc2a4\ud1a4 \uc139\uc158\uc774 6\uc8fc \ubc94\uc704\ub85c \uc874\uc7ac\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 8.1 \uc804\uccb4 \ud0c0\uc784\ub77c\uc778 (6\uc8fc) \ud14c\uc774\ube14: Week 1~6 \uc8fc\ucc28\ubcc4 \ub9c8\uc77c\uc2a4\ud1a4\uacfc \uc0b0\ucd9c\ubb3c \uba85\uc2dc."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 9,
+        "failed": 0,
+        "total": 9,
+        "time_seconds": 159.1,
+        "tokens": 38980,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "RICE \uacf5\uc2dd '(Reach \u00d7 Impact \u00d7 Confidence) / Effort'\uc774 \uba85\uc2dc\uc801\uc73c\ub85c \uc5b8\uae09\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'## RICE \uacf5\uc2dd' \uc139\uc158\uc5d0 \uc815\ud655\ud55c \uacf5\uc2dd 'RICE Score = (Reach \u00d7 Impact \u00d7 Confidence) / Effort' \uba85\uc2dc."
+        },
+        {
+          "text": "5\uac1c \uae30\ub2a5 \ubaa8\ub450\uc5d0 \ub300\ud574 R, I, C, E \ub124 \uac12\uc774 \ubaa8\ub450 \uc81c\uc2dc\ub41c\ub2e4 (\ud558\ub098\ub77c\ub3c4 \ube60\uc9c0\uba74 \uc2e4\ud328)",
+          "passed": true,
+          "evidence": "5\uac1c \uae30\ub2a5 \ubaa8\ub450 'Reach \ucd94\uc815', 'Impact \ucd94\uc815', 'Confidence \ucd94\uc815', 'Effort \ucd94\uc815' \ub124 \uac12 \ubaa8\ub450 \uc81c\uc2dc. \ucd5c\uc885 \uc694\uc57d \ud14c\uc774\ube14\uc5d0\ub3c4 5\uac1c \u00d7 4\uac12 \ubaa8\ub450 \uc874\uc7ac."
+        },
+        {
+          "text": "Impact \uac12\uc774 RICE \ud45c\uc900 \uc2a4\ucf00\uc77c(3/2/1/0.5/0.25) \uc911 \ud558\ub098\ub97c \uc0ac\uc6a9\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc2a4\ucf00\uc77c \ud45c\uc5d0 '3=massive, 2=high, 1=medium, 0.5=low, 0.25=minimal' \uba85\uc2dc. \uc0ac\uc6a9\ub41c \uac12: \ub2e4\ud06c \ubaa8\ub4dc 0.5, Slack 2, \ucee4\uc2a4\ud140 \ud544\ub4dc 2, \ubaa8\ubc14\uc77c 1, API 3 \u2014 \ubaa8\ub450 \ud45c\uc900 \uc2a4\ucf00\uc77c."
+        },
+        {
+          "text": "Confidence\uac00 \ubc31\ubd84\uc728(%)\ub85c \ud45c\ud604\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "90%, 80%, 80%, 50%, 70% \ubaa8\ub450 \ubc31\ubd84\uc728\ub85c \uba85\uc2dc \ubc0f 0.9/0.8 \uc18c\uc218\uc810\uc73c\ub85c\ub3c4 \ubcd1\uae30."
+        },
+        {
+          "text": "Effort\uac00 person-months \ub610\ub294 \uadf8\uc5d0 \uc0c1\uc751\ud558\ub294 \uacf5\uc218 \ub2e8\uc704\ub85c \ud45c\ud604\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "1 PM, 2 PM, 3 PM, 5 PM, 4 PM \u2014 person-months\ub85c \uc77c\uad00\ub418\uac8c \ud45c\ud604."
+        },
+        {
+          "text": "\uac01 \uae30\ub2a5\uc5d0 \uacc4\uc0b0\ub41c RICE \uc22b\uc790 \uc810\uc218\uac00 \ud3ec\ud568\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\ub2e4\ud06c \ubaa8\ub4dc 6,750 / Slack 8,400 / \ucee4\uc2a4\ud140 \ud544\ub4dc 4,800 / \ubaa8\ubc14\uc77c 600 / API 1,575 \u2014 \uacc4\uc0b0\uc2dd\uacfc \ud568\uaed8 \uba85\uc2dc."
+        },
+        {
+          "text": "5\uac1c \uae30\ub2a5\uc774 RICE \uc810\uc218\uc5d0 \ub530\ub77c \uc21c\uc704\uac00 \ub9e4\uaca8\uc9c4\ub2e4",
+          "passed": true,
+          "evidence": "'RICE \uc2a4\ucf54\uc5b4 \uc694\uc57d \ubc0f \uc21c\uc704' \ud14c\uc774\ube14\uc5d0 1\uc704~5\uc704 \uc815\ub82c: Slack(8,400) > \ub2e4\ud06c \ubaa8\ub4dc(6,750) > \ucee4\uc2a4\ud140 \ud544\ub4dc(4,800) > API(1,575) > \ubaa8\ubc14\uc77c(600)."
+        },
+        {
+          "text": "\uc0c1\uc704 2\uac1c \uc120\ud0dd \uc774\uc720\uc640 \ub098\uba38\uc9c0 3\uac1c \ud0c8\ub77d \uc774\uc720\uac00 \uad6c\uccb4\uc801\uc73c\ub85c \uc124\uba85\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'\ucd5c\uc885 \uc120\ud0dd: \uc0c1\uc704 2\uac1c \uae30\ub2a5' \uc139\uc158\uc5d0 Slack + \ucee4\uc2a4\ud140 \ud544\ub4dc \uc120\ud0dd. \ud2b9\ud788 RICE 2\uc704 \ub2e4\ud06c \ubaa8\ub4dc\ub97c \uc815\uc131\uc801 \uc870\uc815\uc73c\ub85c \uc81c\uc678\ud558\uace0 3\uc704 \ucee4\uc2a4\ud140 \ud544\ub4dc\ub97c \uc120\ud0dd\ud55c \uadfc\uac70\ub97c \ud14c\uc774\ube14\ub85c \uc81c\uc2dc. '\uc81c\uc678 \uae30\ub2a5 \ubc0f \uc774\uc720' \uc139\uc158\uc5d0 \ub2e4\ud06c \ubaa8\ub4dc/API/\ubaa8\ubc14\uc77c \uac01\uac01 \uad6c\uccb4 \uadfc\uac70."
+        },
+        {
+          "text": "\ub9ac\uc18c\uc2a4 \uc81c\uc57d(6 person-months)\uc774 \uc758\uc0ac\uacb0\uc815\uc5d0 \ubc18\uc601\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'6 person-months \ub9ac\uc18c\uc2a4 \uc81c\uc57d \uc801\uc6a9' \uc139\uc158\uc5d0 \uc2dc\ub098\ub9ac\uc624\ubcc4 Effort \uacc4\uc0b0. \ucd5c\uc885 \uc120\ud0dd \ub9ac\uc18c\uc2a4 \ubc30\ubd84: Slack 2 PM + \ucee4\uc2a4\ud140 \ud544\ub4dc 3 PM + \ubc84\ud37c 1 PM = 6 PM \uc815\ud655\ud788 \uc77c\uce58."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 148.4,
+        "tokens": 40677,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\uc751\ub2f5\uc774 \uc989\uac01\uc801\uc778 '\ub124, \ud569\ub2c8\ub2e4' \ub610\ub294 '\uc544\ub2c8\uc624, \uc548 \ud569\ub2c8\ub2e4' \ub2e8\uc21c \ub2f5\ubcc0\uc774 \uc544\ub2c8\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 11 '\ucd5c\uc885 \uc870\uac74\ubd80 \uad8c\uace0\uc548' \u2014 \uc870\uac74 A/B/C \uc138 \ubd84\uae30\ub85c \uad6c\uc131. '\uc9c0\uae08 \ub2f9\uc7a5 \ub9cc\ub4e0\ub2e4/\uc548 \ub9cc\ub4e0\ub2e4\ub97c \uacb0\uc815\ud558\uc9c0 \ub9d0 \uac83'\uc774 \uc804\uc81c."
+        },
+        {
+          "text": "\ub2e8\uc77c \uace0\uac1d \uc694\uccad vs \uc804\uccb4 \uc0ac\uc6a9\uc790/\uc2dc\uc7a5\uc758 trade-off\ub97c \uba85\uc2dc\uc801\uc73c\ub85c \ub2e4\ub8ec\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 4 \ud2b8\ub808\uc774\ub4dc\uc624\ud504 \ubd84\uc11d + \uc139\uc158 5 \uc815\ub7c9\uc801 \ucd94\ub860\uc758 'RICE \uc2dc\ub098\ub9ac\uc624 A(1\uac1c\uc0ac)=0.27 vs \uc2dc\ub098\ub9ac\uc624 B(10\uac1c\uc0ac+)=4.67' \ube44\uad50."
+        },
+        {
+          "text": "\uc774 \uae30\ub2a5\uc744 \uc6d0\ud558\ub294 \ub2e4\ub978 \uace0\uac1d\uc774 \uc5bc\ub9c8\ub098 \ub418\ub294\uc9c0(\ucd94\uac00 \ub370\uc774\ud130/\uac80\uc99d \ud544\uc694)\ub97c \ud655\uc778\ud558\uc790\uace0 \uc81c\uc548\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 6 Data Gaps \ud14c\uc774\ube14\uc5d0 '\ub2e4\ub978 \uace0\uac1d\ub4e4\ub3c4 \ucee4\uc2a4\ud140 \ud544\ub4dc\ub97c \uc6d0\ud558\ub294\uac00?' \uba85\uc2dc. Action Items: '2\uc8fc \uc548\uc5d0 CS/\uc601\uc5c5 \ucc44\ub110\uc5d0\uc11c \ucee4\uc2a4\ud140 \ud544\ub4dc \uc218\uc694\ub97c \uac00\uc9c4 \ub2e4\ub978 \uace0\uac1d \uc218 \uc9d1\uacc4'."
+        },
+        {
+          "text": "\ud604\uc7ac \ubd84\uae30 \ubaa9\ud45c/OKR/\ub85c\ub4dc\ub9f5\uacfc\uc758 \uc815\ud569\uc131\uc744 \uac80\ud1a0\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 7 \uc804\ub7b5\uc801 \uc815\ub82c \uccb4\ud06c 3 \uc9c8\ubb38: \uc5d4\ud130\ud504\ub77c\uc774\uc988 \uc138\uadf8\uba3c\ud2b8\uac00 \uc804\ub7b5 \ubc29\ud5a5\uc778\uac00, \ud604\uc7ac \ubd84\uae30 OKR\uacfc \uc5f0\uad00\ub418\ub294\uac00, \uae30\uc220\uc801\uc73c\ub85c \uc9c0\uae08 \uc2dc\uc791\ud558\uae30 \uc88b\uc740 \uc2dc\uc810\uc778\uac00."
+        },
+        {
+          "text": "ARR 2% \ube44\uc911\uacfc \uc774\ud0c8 \ub9ac\uc2a4\ud06c\uc758 \uc815\ub7c9\uc801 \uacc4\uc0b0 \ub610\ub294 \ucd5c\uc18c\ud55c \ube44\uc911 \uc5b8\uae09\uc744 \ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 5 ARR \ub178\ucd9c \ubd84\uc11d: '$50,000/year, \uc804\uccb4 ARR = ~$2,500,000, \uc190\uc2e4 \ube44\uc728 = 2%'. '\uc774 \ud558\ub098\uc758 \uace0\uac1d\uc744 \uc704\ud574 2-4 person-months\ub97c \uc4f0\ub294 \uacb0\uc815\uc740 \uc21c\uc218 \ubc29\uc5b4\uc801 \uad00\uc810\uc5d0\uc11c\ub9cc \ubcf4\uba74 \ube44\ud6a8\uc728\uc801\uc77c \uc218 \uc788\ub2e4' \uacb0\ub860."
+        },
+        {
+          "text": "Full \uad6c\ud604 \uc678 \ub300\uc548(\ucd95\uc18c \uc2a4\ucf54\ud504, \uc784\uc2dc \ud574\uacb0\ucc45, \ub2e4\ub978 \ubc29\uc2dd\uc758 retention \uc9c0\uc6d0 \ub4f1)\uc744 \ucd5c\uc18c 1\uac1c \uc81c\uc548\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 8 \ub300\uc548 \uc635\uc158 4\uac1c: \uc635\uc158 1 Scoped-Down MVP (\ud14d\uc2a4\ud2b8 \ud0c0\uc785\ub9cc), \uc635\uc158 2 Workaround \uc81c\uacf5, \uc635\uc158 3 Research First (2\uc8fc \ub0b4 5-10\uac1c\uc0ac \uc870\uc0ac), \uc635\uc158 4 \uacc4\uc57d \uc5f0\ub3d9 \uc870\uac74\ubd80 \uc57d\uc18d(\ubca0\ud0c0 \ud30c\ud2b8\ub108\uc2ed)."
+        },
+        {
+          "text": "RICE/ICE/MoSCoW/Value-Effort \ub4f1 \uc6b0\uc120\uc21c\uc704 \ud504\ub808\uc784\uc6cc\ud06c \ud639\uc740 One-Way/Two-Way Door \uac19\uc740 \uc758\uc0ac\uacb0\uc815 \ud504\ub808\uc784\uc6cc\ud06c\ub97c \ucc38\uc870\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\ubb38\uc11c \ud5e4\ub354\uc5d0 '\uc0ac\uc6a9 \ud504\ub808\uc784\uc6cc\ud06c: One-Way/Two-Way Door, RICE, Value vs Effort Matrix, No \ud504\ub808\uc784\uc6cc\ud06c, RAPID, Stakeholder Conflict Resolution'. \uc139\uc158 3 One-Way vs Two-Way \ubd84\ub958, \uc139\uc158 5 RICE \uacc4\uc0b0, \uc139\uc158 9 RAPID \uc5ed\ud560 \ub9e4\ud2b8\ub9ad\uc2a4 \ubaa8\ub450 \uc2e4\uc81c \uc801\uc6a9."
+        },
+        {
+          "text": "\uc758\uc0ac\uacb0\uc815 \uadfc\uac70\uac00 '\uc601\uc5c5\ud300\uc774 \uadf8\ub807\uac8c \ub9d0\ud574\uc11c'\uac00 \uc544\ub2c8\ub77c \ub370\uc774\ud130/\uc804\ub7b5 \uae30\ubc18\uc774\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2 '\ud3b8\ud5a5 \uc810\uac80: \uc601\uc5c5 \uc555\ub825\uc5d0 \uc18d\uc9c0 \uc54a\uae30'\uc5d0\uc11c Recency Bias, Survivorship Bias, HiPPO \uc704\ud5d8 \uba85\uc2dc. \uc139\uc158 9 RAPID: '\uc774 \uacb0\uc815\uc5d0\uc11c Sales\ub294 Input \uc5ed\ud560\uc774\ub2e4. Decide \uc5ed\ud560\uc774 \uc544\ub2c8\ub2e4'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 6,
+        "failed": 2,
+        "total": 8,
+        "time_seconds": 139.3,
+        "tokens": 25497,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "PRD\uac00 '\ubb38\uc81c'\ubd80\ud130 \uc2dc\uc791\ud558\uace0 \uc194\ub8e8\uc158/\uae30\ub2a5\ubd80\ud130 \uc2dc\uc791\ud558\uc9c0 \uc54a\ub294\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 1 '\ubc30\uacbd \ubc0f \ubb38\uc81c \uc815\uc758'\ub85c \uc2dc\uc791. 1.1 \ud604\ud669, 1.2 \ubb38\uc81c\uc758 \uc911\uc694\uc131, 1.3 \uac00\uc124 \uc21c\uc11c."
+        },
+        {
+          "text": "Goals \uc139\uc158\uc5d0 '\uc804\ud658\uc728 30% \u2192 50%'\ucc98\ub7fc \uce21\uc815 \uac00\ub2a5\ud55c \uc218\uce58 \ubaa9\ud45c\uac00 \uba85\uc2dc\ub3fc \uc788\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2.1 Primary Goal \ud14c\uc774\ube14: '\uac00\uc785 \u2192 \uccab \ud504\ub85c\uc81d\ud2b8 \uc0dd\uc131 \uc804\ud658\uc728 \u2014 30% \u2192 50% \u2014 6\uc8fc'"
+        },
+        {
+          "text": "Non-Goals \uc139\uc158\uc774 \uc874\uc7ac\ud558\uace0 \uc774\ubc88\uc5d0 \ud558\uc9c0 \uc54a\uc744 \uac83\uc744 \uba85\uc2dc\uc801\uc73c\ub85c \uc801\ub294\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2.3 Non-Goals (\uc774\ubc88 \ud504\ub85c\uc81d\ud2b8 \ubc94\uc704 \uc678): \uae30\uc874 \uc0ac\uc6a9\uc790 \uacbd\ud5d8 \uac1c\uc120, \uacb0\uc81c/\uad6c\ub3c5 \ud50c\ub85c\uc6b0 \ubcc0\uacbd, \ubaa8\ubc14\uc77c \uc571 \uc628\ubcf4\ub529, \uc81c\ud488 \ud575\uc2ec \uae30\ub2a5 \uc790\uccb4\uc758 \ubcc0\uacbd \u2014 4\uac1c \ud56d\ubaa9"
+        },
+        {
+          "text": "User Story\uac00 'As a [user], I want [action], So that [benefit]' \ud3ec\ub9f7 \ud639\uc740 \uba85\ud655\ud55c user story \uad6c\uc870\ub97c \ub530\ub978\ub2e4",
+          "passed": false,
+          "evidence": "\uc139\uc158 5 '\uc194\ub8e8\uc158 \uac1c\uc694'\ub294 Feature 1~5\ub85c \uad6c\uc131\ub3fc \uc788\uc73c\uba70, \uac01 Feature\ub294 \uae30\ub2a5 \uc124\uba85 + '\uc218\uc6a9 \uae30\uc900' \ubd88\ub9bf\uc73c\ub85c \uc791\uc131\ub428. 'As a / I want / So that' \ud3ec\ub9f7\uc758 User Story\uac00 \uc804\ud600 \ub4f1\uc7a5\ud558\uc9c0 \uc54a\uc74c. Feature \uc911\uc2ec \uad6c\uc870\ub85c User Story \ubd80\uc7ac."
+        },
+        {
+          "text": "Acceptance Criteria\uac00 \ucd5c\uc18c 1\uac1c \uc774\uc0c1 Given-When-Then \ud3ec\ub9f7 \ub610\ub294 \uba85\ud655\ud55c \uc870\uac74 \ub9ac\uc2a4\ud2b8\ub85c \uc791\uc131\ub3fc \uc788\ub2e4",
+          "passed": false,
+          "evidence": "\uac01 Feature\uc5d0 '\uc218\uc6a9 \uae30\uc900' \uc139\uc158\uc774 \uc788\uc73c\ub098 \ub2e8\uc21c bullet list (\uc608: '3\ub2e8\uacc4 \uc774\ub0b4 \uc644\ub8cc', '\uc5ed\ud560\uc5d0 \ub530\ub77c \ub2e4\ub978 \ud504\ub85c\uc81d\ud2b8 \ud15c\ud50c\ub9bf \ucd94\ucc9c'). Given-When-Then \ud3ec\ub9f7 \uc804\ubb34. \uba85\ud655\ud55c \uc870\uac74 \ub9ac\uc2a4\ud2b8 \ud615\ud0dc\uc774\ub098 \uae30\ub300\ud55c BDD \ud3ec\ub9f7\uc740 \uc544\ub2d8. \uc77c\ubd80 \uc870\uac74 \uba85\ud655\uc131\uc740 \ud655\ubcf4\ub418\ub098 \uae30\ub300 \uae30\uc900 \ubbf8\ub2ec\ub85c \ud310\ub2e8."
+        },
+        {
+          "text": "Success Metrics\uac00 Primary / Secondary / Guardrail \ud639\uc740 \ucd5c\uc18c \uadf8\uc5d0 \uc900\ud558\ub294 \uad6c\ubd84\uc73c\ub85c \uc81c\uc2dc\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 10.1: 'Primary Metric', 'Leading Indicators', 'Guardrail Metrics (\uc545\ud654\ub418\uba74 \uc548 \ub418\ub294 \uc9c0\ud45c)' \uc138 \uce74\ud14c\uace0\ub9ac\ub85c \ubd84\ub9ac \uba85\uc2dc."
+        },
+        {
+          "text": "Target Users(Primary persona)\uac00 \uc694\uccad\ud55c '10-50\uba85 \uaddc\ubaa8 \uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ub9e4\ub2c8\uc800'\ub85c \uba85\uc2dc\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 3.1: '\uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ud300 \ub9e4\ub2c8\uc800 \ubbfc\uc900, \uc9c1\ucc45: Engineering Manager / Tech Lead, \ud300 \uaddc\ubaa8: 10~50\uba85 \uc5d4\uc9c0\ub2c8\uc5b4\ub9c1 \ud300'"
+        },
+        {
+          "text": "Timeline \ub610\ub294 \ub9c8\uc77c\uc2a4\ud1a4 \uc139\uc158\uc774 6\uc8fc \ubc94\uc704\ub85c \uc874\uc7ac\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 9.1 6\uc8fc \uc2a4\ud504\ub9b0\ud2b8 \uacc4\ud68d: Week 1(\ubc1c\uacac&\uc124\uacc4), Week 2(\ub514\uc790\uc778), Week 3~4(\uac1c\ubc1c), Week 5(QA&Beta), Week 6(Full Rollout) \uba85\uc2dc."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 9,
+        "failed": 0,
+        "total": 9,
+        "time_seconds": 113.1,
+        "tokens": 22486,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "RICE \uacf5\uc2dd '(Reach \u00d7 Impact \u00d7 Confidence) / Effort'\uc774 \uba85\uc2dc\uc801\uc73c\ub85c \uc5b8\uae09\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'RICE \uacf5\uc2dd \uc815\uc758' \uc139\uc158\uc5d0 'RICE Score = (Reach \u00d7 Impact \u00d7 Confidence) / Effort' \uba85\uc2dc."
+        },
+        {
+          "text": "5\uac1c \uae30\ub2a5 \ubaa8\ub450\uc5d0 \ub300\ud574 R, I, C, E \ub124 \uac12\uc774 \ubaa8\ub450 \uc81c\uc2dc\ub41c\ub2e4 (\ud558\ub098\ub77c\ub3c4 \ube60\uc9c0\uba74 \uc2e4\ud328)",
+          "passed": true,
+          "evidence": "5\uac1c \uae30\ub2a5 \ubaa8\ub450 \ucd94\uc815\uac12 \ud14c\uc774\ube14\uc5d0 Reach, Impact, Confidence, Effort \ub124 \uac12 \uc81c\uc2dc. \ucd5c\uc885 \uc885\ud569 \uc21c\uc704 \ud14c\uc774\ube14\uc5d0\uc11c\ub3c4 5 \u00d7 4\uac12 \ubaa8\ub450 \uc874\uc7ac."
+        },
+        {
+          "text": "Impact \uac12\uc774 RICE \ud45c\uc900 \uc2a4\ucf00\uc77c(3/2/1/0.5/0.25) \uc911 \ud558\ub098\ub97c \uc0ac\uc6a9\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "RICE \uacf5\uc2dd \uc815\uc758\uc5d0 '1~5 \uc810 \ucc99\ub3c4 (\ubc30\uc218) 3=\ub300\ud615, 2=\uc911\ud615, 1=\uc18c\ud615, 0.5=\ucd5c\uc18c, 0.25=\ubb34\uc2dc \uac00\ub2a5' \uba85\uc2dc. \uc0ac\uc6a9 \uac12: \ub2e4\ud06c\ubaa8\ub4dc 1, Slack 2, \ucee4\uc2a4\ud140 \ud544\ub4dc 3, \ubaa8\ubc14\uc77c 2, API 3 \u2014 \ud45c\uc900 \uc2a4\ucf00\uc77c \uac12."
+        },
+        {
+          "text": "Confidence\uac00 \ubc31\ubd84\uc728(%)\ub85c \ud45c\ud604\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "Confidence \uac12\uc744 0.80, 0.75, 0.80, 0.60, 0.70 \uc18c\uc218\uc810 \ud615\ud0dc\ub85c \ud45c\uae30\ud558\uba70 RICE \uacf5\uc2dd \uc815\uc758\uc5d0 '% (\uc18c\uc218)'\ub85c \uba85\uc2dc. \uacf5\uc2dd \uc2a4\ucf00\uc77c\uc740 \uc544\ub2d8."
+        },
+        {
+          "text": "Effort\uac00 person-months \ub610\ub294 \uadf8\uc5d0 \uc0c1\uc751\ud558\ub294 \uacf5\uc218 \ub2e8\uc704\ub85c \ud45c\ud604\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "1.0 PM, 1.5 PM, 2.0 PM, 4.0 PM, 2.0 PM \u2014 person-months \ub2e8\uc704 \uc77c\uad00."
+        },
+        {
+          "text": "\uac01 \uae30\ub2a5\uc5d0 \uacc4\uc0b0\ub41c RICE \uc22b\uc790 \uc810\uc218\uac00 \ud3ec\ud568\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "\ub2e4\ud06c\ubaa8\ub4dc 7,200 / Slack 9,750 / \ucee4\uc2a4\ud140 \ud544\ub4dc 14,400 / \ubaa8\ubc14\uc77c 1,800 / API 1,575 \u2014 \uacc4\uc0b0\uc2dd \ud3ec\ud568."
+        },
+        {
+          "text": "5\uac1c \uae30\ub2a5\uc774 RICE \uc810\uc218\uc5d0 \ub530\ub77c \uc21c\uc704\uac00 \ub9e4\uaca8\uc9c4\ub2e4",
+          "passed": true,
+          "evidence": "'RICE \uc2a4\ucf54\uc5b4 \uc885\ud569 \uc21c\uc704' \ud14c\uc774\ube14\uc5d0 1\uc704(\ucee4\uc2a4\ud140 \ud544\ub4dc 14,400) ~ 5\uc704(API v2 1,575) \uc815\ub82c."
+        },
+        {
+          "text": "\uc0c1\uc704 2\uac1c \uc120\ud0dd \uc774\uc720\uc640 \ub098\uba38\uc9c0 3\uac1c \ud0c8\ub77d \uc774\uc720\uac00 \uad6c\uccb4\uc801\uc73c\ub85c \uc124\uba85\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'Q1 \uc0c1\uc704 2\uac1c \uc120\ud0dd \uad8c\uace0' \uc139\uc158\uc5d0 \ucee4\uc2a4\ud140 \ud544\ub4dc + Slack \uc120\ud0dd \uc774\uc720 \uad6c\uccb4 \uae30\uc220. '\ub098\uba38\uc9c0 3\uac1c \uc81c\uc678 \uc774\uc720' \uc139\uc158\uc5d0 \ub2e4\ud06c \ubaa8\ub4dc/\ubaa8\ubc14\uc77c/API \uac01\uac01 \uc81c\uc678 \uc774\uc720 + '\uc5b8\uc81c \ud574\uc57c \ud558\ub294\uac00' \uc870\uac74 \uba85\uc2dc."
+        },
+        {
+          "text": "\ub9ac\uc18c\uc2a4 \uc81c\uc57d(6 person-months)\uc774 \uc758\uc0ac\uacb0\uc815\uc5d0 \ubc18\uc601\ub41c\ub2e4",
+          "passed": true,
+          "evidence": "'\ud569\uacc4 Effort: 2.0 + 1.5 = 3.5 PM \u2192 6 PM \uc608\uc0b0 \ub0b4, \ubc84\ud37c 2.5 PM \ud655\ubcf4' \uba85\uc2dc. \ub2e8, \uc0c1\uc704 1+2\uc704 \ud569\uacc4\uac00 3.5 PM\uc73c\ub85c 2.5 PM \uc5ec\uc720\uac00 \uc0dd\uae30\ub294\ub370 \uc774\ub97c \ub2e4\ub978 \uae30\ub2a5\uc5d0 \uc4f0\uac70\ub098 \ud488\uc9c8\uc5d0 \ud22c\uc790\ud560\uc9c0\uc5d0 \ub300\ud55c \ub17c\uc758\ub294 \uc5c6\uc74c."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 95.5,
+        "tokens": 21703,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\uc751\ub2f5\uc774 \uc989\uac01\uc801\uc778 '\ub124, \ud569\ub2c8\ub2e4' \ub610\ub294 '\uc544\ub2c8\uc624, \uc548 \ud569\ub2c8\ub2e4' \ub2e8\uc21c \ub2f5\ubcc0\uc774 \uc544\ub2c8\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 6 \ucd5c\uc885 \ud310\ub2e8: '\uc870\uac74\ubd80 \uc6b0\uc120\uc21c\uc704 \uc0c1\ud5a5 \u2014 \uc989\uac01 \ube4c\ub4dc\ubcf4\ub2e4 \uac80\uc99d \uba3c\uc800'. 4\uac00\uc9c0 \ub2e8\uacc4\ubcc4 \uc561\uc158\uc73c\ub85c \ubd84\uae30. \ub2e8\uc21c Yes/No \uc544\ub2d8."
+        },
+        {
+          "text": "\ub2e8\uc77c \uace0\uac1d \uc694\uccad vs \uc804\uccb4 \uc0ac\uc6a9\uc790/\uc2dc\uc7a5\uc758 trade-off\ub97c \uba85\uc2dc\uc801\uc73c\ub85c \ub2e4\ub8ec\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2 Q1: '1\uac1c \uace0\uac1d\ub9cc\uc758 \uc694\uccad\uc778\uac00, \uc544\ub2c8\uba74 \uc7a0\uc7ac \uc218\uc694\uac00 \uc788\ub294\uac00?' \u2014 '\ub2e8\uc77c \uace0\uac1d \uc694\uccad\uc774\ub77c\uba74 \uc774\ub294 \uc81c\ud488 \uae30\ub2a5\uc774 \uc544\ub2c8\ub77c \uace0\uac1d \ub9de\ucda4 \uac1c\ubc1c\uc5d0 \uac00\uae5d\ub2e4' \uba85\uc2dc."
+        },
+        {
+          "text": "\uc774 \uae30\ub2a5\uc744 \uc6d0\ud558\ub294 \ub2e4\ub978 \uace0\uac1d\uc774 \uc5bc\ub9c8\ub098 \ub418\ub294\uc9c0(\ucd94\uac00 \ub370\uc774\ud130/\uac80\uc99d \ud544\uc694)\ub97c \ud655\uc778\ud558\uc790\uace0 \uc81c\uc548\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 6 \ub2e8\uacc4 1: '\uc601\uc5c5\ud300\uacfc \uace0\uac1d CS\ub97c \ud1b5\ud574 \ub2e4\ub978 \uace0\uac1d\uc758 \ub3d9\uc77c \uc694\uccad \uc874\uc7ac \uc5ec\ubd80 \ud30c\uc545'. \uc139\uc158 2 Q1\uc5d0\ub3c4 '\ub2e4\ub978 \uace0\uac1d \uc9c0\uc6d0 \ud2f0\ucf13, \ud53c\ub4dc\ubc31 \ucc44\ub110\uc5d0\uc11c \uc720\uc0ac \uc694\uccad\uc774 \uc788\uc5c8\ub294\uac00' \uccb4\ud06c."
+        },
+        {
+          "text": "\ud604\uc7ac \ubd84\uae30 \ubaa9\ud45c/OKR/\ub85c\ub4dc\ub9f5\uacfc\uc758 \uc815\ud569\uc131\uc744 \uac80\ud1a0\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 2 Q3 '\uc774 \uae30\ub2a5\uc774 \ud604\uc7ac \ub85c\ub4dc\ub9f5 \uc804\ub7b5\uacfc \uc815\ub82c\ub418\ub294\uac00?'. \uc139\uc158 5 \uc804\ub7b5 \uc815\ub82c \uccb4\ud06c: \uc81c\ud488\uc758 \ud575\uc2ec \uac00\uce58/\uc5d4\ud130\ud504\ub77c\uc774\uc988 \ud3ec\uc9c0\uc154\ub2dd \uc815\ub82c \uc5ec\ubd80 \uc810\uac80."
+        },
+        {
+          "text": "ARR 2% \ube44\uc911\uacfc \uc774\ud0c8 \ub9ac\uc2a4\ud06c\uc758 \uc815\ub7c9\uc801 \uacc4\uc0b0 \ub610\ub294 \ucd5c\uc18c\ud55c \ube44\uc911 \uc5b8\uae09\uc744 \ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc0c1\ud669 \uc694\uc57d \ud14c\uc774\ube14\uc5d0 'ARR \uae30\uc5ec\ub3c4 \u2014 \uc804\uccb4\uc758 2%' \uc5b8\uae09. \uc139\uc158 3 \ub2e8\uc21c ROI \uacc4\uc0b0: '$50K \uc720\uc9c0 vs \uac1c\ubc1c \ube44\uc6a9 $20K'. '$50K \uaddc\ubaa8\ub97c ARR 2%\ub85c \uacfc\uc18c\ud3c9\uac00\ud558\uc9c0 \ub9d0 \uac83' \uc5b8\uae09."
+        },
+        {
+          "text": "Full \uad6c\ud604 \uc678 \ub300\uc548(\ucd95\uc18c \uc2a4\ucf54\ud504, \uc784\uc2dc \ud574\uacb0\ucc45, \ub2e4\ub978 \ubc29\uc2dd\uc758 retention \uc9c0\uc6d0 \ub4f1)\uc744 \ucd5c\uc18c 1\uac1c \uc81c\uc548\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 4 \ub300\uc548 \uac80\ud1a0 4\uac1c: A(\ub2e8\uae30 \ub300\uc548 \uc81c\uacf5 + \ub85c\ub4dc\ub9f5 \uc57d\uc18d), B(\ud504\ub85c\ud398\uc154\ub110 \uc11c\ube44\uc2a4 / \ub9de\ucda4 \uac1c\ubc1c \uacc4\uc57d), C(\uc6b0\uc120\uc21c\uc704 \ud2b8\ub808\uc774\ub4dc\uc624\ud504 \uacf5\uc2dd\ud654), D(\uc989\uc2dc \ube4c\ub4dc \uc870\uac74\ubd80)."
+        },
+        {
+          "text": "RICE/ICE/MoSCoW/Value-Effort \ub4f1 \uc6b0\uc120\uc21c\uc704 \ud504\ub808\uc784\uc6cc\ud06c \ud639\uc740 One-Way/Two-Way Door \uac19\uc740 \uc758\uc0ac\uacb0\uc815 \ud504\ub808\uc784\uc6cc\ud06c\ub97c \ucc38\uc870\ud55c\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 5 'RICE \uc2a4\ucf54\uc5b4 \uc608\uc2dc (\uac00\uc815 \uae30\ubc18)' \ud14c\uc774\ube14 \u2014 Reach/Impact/Confidence/Effort 4\uac12 \ucd94\uc815. \ub2e8, One-Way/Two-Way, RAPID \ub4f1 \ub2e4\ub978 \ud504\ub808\uc784\uc6cc\ud06c\ub294 \uc5b8\uae09 \uc5c6\uc74c."
+        },
+        {
+          "text": "\uc758\uc0ac\uacb0\uc815 \uadfc\uac70\uac00 '\uc601\uc5c5\ud300\uc774 \uadf8\ub807\uac8c \ub9d0\ud574\uc11c'\uac00 \uc544\ub2c8\ub77c \ub370\uc774\ud130/\uc804\ub7b5 \uae30\ubc18\uc774\ub2e4",
+          "passed": true,
+          "evidence": "\uc139\uc158 6 '\ud558\uc9c0 \ub9d0\uc544\uc57c \ud560 \uac83: \uc601\uc5c5\ud300 \uc555\ubc15\ub9cc\uc73c\ub85c \uc989\uac01 \ube4c\ub4dc \uacb0\uc815'. \uc139\uc158 2 Q2 '\uc601\uc5c5\ud300\uc758 \uc774\ud0c8 \uac00\ub2a5\uc131 \uacbd\uace0\ub294 \uc815\ubcf4\uc774\uc9c0 \uadfc\uac70\uac00 \uc544\ub2c8\ub2e4'."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 203.1667,
+        "stddev": 85.7592,
+        "min": 148.4,
+        "max": 302.0
+      },
+      "tokens": {
+        "mean": 43244.0,
+        "stddev": 5976.3595,
+        "min": 38980,
+        "max": 50075
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.9167,
+        "stddev": 0.1443,
+        "min": 0.75,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 115.9667,
+        "stddev": 22.0403,
+        "min": 95.5,
+        "max": 139.3
+      },
+      "tokens": {
+        "mean": 23228.6667,
+        "stddev": 2003.0662,
+        "min": 21703,
+        "max": 25497
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.08",
+      "time_seconds": "+87.2",
+      "tokens": "+20015"
+    }
+  },
+  "notes": []
+}
