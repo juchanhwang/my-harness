@@ -9,7 +9,7 @@ Claude Code 개인 하네스 설정 저장소.
 ```
 my-harness/
 ├── agents/          # 서브 에이전트 정의 (18개)
-├── skills/          # 스킬 정의 (15개, 도메인 스킬 7개 포함, 참조 파일 148개)
+├── skills/          # 스킬 정의 (17개 — 도메인 7 + 범용 7 + workspace 3, 참조 파일 196개)
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (4개)
 ├── bin/             # CLI 커맨드 (1개)
@@ -50,7 +50,7 @@ my-harness/
 | `ops-lead.md` | opus | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
-## 스킬 (15)
+## 스킬 (17)
 
 ### 도메인 스킬 (7)
 
@@ -63,10 +63,8 @@ my-harness/
 | `po` | 프로덕트 오너 — 비전/전략, PRD, 우선순위, 사용자 리서치, 성장 | 24개 |
 | `designer` | 디자인 — UI/UX, 디자인 시스템, 토큰, 접근성, 리서치 | 24개 |
 | `qa` | QA — 테스트 전략, 자동화, 성능/보안/접근성 테스트, 정적 분석 | 24개 |
-| `ops-lead` | 운영 — 프로젝트 관리, 클라이언트, SLA, 프로세스 최적화 | *SKILL.md only* |
-| `data-analyst` | 데이터 — SQL, 퍼널/코호트 분석, A/B 테스트, 대시보드 | *SKILL.md only* |
-
-> **ops-lead / data-analyst 공개 정책**: 이 두 스킬은 공개 repo에 `SKILL.md`만 트랙한다. 참조 파일은 로컬(`~/.claude/skills/`)에만 존재한다.
+| `ops-lead` | 운영 — 프로젝트 관리, 클라이언트, SLA, 프로세스 최적화 | 24개 |
+| `data-analyst` | 데이터 — SQL, 퍼널/코호트 분석, A/B 테스트, 대시보드 | 24개 |
 
 <details>
 <summary><b><code>be</code> 참조 파일 (44) — framework-agnostic 25 + Fastify 7 + NestJS 12</b></summary>
@@ -424,6 +422,129 @@ my-harness/
 
 </details>
 
+<details>
+<summary><b><code>ops-lead</code> 참조 파일 (24)</b></summary>
+
+**Strategy & Planning**
+
+| 파일 | 역할 |
+|---|---|
+| `operational-strategy.md` | 운영 전략·장기 방향성 |
+| `project-planning.md` | 프로젝트 계획·일정 관리 |
+| `resource-allocation.md` | 리소스 배분·우선순위 |
+| `scaling-operations.md` | 운영 스케일링·성장 대응 |
+
+**Sprint & Coordination**
+
+| 파일 | 역할 |
+|---|---|
+| `agile-methodology.md` | 애자일·스크럼·칸반 |
+| `team-coordination.md` | 팀 간 조율·협업 |
+| `meeting-facilitation.md` | 미팅 진행·의사결정 촉진 |
+
+**Client Operations**
+
+| 파일 | 역할 |
+|---|---|
+| `client-onboarding.md` | 클라이언트 온보딩 프로세스 |
+| `client-communication.md` | 정기/비정기 커뮤니케이션 |
+| `sla-management.md` | SLA 정의·모니터링·대응 |
+| `escalation-handling.md` | 에스컬레이션 처리 절차 |
+| `stakeholder-updates.md` | 이해관계자 보고 |
+
+**Content Operations**
+
+| 파일 | 역할 |
+|---|---|
+| `content-qc.md` | 콘텐츠 품질 검증 |
+| `content-workflow.md` | 콘텐츠 제작 파이프라인 |
+| `content-performance.md` | 콘텐츠 성과 분석 |
+| `editorial-calendar.md` | 편집 일정·발행 계획 |
+
+**Reporting**
+
+| 파일 | 역할 |
+|---|---|
+| `kpi-dashboards.md` | KPI 대시보드 설계 |
+| `performance-reporting.md` | 성과 리포팅 주기·포맷 |
+| `executive-summaries.md` | 임원용 요약 보고 |
+
+**Process & Risk**
+
+| 파일 | 역할 |
+|---|---|
+| `process-optimization.md` | 프로세스 개선·병목 제거 |
+| `automation-tools.md` | 자동화 도구·스크립팅 |
+| `documentation-standards.md` | 문서화 표준·템플릿 |
+| `risk-management.md` | 리스크 식별·완화 계획 |
+| `vendor-management.md` | 벤더 선정·관리 |
+
+</details>
+
+<details>
+<summary><b><code>data-analyst</code> 참조 파일 (24)</b></summary>
+
+**SQL & Query**
+
+| 파일 | 역할 |
+|---|---|
+| `advanced-sql.md` | 윈도우 함수·CTE·고급 패턴 |
+| `window-functions.md` | 윈도우 함수 심화 |
+| `query-optimization.md` | 실행 계획·인덱스·튜닝 |
+
+**Statistics**
+
+| 파일 | 역할 |
+|---|---|
+| `descriptive-stats.md` | 기술 통계·분포·요약 |
+| `hypothesis-testing.md` | 가설 검정·p-value |
+| `regression.md` | 회귀 분석·해석 |
+| `time-series.md` | 시계열 분석·계절성 |
+| `causal-inference.md` | 인과추론·DiD·IV |
+
+**Experimentation & Analysis**
+
+| 파일 | 역할 |
+|---|---|
+| `ab-testing-stats.md` | A/B 테스트 통계·검정력 |
+| `cohort-analysis.md` | 코호트 분석·리텐션 곡선 |
+| `funnel-analysis.md` | 퍼널 분석·전환 진단 |
+| `product-metrics.md` | 제품 지표 정의·해석 |
+
+**Data Engineering**
+
+| 파일 | 역할 |
+|---|---|
+| `etl-pipelines.md` | ETL/ELT 파이프라인 설계 |
+| `dbt-patterns.md` | dbt 모델 패턴·테스트 |
+| `data-warehousing.md` | DW 설계·차원 모델링 |
+| `data-modeling.md` | 데이터 모델링 원칙 |
+
+**Data Quality**
+
+| 파일 | 역할 |
+|---|---|
+| `data-cleaning.md` | 결측치·이상치 처리 |
+| `data-quality.md` | 품질 차원·모니터링 |
+| `data-validation.md` | 검증 규칙·계약 |
+
+**ML & Tools**
+
+| 파일 | 역할 |
+|---|---|
+| `machine-learning-basics.md` | ML 기초·모델 선택 |
+| `pandas-numpy.md` | pandas/numpy 패턴 |
+
+**Visualization & Communication**
+
+| 파일 | 역할 |
+|---|---|
+| `dashboard-design.md` | 대시보드 설계 원칙 |
+| `data-visualization.md` | 차트 선택·시각화 |
+| `storytelling-with-data.md` | 데이터 스토리텔링 |
+
+</details>
+
 ### 범용 스킬 (7)
 
 | 스킬 | 역할 |
@@ -435,6 +556,16 @@ my-harness/
 | `pptx` | PPTX 읽기·생성·편집·템플릿 작업 (markitdown + pptxgenjs 기반) |
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
+
+### 워크스페이스 (3)
+
+`skill-creator` 플러그인이 스킬 트리거 정확도를 평가할 때 생성하는 산출물(eval 입출력, grading, benchmark, skill snapshot 등). 각 워크스페이스는 대응되는 스킬의 트리거 품질을 측정한 데이터다.
+
+| 디렉터리 | 대응 스킬 | 구성 |
+|---|---|---|
+| `fe-workspace/` | `fe` | `evals/`, `iteration-1/` (eval-0~2: component-building, code-review, test-writing) |
+| `fe-performance-workspace/` | `fe` (performance) | `evals/`, `iteration-1/` (eval-0~2: ssr-boundary, react-compiler-memo, code-splitting) |
+| `po-workspace/` | `po` | `iteration-1/` (eval-0~2: prd-writing, prioritization-rice, implicit-feature-decision), `skill-snapshot/` |
 
 ## 플러그인 (10)
 
