@@ -1,0 +1,26 @@
+{
+  "skill_name": "fe-performance",
+  "evals": [
+    {
+      "id": 0,
+      "name": "ssr-boundary",
+      "prompt": "우리 Next.js 16 App Router 앱이야. 첫 페이지 로드(LCP)가 4초 넘게 걸리는데, 코드를 보니 root layout.tsx 최상단에 'use client'가 박혀 있고 ThemeProvider로 children 전체를 감싸고 있어. 동료가 ThemeProvider를 next/dynamic으로 lazy load하면 해결될 거라고 하는데 맞는 접근이야? 어떻게 진단하고 개선해야 할지, Next.js 공식 문서 근거를 포함해서 PR 리뷰 코멘트 형식으로 답변해줘.",
+      "expected_output": "'use client' 경계가 client bundle에 미치는 파급 효과 설명, Provider를 가능한 한 깊게 두라는 권고, lazy load는 잘못된 접근임을 명시, JS bundle 감소 / FCP 개선 효과, Next.js 공식 문서 인용",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "react-compiler-memo",
+      "prompt": "React 19 + React Compiler를 도입한 새 프로젝트야. PR 리뷰를 하는데 동료가 모든 컴포넌트를 React.memo로 감싸고, 모든 함수에 useCallback을 쓰고, 모든 계산에 useMemo를 쓰고 있어. '안전 차원에서 다 메모이제이션하자'는 입장인데 어떻게 설명해서 PR을 반려해야 해? React 공식 문서 인용 포함, 안티패턴 근거, 그리고 정말 수동 메모이제이션이 필요한 escape hatch가 무엇인지까지 답변해줘.",
+      "expected_output": "React Compiler 'now stable' 인용, escape hatch 원칙 (effect 의존성, memo 자식 prop, 비싼 계산), React.memo 4가지 조건, '메모이제이션은 보장 아님' 인용, '모든 컴포넌트 memo 도배' 안티패턴, 인라인 prop으로 memo 무력화되는 함정, react.dev URL",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "code-splitting",
+      "prompt": "Next.js 16 App Router 페이지에서 무거운 차트 라이브러리(recharts)와 사용자 클릭 후에만 필요한 마크다운 에디터를 dynamic import로 분리하려고 해. next/dynamic이랑 React.lazy 둘 중 뭘 써야 해? 어디서 본 글에서는 React.lazy는 SSR이 안 되니까 next/dynamic만 쓰라고 했는데 사실이야? ssr: false 옵션이 필요한 경우는 언제고, Server Component에서 호출해도 되는 거야? Next.js 공식 문서 기준으로 알려줘.",
+      "expected_output": "'React.lazy SSR 미지원'이 outdated임을 명시, Next.js 16 공식 문서 'React.lazy Client Components will be prerendered (SSR) by default' 인용, next/dynamic = composite of React.lazy + Suspense 인용, ssr: false는 Client Component 전용 (Server Component에서 호출 시 빌드 에러), Next.js Lazy Loading 가이드 URL, named export 패턴 (`.then(mod => mod.X)`)",
+      "files": []
+    }
+  ]
+}

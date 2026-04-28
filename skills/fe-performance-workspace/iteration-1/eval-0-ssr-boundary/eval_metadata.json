@@ -1,0 +1,27 @@
+{
+  "eval_id": 0,
+  "eval_name": "ssr-boundary",
+  "prompt": "우리 Next.js 16 App Router 앱이야. 첫 페이지 로드(LCP)가 4초 넘게 걸리는데, 코드를 보니 root layout.tsx 최상단에 'use client'가 박혀 있고 ThemeProvider로 children 전체를 감싸고 있어. 동료가 ThemeProvider를 next/dynamic으로 lazy load하면 해결될 거라고 하는데 맞는 접근이야? 어떻게 진단하고 개선해야 할지, Next.js 공식 문서 근거를 포함해서 PR 리뷰 코멘트 형식으로 답변해줘.",
+  "assertions": [
+    {
+      "text": "Identifies 'lazy load Provider' as the wrong approach (안티패턴 / 잘못된 / 권장하지 않)",
+      "criterion": "Answer must explicitly state that lazy-loading the ThemeProvider via next/dynamic is incorrect. Look for words like '잘못', '안티패턴', '권장하지 않', 'wrong', or equivalent direct rejection."
+    },
+    {
+      "text": "Explains 'use client' as a module-graph boundary (imports + child components → client bundle)",
+      "criterion": "Answer must explain that 'use client' marks a boundary where the file AND all its imports/children become part of the client bundle. Look for 'boundary' / '경계' AND 'client bundle' / '클라이언트 번들'."
+    },
+    {
+      "text": "Recommends pushing Provider deeper ({children} only, deepest possible point)",
+      "criterion": "Answer must recommend moving the Provider deeper in the tree (e.g., wrap only {children}, not <html>). Look for '깊게' / 'deeper' / 'deepest' AND mention of Provider/Wrapper."
+    },
+    {
+      "text": "Cites Next.js official documentation URL (nextjs.org)",
+      "criterion": "Answer must include at least one nextjs.org URL as an official source citation."
+    },
+    {
+      "text": "Mentions concrete performance benefits (JS bundle / FCP / streaming static shell)",
+      "criterion": "Answer must mention at least one concrete performance benefit: JS bundle reduction, FCP improvement, or streaming static shell expansion."
+    }
+  ]
+}

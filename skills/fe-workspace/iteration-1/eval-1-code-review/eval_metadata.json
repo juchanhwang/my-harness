@@ -1,0 +1,37 @@
+{
+  "eval_id": 1,
+  "eval_name": "code-review",
+  "prompt": "Dashboard.tsx 코드 리뷰 — useEffect 남용, Zustand에 서버 데이터 저장, God Component 등 안티패턴 탐지",
+  "assertions": [
+    {
+      "id": "zustand-server-data-antipattern",
+      "text": "서버 데이터를 Zustand에 저장하는 안티패턴을 지적한다",
+      "type": "content_check"
+    },
+    {
+      "id": "useeffect-derived-state-antipattern",
+      "text": "useEffect+setState로 파생 값(filteredOrders, totalRevenue, activeOrderCount) 계산하는 안티패턴을 지적한다",
+      "type": "content_check"
+    },
+    {
+      "id": "tanstack-query-suggestion",
+      "text": "서버 상태를 TanStack Query로 전환할 것을 제안한다",
+      "type": "content_check"
+    },
+    {
+      "id": "usememo-or-variable-suggestion",
+      "text": "파생 값은 렌더링 중 계산(useMemo 또는 변수)하라고 제안한다",
+      "type": "content_check"
+    },
+    {
+      "id": "god-component-split",
+      "text": "컴포넌트가 너무 크거나 역할이 많다는 점을 지적하고 분리를 제안한다",
+      "type": "content_check"
+    },
+    {
+      "id": "accessibility-issues",
+      "text": "접근성(a11y) 관련 이슈를 지적한다 (label 누락, 시맨틱 HTML 등)",
+      "type": "content_check"
+    }
+  ]
+}

@@ -1,13 +1,16 @@
 # Domain-Driven Design
 
+> **기본 방법론**: 모든 BE 구현은 DDD를 기본으로 따른다. 단순 CRUD만으로 충분한 경우 명시적으로 opt-out할 수 있으나, 기본값은 DDD다. 새 기능 구현 시 Entity/Value Object/Aggregate 분리, Repository 추상화, Domain Event 발행을 기본 패턴으로 적용하라.
+
 ## 목차
 
 1. [핵심 개념](#핵심-개념)
 2. [Tactical Patterns](#tactical-patterns)
-3. [Anti-Corruption Layer (ACL)](#anti-corruption-layer-acl)
-4. [Repository Pattern (DDD 관점)](#repository-pattern-ddd-관점)
-5. [Hexagonal Architecture (Ports & Adapters)](#hexagonal-architecture-ports--adapters)
-6. [실무 적용 가이드](#실무-적용-가이드)
+3. [Application Service (Use Case)](#application-service-use-case)
+4. [Anti-Corruption Layer (ACL)](#anti-corruption-layer-acl)
+5. [Repository Pattern (DDD 관점)](#repository-pattern-ddd-관점)
+6. [Hexagonal Architecture (Ports & Adapters)](#hexagonal-architecture-ports--adapters)
+7. [실무 적용 가이드](#실무-적용-가이드)
 
 ## 핵심 개념
 
@@ -44,39 +47,25 @@ class PaymentService {
 
 ### Entity
 
-고유 식별자로 구분. 시간에 따라 상태가 변함.
+고유 식별자로 구분. 시간에 따라 상태가 변함. 비즈니스 규칙을 메서드로 캡슐화.
 
 ```typescript
-class Order {
+class Product {
   constructor(
     public readonly id: string,
-    private status: OrderStatus,
-    private items: OrderItem[],
-    private totalAmount: number,
-    public readonly createdAt: Date,
+    private name: string,
+    private price: Money,
+    private status: 'active' | 'discontinued',
   ) {}
 
-  addItem(item: OrderItem): void {
-    if (this.status !== 'draft') {
-      throw new DomainError('Cannot add items to a non-draft order');
+  updatePrice(newPrice: Money): void {
+    if (this.status === 'discontinued') {
+      throw new DomainError('Cannot update discontinued product');
     }
-    this.items.push(item);
-    this.recalculateTotal();
-  }
-
-  confirm(): void {
-    if (this.items.length === 0) {
-      throw new DomainError('Cannot confirm an empty order');
-    }
-    this.status = 'confirmed';
-  }
-
-  private recalculateTotal(): void {
-    this.totalAmount = this.items.reduce(
-      (sum, item) => sum + item.price * item.quantity, 0
-    );
+    this.price = newPrice;
   }
 }
+// Aggregate Root도 Entity다. 전체 예시는 아래 Aggregate 절 참고.
 ```
 
 ### Value Object
@@ -102,6 +91,13 @@ class Money {
     return new Money(this.amount + other.amount, this.currency);
   }
 
+  subtract(other: Money): Money {
+    if (this.currency !== other.currency) {
+      throw new DomainError('Cannot subtract different currencies');
+    }
+    return new Money(this.amount - other.amount, this.currency);
+  }
+
   multiply(factor: number): Money {
     return new Money(Math.round(this.amount * factor), this.currency);
   }
@@ -110,27 +106,11 @@ class Money {
     return this.amount === other.amount && this.currency === other.currency;
   }
 }
-
-class Address {
-  constructor(
-    public readonly street: string,
-    public readonly city: string,
-    public readonly zipCode: string,
-    public readonly country: string,
-  ) {}
-
-  equals(other: Address): boolean {
-    return this.street === other.street
-      && this.city === other.city
-      && this.zipCode === other.zipCode
-      && this.country === other.country;
-  }
-}
 ```
 
 ### Aggregate
 
-관련 Entity와 Value Object의 클러스터. Aggregate Root를 통해서만 접근.
+관련 Entity와 Value Object의 클러스터. Aggregate Root를 통해서만 접근. `version` 필드로 낙관적 동시성 제어.
 
 ```typescript
 // Order가 Aggregate Root
@@ -139,6 +119,7 @@ class Address {
 class Order {
   private items: OrderItem[] = [];
   private domainEvents: DomainEvent[] = [];
+  private version = 0;
 
   static create(userId: string): Order {
     const order = new Order(
@@ -170,6 +151,9 @@ class Order {
   }
 
   removeItem(productId: string): void {
+    if (this.status !== 'draft') {
+      throw new DomainError('Cannot modify a non-draft order');
+    }
     this.items = this.items.filter(i => i.productId !== productId);
   }
 
@@ -189,6 +173,9 @@ class Order {
     });
   }
 
+  getVersion(): number { return this.version; }
+  getItems(): readonly OrderItem[] { return this.items; }
+
   private addDomainEvent(event: DomainEvent): void {
     this.domainEvents.push(event);
   }
@@ -206,14 +193,18 @@ class Order {
 도메인에서 발생한 중요한 사실. 다른 Bounded Context에 전파.
 
 ```typescript
+// Aggregate별 이벤트를 discriminated union으로 정의 → 타입 안전
+type OrderEvent =
+  | { type: 'order.created'; data: { orderId: string; userId: string } }
+  | { type: 'order.submitted'; data: { orderId: string; totalAmount: number } }
+  | { type: 'order.cancelled'; data: { orderId: string; reason: string } };
+
+// Dispatcher 등 범용 코드에서 사용하는 base 인터페이스
 interface DomainEvent {
   type: string;
-  data: unknown;
+  data: Record<string, unknown>;
   timestamp: Date;
-  metadata?: {
-    correlationId?: string;
-    userId?: string;
-  };
+  metadata?: { correlationId?: string; userId?: string };
 }
 
 class DomainEventDispatcher {
@@ -245,6 +236,50 @@ dispatcher.register('order.submitted', async (event) => {
 });
 ```
 
+### Domain Service
+
+여러 Aggregate에 걸친 비즈니스 로직. 단일 Entity에 속하지 않는 도메인 규칙을 캡슐화. 인프라 의존성 없이 순수 도메인 객체만 사용.
+
+```typescript
+// 주문 금액 계산 시 사용자 등급별 할인 적용 — Order와 User 두 Aggregate 관련
+class OrderPricingService {
+  calculateTotal(order: Order, userTier: UserTier): Money {
+    const subtotal = order.getSubtotal();
+    const discountRate = userTier === 'vip' ? 0.1 : userTier === 'premium' ? 0.05 : 0;
+    return subtotal.multiply(1 - discountRate);
+  }
+}
+```
+
+> Entity/VO 메서드 vs Domain Service: 로직이 단일 Aggregate 내부에서 완결되면 Entity 메서드. 여러 Aggregate가 관여하면 Domain Service로 분리.
+
+## Application Service (Use Case)
+
+도메인 객체를 조합하여 비즈니스 흐름을 실행. 트랜잭션 경계·인증 확인·이벤트 발행을 조율. **도메인 로직은 포함하지 않는다.**
+
+```typescript
+class SubmitOrderUseCase {
+  constructor(
+    private readonly orderRepo: OrderRepository,
+    private readonly userRepo: UserRepository,
+    private readonly pricingService: OrderPricingService,
+  ) {}
+
+  async execute(orderId: string, userId: string): Promise<void> {
+    const order = await this.orderRepo.findById(orderId);
+    if (!order) throw new NotFoundError('Order', orderId);
+
+    const user = await this.userRepo.findById(userId);
+    const total = this.pricingService.calculateTotal(order, user.tier);
+
+    order.submit();                    // 도메인 규칙은 Aggregate 내부
+    await this.orderRepo.save(order);  // 영속화 + 이벤트 발행
+  }
+}
+```
+
+> Application Service vs Domain Service: Application Service는 흐름 조율(orchestration)만 한다. `if/else` 비즈니스 규칙이 보이면 Domain Service나 Entity로 옮겨라.
+
 ## Anti-Corruption Layer (ACL)
 
 외부 시스템의 모델이 내부 도메인 모델을 오염시키지 않도록 번역 계층을 둔다.
@@ -255,7 +290,6 @@ class PaymentGatewayAdapter {
   constructor(private readonly client: StripeClient) {}
 
   async charge(payment: Payment): Promise<PaymentResult> {
-    // 내부 모델 → 외부 API 형식으로 변환
     const stripePayload = {
       amount: payment.amount.amount,
       currency: payment.amount.currency.toLowerCase(),
@@ -265,7 +299,6 @@ class PaymentGatewayAdapter {
 
     const stripeResult = await this.client.charges.create(stripePayload);
 
-    // 외부 API 응답 → 내부 모델로 변환
     return {
       id: stripeResult.id,
       status: this.mapStatus(stripeResult.status),
@@ -287,9 +320,9 @@ class PaymentGatewayAdapter {
 
 ## Repository Pattern (DDD 관점)
 
-Aggregate의 영속성을 추상화. 컬렉션처럼 사용.
+Aggregate의 영속성을 추상화. 컬렉션처럼 사용. Optimistic concurrency로 동시 수정 충돌을 감지.
 
-> **트랜잭션 API 동작 원리·격리 수준·lock 사용법**은 [database.md](database.md#6-transaction-isolation-levels)에 정식 정의가 있다. 아래 `save()`는 그 API를 사용하는 호출자 예시일 뿐이다.
+> **트랜잭션 API 동작 원리·격리 수준·lock 사용법**은 [database.md](database.md#6-transaction-isolation-levels)에 정식 정의가 있다.
 
 ```typescript
 interface OrderRepository {
@@ -315,13 +348,19 @@ class DrizzleOrderRepository implements OrderRepository {
 
   async save(order: Order): Promise<void> {
     await this.db.transaction(async (tx) => {
-      // Upsert order
-      await tx.insert(orders)
-        .values(this.toPersistence(order))
-        .onConflictDoUpdate({
-          target: orders.id,
-          set: this.toPersistence(order),
-        });
+      const data = this.toPersistence(order);
+
+      if (order.getVersion() > 0) {
+        // Optimistic concurrency: version 불일치 시 동시 수정 감지
+        const result = await tx.update(orders)
+          .set({ ...data, version: order.getVersion() + 1 })
+          .where(and(eq(orders.id, order.id), eq(orders.version, order.getVersion())));
+        if (result.rowsAffected === 0) {
+          throw new ConcurrencyError(`Order ${order.id} was modified concurrently`);
+        }
+      } else {
+        await tx.insert(orders).values({ ...data, version: 1 });
+      }
 
       // Sync items
       await tx.delete(orderItems).where(eq(orderItems.orderId, order.id));
@@ -343,7 +382,7 @@ class DrizzleOrderRepository implements OrderRepository {
   }
 
   private toDomain(row: OrderRow): Order {
-    // DB row → Domain model
+    // DB row → Domain model (version 포함)
   }
 
   private toPersistence(order: Order): OrderRow {
@@ -376,10 +415,10 @@ src/
 │   ├── entities/
 │   ├── value-objects/
 │   ├── events/
-│   └── services/
+│   └── services/        # Domain Services
 ├── application/         # Use cases, Ports 정의
 │   ├── ports/           # 인터페이스 (Repository, Gateway 등)
-│   ├── use-cases/       # 애플리케이션 서비스
+│   ├── use-cases/       # Application Services
 │   └── dto/
 ├── infrastructure/      # Adapters 구현
 │   ├── persistence/     # DB 구현체 (Drizzle)
@@ -391,14 +430,17 @@ src/
 
 ## 실무 적용 가이드
 
-### 언제 DDD를 적용하는가
+### DDD 적용 수준 판단 (기본값: 적용)
 
-| 프로젝트 특성            | DDD 적용   | 대안           |
-| ------------------ | -------- | ------------ |
-| 복잡한 비즈니스 규칙        | ✅ 필수     | —            |
-| CRUD 위주 (블로그, 관리자) | ❌ 과도     | 간단한 계층 구조    |
-| 스타트업 MVP           | ⚠️ 부분 적용 | 핵심 도메인만 DDD  |
-| 레거시 마이그레이션         | ✅ 점진적    | ACL로 격리 후 도입 |
+DDD는 **기본 방법론**이다. 아래 표에서 명시적으로 opt-out하는 경우만 예외다.
+
+| 프로젝트 특성            | DDD 적용          | 비고                                           |
+| ------------------ | --------------- | -------------------------------------------- |
+| 복잡한 비즈니스 규칙        | ✅ 전면 적용 (기본)    | Entity/VO/Aggregate/Repository/Domain Event 전부 |
+| CRUD 위주 (블로그, 관리자) | ⚠️ 경량 적용        | Entity/Repository는 유지, Aggregate/Event는 생략 가능  |
+| 스타트업 MVP           | ✅ 핵심 도메인 전면 적용  | 부차 도메인은 경량 적용 허용                              |
+| 레거시 마이그레이션         | ✅ ACL로 격리 후 점진 도입 | 새 기능부터 DDD 적용                                 |
+| 단순 유틸/설정 API       | ❌ 명시적 opt-out   | 비즈니스 로직이 없는 경우만 해당                            |
 
 ### 실무 원칙
 
@@ -408,6 +450,7 @@ src/
 4. **도메인 이벤트로 Aggregate 간 통신**: 느슨한 결합
 5. **Repository는 Aggregate Root당 하나**: 하위 Entity는 Root를 통해 접근
 6. **Ubiquitous Language 유지**: 코드 리뷰에서 네이밍 검증
+7. **Optimistic Concurrency**: Aggregate에 version 필드 필수, Repository save 시 version check
 
 ---
 

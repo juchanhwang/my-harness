@@ -1,0 +1,57 @@
+{
+  "expectations": [
+    {
+      "text": "PRD가 '문제'부터 시작하고 솔루션/기능부터 시작하지 않는다",
+      "passed": true,
+      "evidence": "섹션 1 '배경 & 문제'가 문서 최상단에 위치. 1.1 현재 상황(AS-IS), 1.2 문제 정의, 1.3 기회 순서. 솔루션 개요는 섹션 4에서 등장."
+    },
+    {
+      "text": "Goals 섹션에 '전환율 30% → 50%'처럼 측정 가능한 수치 목표가 명시돼 있다",
+      "passed": true,
+      "evidence": "섹션 2.1 Goals 테이블: 'G1 Activation rate 개선 — 기준선 30% → 타겟 50% — 6주 후 측정'."
+    },
+    {
+      "text": "Non-Goals 섹션이 존재하고 이번에 하지 않을 것을 명시적으로 적는다",
+      "passed": true,
+      "evidence": "섹션 2.2 Non-Goals 존재. 7개 명시: 팀원 초대 온보딩 개선, 유료 전환 최적화, 모바일 온보딩, 기존 사용자 리온보딩, 콘텐츠 현지화, 소셜 로그인 추가, 엔터프라이즈 커스터마이징."
+    },
+    {
+      "text": "User Story가 'As a [user], I want [action], So that [benefit]' 포맷 혹은 명확한 user story 구조를 따른다",
+      "passed": true,
+      "evidence": "Story 1~5 모두 정확한 포맷 사용. 예: 'As an engineering manager, I want to tell the product what kind of team I have when I first sign up, So that I get a more relevant starting experience without reading documentation.'"
+    },
+    {
+      "text": "Acceptance Criteria가 최소 1개 이상 Given-When-Then 포맷 또는 명확한 조건 리스트로 작성돼 있다",
+      "passed": true,
+      "evidence": "Story 1-5 모두 Given-When-Then 포맷 엄격 사용. 예: 'Given 사용자가 가입을 완료하고 / When 처음 대시보드에 접근하면 / Then Welcome 화면이 표시되고 / And 팀 유형 선택지(...)가 보이며'"
+    },
+    {
+      "text": "Success Metrics가 Primary / Secondary / Guardrail 혹은 최소 그에 준하는 구분으로 제시된다",
+      "passed": true,
+      "evidence": "섹션 5에 명시적으로 5.1 Primary Metric, 5.2 Secondary Metrics, 5.3 Guardrail Metrics 세 하위 섹션 분리."
+    },
+    {
+      "text": "Target Users(Primary persona)가 요청한 '10-50명 규모 엔지니어링 매니저'로 명시된다",
+      "passed": true,
+      "evidence": "섹션 3.1: 'Primary Persona: 엔지니어링 매니저 민준, 역할: Engineering Manager / Tech Lead, 팀 규모: 10~50명 엔지니어링 팀'"
+    },
+    {
+      "text": "Timeline 또는 마일스톤 섹션이 6주 범위로 존재한다",
+      "passed": true,
+      "evidence": "섹션 8.1 전체 타임라인 (6주) 테이블: Week 1~6 주차별 마일스톤과 산출물 명시."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "notes": [
+    "JTBD Job Statement 포함 (skill의 user-research.md 프레임워크 적용)",
+    "AARRR 맥락 명시 (skill의 metrics.md 참조)",
+    "대안 검토 테이블(옵션 A~E) 포함 — 가장 체계적",
+    "온보딩 이메일 콘텐츠 초안, 템플릿 정의까지 부록에 포함 — 실행 가능도 매우 높음",
+    "793줄 — 매우 상세하나 일부는 filler 느낌"
+  ]
+}

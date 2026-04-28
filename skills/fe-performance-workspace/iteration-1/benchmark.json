@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "skill_name": "fe-performance",
+    "skill_path": "/Users/JuChan/.claude/skills/fe",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-08T02:45:11Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 99.9,
+        "tokens": 35806,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies 'lazy load Provider' as the wrong approach",
+          "passed": true,
+          "evidence": "Line 5: '\ub3d9\ub8cc\uc758 \uc81c\uc548(next/dynamic lazy load)\uc740 \uc798\ubabb\ub41c \ubc29\ud5a5\uc785\ub2c8\ub2e4'. Section 2 explicitly titled '\ub3d9\ub8cc\uc758 \uc81c\uc548\uc774 \ud2c0\ub9b0 \uc774\uc720'."
+        },
+        {
+          "text": "Explains 'use client' as a module-graph boundary",
+          "passed": true,
+          "evidence": "Line 32 direct official quote: 'boundary between the Server and Client module graphs... all its imports and child components are considered part of the client bundle' with nextjs.org URL."
+        },
+        {
+          "text": "Recommends pushing Provider deeper ({children} only)",
+          "passed": true,
+          "evidence": "Line 84: official quote 'ThemeProvider\uac00 <html> \uc804\uccb4\uac00 \uc544\ub2c8\ub77c {children}\ub9cc \uac10\uc2f8\ub3c4\ub85d'. Step 1+2 implementation example shows ThemeProvider extracted to separate client component file."
+        },
+        {
+          "text": "Cites Next.js official documentation URL",
+          "passed": true,
+          "evidence": "Multiple URLs: nextjs.org/docs/app/getting-started/server-and-client-components, nextjs.org/docs/app/guides/streaming, web.dev/articles/vitals, web.dev/articles/lcp."
+        },
+        {
+          "text": "Mentions concrete performance benefits (JS bundle / FCP / streaming)",
+          "passed": true,
+          "evidence": "Line 38-43 table lists: 'JS \ubc88\ub4e4 \ud06c\uae30 \ud3ed\uc99d', 'FCP \uc9c0\uc5f0', 'LCP \uc9c0\uc5f0', 'Streaming \ubb34\ub825\ud654'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 109.0,
+        "tokens": 40716,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Cites React Compiler 'now stable' status",
+          "passed": true,
+          "evidence": "Line 9: 'React Compiler\ub294 \ub354 \uc774\uc0c1 \uc2e4\ud5d8\uc801 \ub3c4\uad6c\uac00 \uc544\ub2d9\ub2c8\ub2e4'. Line 17: '\uacf5\uc2dd \ubb38\uc11c\ub294 React Compiler\ub97c \"now stable\"\ub85c \ud45c\uae30\ud558\uba70 Meta \ub4f1\uc5d0\uc11c \ud504\ub85c\ub355\uc158 \uc0ac\uc6a9 \uc911\uc784\uc744 \uba85\uc2dc'. Direct quote with react.dev URL."
+        },
+        {
+          "text": "Frames manual hooks as 'escape hatch' only",
+          "passed": true,
+          "evidence": "Line 27: official quote 'as an escape hatch'. Line 31: '\uc2e0\uaddc \ucf54\ub4dc\uc5d0\uc11c useMemo/useCallback\uc740 escape hatch(\ud0c8\ucd9c\uad6c)\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12\uc774 \uc544\ub2d9\ub2c8\ub2e4.'"
+        },
+        {
+          "text": "Includes React.memo conditions OR 'memo is not a guarantee'",
+          "passed": true,
+          "evidence": "BOTH present. Line 47: '\uba54\ubaa8\uc774\uc81c\uc774\uc158\uc740 \uc131\ub2a5\uc744 \ucd5c\uc801\ud654\ud558\ub294 \uac83\uc774\uc9c0, \ubcf4\uc7a5\ud558\ub294 \uac83\uc740 \uc544\ub2c8\uae30 \ub54c\ubb38\uc5d0' (official quote). Line 52-65: 4-condition checklist (same props, expensive render, Profiler verified, no inline props)."
+        },
+        {
+          "text": "Names at least 2 valid escape hatch cases",
+          "passed": true,
+          "evidence": "Line 174-176 explicit table of 3 cases: (1) useEffect \uc758\uc874\uc131, (2) \ucef4\ud30c\uc77c\ub7ec \ud734\ub9ac\uc2a4\ud2f1\ubcf4\ub2e4 \uc815\ubc00 \uc81c\uc5b4 (1ms+), (3) use no memo \ub514\ub809\ud2f0\ube0c. Plus 1ms rule explanation in \u00a73.5."
+        },
+        {
+          "text": "Cites react.dev URL",
+          "passed": true,
+          "evidence": "Multiple react.dev URLs: react.dev/learn/react-compiler/introduction, react.dev/reference/react/useMemo, /useCallback, /memo, /reference/rules."
+        },
+        {
+          "text": "Explains why blanket memoization is harmful",
+          "passed": true,
+          "evidence": "Three reasons covered: (1) Line 80-82 inline prop defeats memo with Object.is comparison, (2) Line 95 memo-less child useCallback is useless, (3) Line 66 'Profiler \uce21\uc815 \uc5c6\uc774 \uc704 \uc870\uac74\ub4e4\uc744 \ud1b5\uacfc\ud588\ub294\uc9c0 \uc54c \uc218 \uc5c6\uc2b5\ub2c8\ub2e4'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 93.8,
+        "tokens": 31772,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect",
+          "passed": true,
+          "evidence": "Line 29: '\uacb0\ub860: \ud2c0\ub9b0 \uc815\ubcf4\ub2e4. Next.js 16 App Router \uae30\uc900\uc73c\ub85c \uc774\ubbf8 outdated\ub41c \ud1b5\ub150\uc774\ub2e4.' Section 2 titled 'Outdated \ud1b5\ub150 \ud310\uc815'."
+        },
+        {
+          "text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'",
+          "passed": true,
+          "evidence": "Line 33: direct quote 'When using React.lazy() and Suspense, Client Components will be prerendered (SSR) by default.' with nextjs.org/docs/app/guides/lazy-loading URL."
+        },
+        {
+          "text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'",
+          "passed": true,
+          "evidence": "Line 19: direct quote 'next/dynamic is a composite of React.lazy() and Suspense. It behaves the same way in the app and pages directories'. Word 'composite' used explicitly."
+        },
+        {
+          "text": "States that ssr: false is Client Component only (Server Component \u2192 error)",
+          "passed": true,
+          "evidence": "Line 135: direct quote 'ssr: false is not allowed with next/dynamic in Server Components. Please move it into a Client Component.' Plus \u274c Server / \u2705 Client code example."
+        },
+        {
+          "text": "Cites Next.js Lazy Loading guide URL",
+          "passed": true,
+          "evidence": "Multiple instances of nextjs.org/docs/app/guides/lazy-loading (the correct Next.js 16 URL, not the old building-your-application path)."
+        },
+        {
+          "text": "Includes named export dynamic import pattern",
+          "passed": true,
+          "evidence": "Line 180-182: official pattern shown 'dynamic(() => import(.../bar-chart).then((mod) => mod.BarChart))'. Uses correct .then((mod) => mod.X) pattern from Next.js 16 docs."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 72.0,
+        "tokens": 21612,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies 'lazy load Provider' as the wrong approach",
+          "passed": true,
+          "evidence": "Line 5: '\ubd80\ubd84\uc801\uc73c\ub85c\ub9cc \ub9de\uace0, \uadfc\ubcf8 \uc6d0\uc778 \uc9c4\ub2e8\uc744 \ube60\ub728\ub838\uc2b5\ub2c8\ub2e4'. Line 174: '\ub3d9\ub8cc\uc758 next/dynamic \uc81c\uc548\uc740 \ucc44\ud0dd\ud558\uc9c0 \ub9c8\uc138\uc694'. Conclusion clear though softer than with_skill."
+        },
+        {
+          "text": "Explains 'use client' as a module-graph boundary",
+          "passed": true,
+          "evidence": "Line 28: 'use client \ub97c layout.tsx \ucd5c\uc0c1\ub2e8\uc5d0 \uc120\uc5b8\ud558\uba74, \uc774 \ud30c\uc77c \uc544\ub798\uc5d0 import\ub41c \ubaa8\ub4e0 \ubaa8\ub4c8\uc774 \ud074\ub77c\uc774\uc5b8\ud2b8 \ubc88\ub4e4\uc5d0 \ud3ec\ud568\ub429\ub2c8\ub2e4.' Line 38: '\ubc88\ub4e4\ub9c1 \uacbd\uacc4\uac00 \uc774\uc0c1\ud558\uac8c \ud615\uc131\ub429\ub2c8\ub2e4'. Concept conveyed (boundary + client bundle), no direct official quote."
+        },
+        {
+          "text": "Recommends pushing Provider deeper ({children} only)",
+          "passed": true,
+          "evidence": "Step 1 (Line 68-83) + Step 2 (Line 86-96) shows extracted Providers pattern. References Composition Patterns docs."
+        },
+        {
+          "text": "Cites Next.js official documentation URL",
+          "passed": true,
+          "evidence": "Multiple Next.js URLs cited: nextjs.org/docs/app/building-your-application/rendering/server-components, /lazy-loading, /composition-patterns. URLs are from older docs structure (Pages Router era) but still valid."
+        },
+        {
+          "text": "Mentions concrete performance benefits",
+          "passed": true,
+          "evidence": "Line 35: 'LCP 4\ucd08\uc758 \uc9c1\uc811 \uc6d0\uc778'. Mentions '\uc11c\ubc84\uc5d0\uc11c HTML\uc744 \uc989\uc2dc \uc804\uc1a1' / 'Hydration \ube44\uc6a9 \ud655\uc0b0'. Performance impact explained."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.833,
+        "passed": 5,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 77.9,
+        "tokens": 20656,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Cites React Compiler 'now stable' status",
+          "passed": false,
+          "evidence": "Answer describes React Compiler functionality but does NOT cite its 'now stable' / 'stable' / '\uc548\uc815' status. Quote on Line 17 says 'React Compiler is a build-time only tool' but omits the stability claim. No mention of 'stable', '\uc548\uc815', or 'production-ready'."
+        },
+        {
+          "text": "Frames manual hooks as 'escape hatch' only",
+          "passed": true,
+          "evidence": "Section 4 titled '\uc9c4\uc9dc \ud544\uc694\ud55c Escape Hatch: \uc218\ub3d9 \uba54\ubaa8\uc774\uc81c\uc774\uc158\uc774 \uc815\ub2f9\ud654\ub418\ub294 \uacbd\uc6b0'. Term used explicitly."
+        },
+        {
+          "text": "Includes React.memo conditions OR 'memo is not a guarantee'",
+          "passed": true,
+          "evidence": "Line 60 quotes: 'React will still re-render a component if it re-renders itself (regardless of memo)'. Quote conveys 'not a guarantee' principle. 4-condition checklist NOT explicitly present, but 'not guarantee' alternative satisfies the OR criterion."
+        },
+        {
+          "text": "Names at least 2 valid escape hatch cases",
+          "passed": true,
+          "evidence": "Lists 5 cases in Section 4: (4-1) compiler bail-out, (4-2) library reference contracts, (4-3) expensive computation with profiling, (4-4) Context value stabilization, (4-5) useEffect deps. Exceeds 2-case minimum."
+        },
+        {
+          "text": "Cites react.dev URL",
+          "passed": true,
+          "evidence": "Multiple react.dev URLs cited (compiler, useMemo, useCallback, memo, rules)."
+        },
+        {
+          "text": "Explains why blanket memoization is harmful",
+          "passed": true,
+          "evidence": "Multiple reasons: Line 51-55 (parent re-render makes memo useless), Line 53-54 ('memoization-of-memoization vicious cycle'), Line 63-67 (stale closure risk from manual deps), Line 35-39 (shallow comparison cost not free)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.833,
+        "passed": 5,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 58.6,
+        "tokens": 21160,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect",
+          "passed": true,
+          "evidence": "Line 19: '\uc608\uc804\uc5d4 \uc0ac\uc2e4\uc774\uc5c8\uc9c0\ub9cc, \ud604\uc7ac\ub294 \ub2e4\ub974\ub2e4.' Line 24: '\"React.lazy\ub294 SSR\uc774 \uc548 \ub41c\ub2e4\"\ub294 \uc8fc\uc7a5\uc740 React 17 \uc774\uc804 \uae30\uc900\uc758 \uad6c\uc2dd \uc815\ubcf4\ub2e4.' Correctly identifies outdated assumption."
+        },
+        {
+          "text": "Cites Next.js 16 official: 'React.lazy + Suspense \u2192 Client Components prerendered (SSR) by default'",
+          "passed": false,
+          "evidence": "Says 'Next.js 13+ App Router \ud658\uacbd\uc5d0\uc11c\ub294 React.lazy\uac00 Client Component \ub0b4\uc5d0\uc11c SSR\uacfc \ud568\uaed8 \uc815\uc0c1\uc801\uc73c\ub85c \ub3d9\uc791\ud55c\ub2e4' but does NOT cite the official Next.js docs quote about 'prerendered (SSR) by default'. No keyword 'prerender'/'prerendered' used. Information is correct but lacks direct official citation."
+        },
+        {
+          "text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'",
+          "passed": true,
+          "evidence": "Line 47: '\ub0b4\ubd80\uc801\uc73c\ub85c React.lazy + <Suspense>\ub97c \ub798\ud551\ud55c Next.js \uc804\uc6a9 \uc720\ud2f8\ub9ac\ud2f0'. Concept conveyed via 'wrapping' equivalent. Word 'composite' not used but concept captured."
+        },
+        {
+          "text": "States that ssr: false is Client Component only (Server Component \u2192 error)",
+          "passed": true,
+          "evidence": "Line 92-97: 'Server Component\uc5d0\uc11c dynamic()\uc774\ub098 lazy()\ub97c \ud638\ucd9c\ud558\uba74 \uc5d0\ub7ec\uac00 \ubc1c\uc0dd\ud55c\ub2e4.' Plus example showing 'use client' wrapping pattern for ssr: false usage."
+        },
+        {
+          "text": "Cites Next.js Lazy Loading guide URL",
+          "passed": true,
+          "evidence": "Line 169: 'https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading'. URL is OUTDATED structure (Next.js 13/14 era), correct Next.js 16 URL is /docs/app/guides/lazy-loading. Lenient pass since 'or equivalent' specified in criterion, but flag outdated URL."
+        },
+        {
+          "text": "Includes named export dynamic import pattern",
+          "passed": true,
+          "evidence": "Line 125: shows '() => import(\"recharts\").then(m => ({ default: m.LineChart }))'. This is the OLDER workaround pattern (wraps named export in default). Pattern is technically present but uses outdated wrapping convention vs Next.js 16 official .then((mod) => mod.X)."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 100.9,
+        "stddev": 7.6492,
+        "min": 93.8,
+        "max": 109.0
+      },
+      "tokens": {
+        "mean": 36098.0,
+        "stddev": 4479.1441,
+        "min": 31772,
+        "max": 40716
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8887,
+        "stddev": 0.0964,
+        "min": 0.833,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 69.5,
+        "stddev": 9.8899,
+        "min": 58.6,
+        "max": 77.9
+      },
+      "tokens": {
+        "mean": 21142.6667,
+        "stddev": 478.2356,
+        "min": 20656,
+        "max": 21612
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.11",
+      "time_seconds": "+31.4",
+      "tokens": "+14955"
+    }
+  },
+  "notes": []
+}

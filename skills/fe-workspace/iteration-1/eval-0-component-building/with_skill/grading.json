@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "서버 데이터 패칭에 TanStack Query (useSuspenseQuery 또는 useQuery)를 사용한다",
+      "passed": true,
+      "evidence": "Found TanStack Query import/usage"
+    },
+    {
+      "text": "필터/페이지네이션이 URL searchParams 또는 nuqs로 관리된다",
+      "passed": true,
+      "evidence": "Found searchParams/useSearchParams usage"
+    },
+    {
+      "text": "삭제 시 낙관적 업데이트 패턴 (useMutation + onMutate/setQueryData)을 사용한다",
+      "passed": true,
+      "evidence": "Found onMutate/setQueryData pattern"
+    },
+    {
+      "text": "최소 2개 이상 파일로 분리 (Container/Presentational 또는 Hook 분리)",
+      "passed": true,
+      "evidence": "Found 4 files: useOrders.ts, OrderList.tsx, error.tsx, page.tsx"
+    },
+    {
+      "text": "데이터 패칭에 useEffect + fetch 패턴을 사용하지 않는다",
+      "passed": true,
+      "evidence": "No useEffect+fetch pattern found"
+    },
+    {
+      "text": "타입 정의가 존재하고 any를 사용하지 않는다",
+      "passed": true,
+      "evidence": "Types defined: True, 'any' used: False"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

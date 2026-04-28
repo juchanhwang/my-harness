@@ -1,0 +1,31 @@
+{
+  "eval_id": 2,
+  "eval_name": "code-splitting",
+  "prompt": "Next.js 16 App Router 페이지에서 무거운 차트 라이브러리(recharts)와 사용자 클릭 후에만 필요한 마크다운 에디터를 dynamic import로 분리하려고 해. next/dynamic이랑 React.lazy 둘 중 뭘 써야 해? 어디서 본 글에서는 React.lazy는 SSR이 안 되니까 next/dynamic만 쓰라고 했는데 사실이야? ssr: false 옵션이 필요한 경우는 언제고, Server Component에서 호출해도 되는 거야? Next.js 공식 문서 기준으로 알려줘.",
+  "assertions": [
+    {
+      "text": "States that 'React.lazy doesn't support SSR' is OUTDATED / incorrect",
+      "criterion": "Answer must explicitly correct the user's outdated assumption. Look for 'outdated' / '정확하지 않' / '사실이 아니' / '옛날' / '맞지 않' / 'incorrect' near 'React.lazy' and 'SSR'."
+    },
+    {
+      "text": "Cites Next.js 16 official: 'React.lazy + Suspense → Client Components prerendered (SSR) by default'",
+      "criterion": "Answer must include the official statement that React.lazy + Suspense prerenders Client Components by default in Next.js 16. Look for 'prerender' / 'prerendered' AND 'React.lazy' / 'lazy()'."
+    },
+    {
+      "text": "Cites 'next/dynamic is a composite of React.lazy and Suspense'",
+      "criterion": "Answer must include the official definition that next/dynamic is a composite of React.lazy + Suspense. Look for 'composite' / '결합' / '합쳐' OR equivalent that explains next/dynamic = React.lazy + Suspense."
+    },
+    {
+      "text": "States that ssr: false is Client Component only (Server Component → error)",
+      "criterion": "Answer must clearly state ssr: false cannot be used in Server Components and will cause an error. Look for 'Client Component' (한정/만/전용) AND 'error' / '에러' / '지원되지 않'."
+    },
+    {
+      "text": "Cites Next.js Lazy Loading guide URL",
+      "criterion": "Answer must include the Next.js Lazy Loading guide URL: nextjs.org/docs/app/guides/lazy-loading (or equivalent)."
+    },
+    {
+      "text": "Includes named export dynamic import pattern",
+      "criterion": "Answer must show or mention the named export pattern: dynamic(() => import('...').then(mod => mod.X)). Look for '.then(' AND 'mod' / named export reference."
+    }
+  ]
+}

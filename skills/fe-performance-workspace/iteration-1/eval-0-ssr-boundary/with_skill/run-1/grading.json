@@ -1,0 +1,37 @@
+{
+  "eval_id": 0,
+  "eval_name": "ssr-boundary",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Identifies 'lazy load Provider' as the wrong approach",
+      "passed": true,
+      "evidence": "Line 5: '동료의 제안(next/dynamic lazy load)은 잘못된 방향입니다'. Section 2 explicitly titled '동료의 제안이 틀린 이유'."
+    },
+    {
+      "text": "Explains 'use client' as a module-graph boundary",
+      "passed": true,
+      "evidence": "Line 32 direct official quote: 'boundary between the Server and Client module graphs... all its imports and child components are considered part of the client bundle' with nextjs.org URL."
+    },
+    {
+      "text": "Recommends pushing Provider deeper ({children} only)",
+      "passed": true,
+      "evidence": "Line 84: official quote 'ThemeProvider가 <html> 전체가 아니라 {children}만 감싸도록'. Step 1+2 implementation example shows ThemeProvider extracted to separate client component file."
+    },
+    {
+      "text": "Cites Next.js official documentation URL",
+      "passed": true,
+      "evidence": "Multiple URLs: nextjs.org/docs/app/getting-started/server-and-client-components, nextjs.org/docs/app/guides/streaming, web.dev/articles/vitals, web.dev/articles/lcp."
+    },
+    {
+      "text": "Mentions concrete performance benefits (JS bundle / FCP / streaming)",
+      "passed": true,
+      "evidence": "Line 38-43 table lists: 'JS 번들 크기 폭증', 'FCP 지연', 'LCP 지연', 'Streaming 무력화'."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

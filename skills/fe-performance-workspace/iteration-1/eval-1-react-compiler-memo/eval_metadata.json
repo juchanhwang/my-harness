@@ -1,0 +1,31 @@
+{
+  "eval_id": 1,
+  "eval_name": "react-compiler-memo",
+  "prompt": "React 19 + React Compiler를 도입한 새 프로젝트야. PR 리뷰를 하는데 동료가 모든 컴포넌트를 React.memo로 감싸고, 모든 함수에 useCallback을 쓰고, 모든 계산에 useMemo를 쓰고 있어. '안전 차원에서 다 메모이제이션하자'는 입장인데 어떻게 설명해서 PR을 반려해야 해? React 공식 문서 인용 포함, 안티패턴 근거, 그리고 정말 수동 메모이제이션이 필요한 escape hatch가 무엇인지까지 답변해줘.",
+  "assertions": [
+    {
+      "text": "Cites React Compiler 'now stable' status",
+      "criterion": "Answer must reference that React Compiler is stable / officially recommended. Look for 'stable' / '안정' AND 'compiler'."
+    },
+    {
+      "text": "Frames manual hooks as 'escape hatch' only",
+      "criterion": "Answer must describe useMemo/useCallback as escape hatches, not the default. Look for 'escape hatch' / '예외' / '특수' / '필요한 경우에만' AND useMemo or useCallback."
+    },
+    {
+      "text": "Includes React.memo conditions OR 'memo is not a guarantee' citation",
+      "criterion": "Answer must include either (a) the 4 conditions for React.memo to be effective, or (b) the official quote that 'memoization does not guarantee re-render skip'. Look for '4가지' or '보장하지 않' or 'not a guarantee'."
+    },
+    {
+      "text": "Names at least 2 valid escape hatch cases (effect deps / memo child prop / 1ms+ expensive calc)",
+      "criterion": "Answer must enumerate at least 2 of these specific cases: (1) value used as effect dependency, (2) prop passed to memo'd child, (3) computation taking 1ms+. Look for the keywords."
+    },
+    {
+      "text": "Cites react.dev URL (Korean or English)",
+      "criterion": "Answer must include at least one react.dev or ko.react.dev URL as an official source."
+    },
+    {
+      "text": "Explains why blanket memoization is harmful (comparison cost / inline props / Profiler-less guessing)",
+      "criterion": "Answer must explain at least one reason blanket memoization is anti-pattern: comparison cost exceeds benefit, inline objects/functions defeat memo, or guessing without Profiler measurement."
+    }
+  ]
+}

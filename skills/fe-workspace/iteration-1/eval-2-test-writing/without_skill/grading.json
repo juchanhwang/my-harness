@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "fireEvent 대신 userEvent.setup()을 사용한다",
+      "passed": true,
+      "evidence": "userEvent.setup: True, fireEvent: False"
+    },
+    {
+      "text": "getByRole/getByLabelText 등 접근성 쿼리를 우선 사용하고 getByTestId를 사용하지 않는다",
+      "passed": true,
+      "evidence": "Accessible queries: True, TestId: False"
+    },
+    {
+      "text": "API 모킹에 MSW를 사용한다",
+      "passed": true,
+      "evidence": "Found MSW usage"
+    },
+    {
+      "text": "it/test 설명이 사용자 행동 기반이다",
+      "passed": true,
+      "evidence": "User-centric: 9/11, Impl-centric: 0"
+    },
+    {
+      "text": "로그인 성공과 실패 시나리오를 모두 테스트한다",
+      "passed": true,
+      "evidence": "Success case: True, Failure case: True"
+    },
+    {
+      "text": "test-utils에서 커스텀 render를 import하여 사용한다",
+      "passed": true,
+      "evidence": "Found test-utils import"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

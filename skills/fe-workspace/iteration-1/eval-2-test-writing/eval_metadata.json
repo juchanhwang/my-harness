@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "test-writing",
+  "prompt": "LoginForm 컴포넌트 테스트 코드 작성 — Vitest + RTL + MSW, 사용자 관점 테스트",
+  "assertions": [
+    {
+      "id": "userevent-usage",
+      "text": "fireEvent 대신 userEvent.setup()을 사용한다",
+      "type": "content_check"
+    },
+    {
+      "id": "accessible-queries",
+      "text": "getByRole/getByLabelText 등 접근성 쿼리를 우선 사용하고 getByTestId를 사용하지 않는다",
+      "type": "content_check"
+    },
+    {
+      "id": "msw-handlers",
+      "text": "API 모킹에 MSW를 사용한다",
+      "type": "content_check"
+    },
+    {
+      "id": "user-perspective-descriptions",
+      "text": "it/test 설명이 사용자 행동 기반이다 (구현 세부사항이 아님)",
+      "type": "content_check"
+    },
+    {
+      "id": "success-and-failure-cases",
+      "text": "로그인 성공과 실패 시나리오를 모두 테스트한다",
+      "type": "content_check"
+    },
+    {
+      "id": "custom-render-usage",
+      "text": "test-utils에서 커스텀 render를 import하여 사용한다",
+      "type": "content_check"
+    }
+  ]
+}
