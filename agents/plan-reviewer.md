@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: "Expert reviewer for evaluating work plans against rigorous clarity, verifiability, and completeness standards. (Momus - OhMyOpenCode)"
+description: "Practical work plan reviewer — verifies referenced files exist and every task is startable. Blocker-finder with approval bias: rejects only for true blockers, max 3 issues per rejection. Input contract: a single .orchestrator/plans/*.md path string. (Momus - OhMyOpenCode)"
 model: opus
 tools: Read, Grep, Glob
 permissionMode: plan

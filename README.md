@@ -8,8 +8,8 @@ Claude Code 개인 하네스 설정 저장소.
 
 ```
 my-harness/
-├── agents/          # 서브 에이전트 정의 (18개)
-├── skills/          # 스킬 정의 (17개 — 도메인 7 + 범용 7 + workspace 3, 참조 파일 196개)
+├── agents/          # 서브 에이전트 정의 (16개)
+├── skills/          # 스킬 정의 (18개 — 도메인 7 + 범용 8 + workspace 3, 참조 파일 196개)
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (4개)
 ├── bin/             # CLI 커맨드 (1개)
@@ -18,7 +18,7 @@ my-harness/
 └── keybindings.json # 키 바인딩
 ```
 
-## 에이전트 (18)
+## 에이전트 (16)
 
 [oh-my-opencode](https://github.com/anthropics/oh-my-opencode)의 에이전트 시스템을 벤치마킹하여 구성했다.
 
@@ -32,9 +32,7 @@ my-harness/
 | `plan-reviewer.md` | opus | 계획 검토 및 검증 |
 | `oracle.md` | opus | 아키텍처 설계, 고난이도 디버깅 컨설팅 |
 | `analyzer.md` | opus | 코드베이스 분석 (read-only) |
-| `deep-worker.md` | opus | 자율 심층 작업, 목표 지향 실행 |
 | `librarian.md` | opus | 외부 문서/OSS 검색, 공식 문서 참조 |
-| `delegator.md` | sonnet | 범용 작업 위임 및 조율 |
 | `search.md` | haiku | 빠른 팩트 조회, 파일/경로 검색 |
 | `media-reader.md` | sonnet | PDF, 이미지 등 미디어 파일 해석 |
 
@@ -50,7 +48,7 @@ my-harness/
 | `ops-lead.md` | opus | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
-## 스킬 (17)
+## 스킬 (18)
 
 ### 도메인 스킬 (7)
 
@@ -545,12 +543,13 @@ my-harness/
 
 </details>
 
-### 범용 스킬 (7)
+### 범용 스킬 (8)
 
 | 스킬 | 역할 |
 |---|---|
 | `commit-convention` | Conventional Commits + Tim Pope + Chris Beams 기반 Git 커밋 컨벤션 |
 | `find-skills` | `npx skills` CLI로 오픈 스킬 생태계 검색 및 설치 지원 |
+| `planning-workflow` | 도메인 스페셜리스트의 "플랜 모드" 트리거 시 표준 계획 수립 5단계 워크플로우 |
 | `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node) |
 | `pdf` | PDF 읽기·병합·분할·워터마크·폼 작성·OCR 등 전방위 PDF 처리 |
 | `pptx` | PPTX 읽기·생성·편집·템플릿 작업 (markitdown + pptxgenjs 기반) |

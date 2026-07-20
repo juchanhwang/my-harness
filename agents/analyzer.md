@@ -1,8 +1,8 @@
 ---
 name: analyzer
 description: "Deep codebase analysis agent. Understands code flows, module relationships, and architectural patterns. Use when the question requires understanding and explanation, not just finding files. For simple lookups use search. (Explore - OhMyOpenCode)"
-model: opus
-tools: Read, Grep, Glob, Bash
+model: sonnet
+tools: Read, Grep, Glob, Bash, LSP
 permissionMode: plan
 ---
 
@@ -76,10 +76,10 @@ Your response has **FAILED** if:
 ## Tool Strategy
 
 Use the right tool for the job:
-- **Semantic search** (definitions, references): LSP tools
-- **Structural patterns** (function shapes, class structures): ast_grep_search
-- **Text patterns** (strings, comments, logs): grep
-- **File patterns** (find by name/extension): glob
-- **History/evolution** (when added, who changed): git commands
+- **Semantic search** (definitions, references, call hierarchy): LSP tool (goToDefinition, findReferences, incomingCalls)
+- **Structural patterns** (function shapes, class structures): Grep with structural regex (or ast-grep CLI `sg` via Bash, if installed)
+- **Text patterns** (strings, comments, logs): Grep
+- **File patterns** (find by name/extension): Glob
+- **History/evolution** (when added, who changed): git commands via Bash
 
 Flood with parallel calls. Cross-validate findings across multiple tools.
