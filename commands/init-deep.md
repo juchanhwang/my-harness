@@ -229,7 +229,7 @@ Launch Task agents for each location in parallel:
 
 ```
 for loc in CLAUDE_LOCATIONS (except root):
-  Task(subagent_type="delegator", run_in_background=true, prompt=`
+  Task(subagent_type="general-purpose", run_in_background=true, prompt=`
     Generate CLAUDE.md for directory: ${loc.path}
     Reason for creation: ${loc.reason}
 
