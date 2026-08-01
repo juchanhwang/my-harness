@@ -31,7 +31,7 @@ my-harness/
 | `pre-planner.md` | opus | 사전 요구사항 분석, 모호성 식별 |
 | `plan-reviewer.md` | opus | 계획 검토 및 검증 |
 | `oracle.md` | opus | 아키텍처 설계, 고난이도 디버깅 컨설팅 |
-| `analyzer.md` | opus | 코드베이스 분석 (read-only) |
+| `analyzer.md` | sonnet | 코드베이스 분석 (read-only) |
 | `librarian.md` | opus | 외부 문서/OSS 검색, 공식 문서 참조 |
 | `search.md` | haiku | 빠른 팩트 조회, 파일/경로 검색 |
 | `media-reader.md` | sonnet | PDF, 이미지 등 미디어 파일 해석 |
@@ -45,7 +45,7 @@ my-harness/
 | `designer.md` | sonnet | 시니어 프로덕트 디자이너 (UI/UX, 디자인 시스템) |
 | `po.md` | sonnet | 시니어 프로덕트 오너 (제품 전략, PRD, 로드맵) |
 | `qa.md` | sonnet | 시니어 QA 엔지니어 (테스트 전략, 자동화, 보안) |
-| `ops-lead.md` | opus | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
+| `ops-lead.md` | sonnet | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
 ## 스킬 (18)
