@@ -590,14 +590,18 @@ my-harness/
 | `/init-deep` | 계층적 CLAUDE.md 자동 생성 |
 | `/ulw-loop` | Oracle 검증 기반 자기 참조 개발 루프 |
 
-## 훅 (4)
+## 훅
+
+`settings.json`의 `hooks`에 실제로 등록된 항목 기준이다.
 
 | 훅 | 이벤트 | 역할 |
 |---|---|---|
 | `claude-remote-notification.sh` | `Notification` | 원격 알림 전송 |
+| 인라인 `osascript` | `Notification` | macOS 로컬 알림 |
 | `claude-remote-session-start.sh` | `SessionStart` | 세션 시작 알림 |
 | `claude-remote-stop.sh` | `Stop` | 세션 종료 알림 |
-| `notify.sh` | `Notification`, `Stop` | macOS 로컬 알림 |
+
+> `hooks/` 디렉터리에는 위 3개 스크립트 외에 `notify.sh`가 남아 있지만, 현재 `settings.json`에 등록돼 있지 않다. macOS 로컬 알림은 `notify.sh`가 아니라 `Notification` 훅에 인라인으로 선언된 `osascript`가 처리한다.
 
 ## CLI (bin/)
 
