@@ -103,7 +103,8 @@ function normalizeValue(prop, raw, ctx) {
     const c = normalizeColor(typeof raw === 'string' ? raw : String(raw));
     if (!c) return null;
     const rgb = [1, 3, 5].map((i) => parseInt(c.hex.slice(i, i + 2), 16));
-    return { key: `${c.hex}/${c.alpha}`, display: c.alpha === 1 ? c.hex : `rgba(${rgb.join(', ')}, ${c.alpha})` };
+    // alpha 0 은 RGB 와 무관하게 같은 색(완전 투명)이다: #FFFFFF00 ≡ transparent ≡ rgba(0, 0, 0, 0)
+    return { key: c.alpha === 0 ? 'transparent' : `${c.hex}/${c.alpha}`, display: c.alpha === 1 ? c.hex : `rgba(${rgb.join(', ')}, ${c.alpha})` };
   }
   if (prop === 'font-family') {
     const name = firstFamily(typeof raw === 'string' ? raw : String(raw));

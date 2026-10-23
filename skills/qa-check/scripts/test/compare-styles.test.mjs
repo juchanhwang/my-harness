@@ -104,6 +104,14 @@ test('equivalent notations are not findings', () => {
 });
 test('color alpha difference is a finding', () => assert.equal(
   compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'rgba(255, 255, 255, 0.9)' })).findings[0].severity, 'Major'));
+test('fully transparent colors are equal whatever their RGB', () => {
+  const findings = (d, a) => compareTarget({ ...design, props: { color: d } }, actual({ color: a })).findings;
+  assert.deepEqual(findings('#FFFFFF00', 'rgba(0, 0, 0, 0)'), []);
+  assert.deepEqual(findings('transparent', '#00000000'), []);
+  assert.deepEqual(findings('rgba(12, 34, 56, 0)', 'transparent'), []);
+  assert.equal(findings('#FFFFFF00', 'rgba(255,255,255,0.5)').length, 1);
+  assert.equal(findings('transparent', 'rgb(0, 0, 0)').length, 1);
+});
 test('selector with 0 matches is blocked', () => { const r = compareTarget(design, { ...actual(ok), count: 0, samples: [] }); assert.match(r.blocked[0], /\.btn/); assert.equal(r.findings.length, 0); });
 test('multiple matches are indexed', () => assert.deepEqual(
   compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'rgb(0, 0, 0)' }, 2)).findings.map(f => f.where), ['.btn[0]', '.btn[1]']));
