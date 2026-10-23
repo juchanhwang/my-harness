@@ -499,3 +499,15 @@ U3(훅 스키마 로깅) → U1(서브에이전트 내 Skill fork) → U2(fork �
 - 테스트 소유권: Fowler, "The Practical Test Pyramid" — https://martinfowler.com/articles/practical-test-pyramid.html · Google, *Software Engineering at Google* ch.11 — https://abseil.io/resources/swe-book/html/ch11.html (R7 — 이 설계의 역할 분배는 팀 결정)
 - 유사 도구(자동 토큰 대조는 없음): Applitools Figma plugin — https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin · Storybook Connect — https://storybook.js.org/blog/figma-plugin-for-storybook/ · PatternFly pf-figma-token-check — https://github.com/patternfly/ai-helpers/blob/ba8165d906a8dd5ac20fdeb4d7de8e596129b499/plugins/design-audit/skills/pf-figma-token-check/SKILL.md
 - 원문 사본: `/private/tmp/claude-502/-Users-JuChan/b9480cba-5a32-4468-b1e4-3ab6f641d5a6/scratchpad/refs/` (세션 한정)
+
+## 11. 최종 리뷰 반영 (2026-10-24)
+
+최종 전체 리뷰의 Critical·Important 6건(F-1~F-6)을 고쳤다. 아래가 앞 절의 해당 서술을 대체한다.
+
+- **gate 재사용(F-1·F-3, §5.4 gate, D22)**: commit이 HEAD와 같고, `tree: clean`이고, `verdict`가 BLOCKED가 아니고, 헤더 `inputs:`의 검증 대상 키가 이번 요청과 같고, `verdict.mjs` 재확인이 일치할 때만 재사용한다. 비교 키는 review `scope`(문자열 또는 `git rev-parse`로 푼 범위), style `figma`·`figma-snapshot`·`mockup`·`mockup-selector`·`targets`·`selector`·`waivers`, acceptance `prd`이고 `app`·`auth`는 보지 않는다. 한쪽에만 있는 키는 불일치다. BLOCKED는 입력이 바뀌면 달라지므로 재사용하지 않는다.
+- **tree 판정(F-2, S8)**: `git status --porcelain -- . ':(exclude)<report-dir>' ':(exclude).playwright-mcp'`. Playwright MCP 산출물은 dirty가 아니고, 쓰기 범위의 예외이며 지우지 않는다. 무시되지 않으면 리포트에 경고한다.
+- **style 비교(F-4a·F-4b·F-5, D6)**: `oklch()`·`oklab()`·`color(srgb|display-p3)`를 8-bit sRGB로 바꿔 비교한다. sRGB 범위 밖이면 원문을 보여 주는 Major finding(note "sRGB 범위 밖")이다. line-height `%`는 px로(디자인 font-size, 없으면 구현 font-size), `AUTO`는 `normal`로 본다. alpha 0끼리는 RGB와 무관하게 일치다.
+- **해석 불가 → BLOCKED(F-4c, D18)**: 요청한 속성의 디자인 값 해석 불가, 구현 값 누락, 구현 값 해석 불가는 `notChecked`가 아니라 `blocked`이고 verdict는 BLOCKED다. 비용: 미지원 색 표기(`lab()`·`lch()` 등)가 BLOCKED로 막힌다. 요청하지 않은 추출(`no design target`)만 `notChecked`다.
+- **훅(F-6, §5.7 5항)**: `last_assistant_message`가 비어 있으면 `agent_transcript_path` 끝 400줄에서 마지막 `SubagentHandback` 보고 본문의 첫 줄을 검사한다(없으면 통과). 로그에 `source`(lam|handback|none)가 남고, `$LOG_DIR/.debug` 파일이 있으면 payload를 저장한다. fe-dev·be-dev 규칙은 "핸드백 보고 본문의 첫 줄이 QA 라인"이며, 5항의 "마지막 텍스트 메시지에 쓴다"를 대체한다. 설치본(`~/.claude/hooks/`)은 따로 갱신해야 한다.
+- **미해결**: 팀 모드에서 in-process 팀원에게도 frontmatter 훅이 턴마다 걸리는지는 플랫폼 동작을 확인하지 못해 가드를 넣지 않았다. 배포 후 `.debug` payload로 확인한다.
+- **검증**: 단위 테스트 61 → 93개 전체 통과. E13을 재작성(HEAD·clean 시드 3개 + 무시되지 않은 `.playwright-mcp/`)해 변경 전 3/8 → 변경 후 8/8(비용 $0.19 → $1.01)로 확인했다.
