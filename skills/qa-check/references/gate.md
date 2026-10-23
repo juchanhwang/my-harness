@@ -10,7 +10,7 @@
 
 ## 시작 전 확인 (하나라도 걸리면 중단하고 BLOCKED, 공통 규칙 1)
 
-- tree가 dirty다(공통 규칙 2의 `git status --porcelain -- . ':(exclude)<report-dir>'`가 비어 있지 않다) → 필요한 것: **커밋 또는 stash 후 재요청**. 역할 세션을 하나도 띄우지 않는다
+- tree가 dirty다(공통 규칙 2의 `git status --porcelain -- . ':(exclude)<report-dir>' ':(exclude).playwright-mcp'`가 비어 있지 않다. `.playwright-mcp/`는 Playwright MCP 산출물이라 판정에서 뺀다) → 필요한 것: **커밋 또는 stash 후 재요청**. 역할 세션을 하나도 띄우지 않는다
 - `type`이 없거나 `fe|be|config`가 아니다 → 필요한 것: `type`
 
 ## 읽을 지식 파일

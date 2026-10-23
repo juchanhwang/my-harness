@@ -18,7 +18,7 @@ PRD의 인수 조건을 시나리오로 확정하고 **실행 중인 앱**에서
 ## 읽을 지식 파일
 
 `<SKILL_DIR>/../qa/`의 `test-design.md`, `e2e-testing.md`, `test-planning.md`(범위 템플릿). BE(API 계약)면 `api-testing.md`도 읽는다.
-도구는 Read, Playwright MCP(시나리오 실행·스크린샷), Bash(`curl`, 기존 E2E 실행)를 쓴다. 쓰기는 `report-dir` 안만(리포트와 스크린샷).
+도구는 Read, Playwright MCP(시나리오 실행·스크린샷), Bash(`curl`, 기존 E2E 실행)를 쓴다. 쓰기는 `report-dir` 안만(리포트와 스크린샷). 예외는 Playwright MCP가 만드는 `.playwright-mcp/`다.
 
 ## 절차 (순서 강제)
 
@@ -41,6 +41,6 @@ PRD의 인수 조건을 시나리오로 확정하고 **실행 중인 앱**에서
 - [ ] 시나리오 표가 소스 Read보다 먼저 리포트에 기록됐다
 - [ ] 인수 조건마다 결과(PASS/FAIL/BLOCKED)가 있고, FAIL마다 재현 단계와 증거가 있다
 - [ ] `## E2E candidates` 절이 있다
-- [ ] `report-dir` 밖에 새 파일이 없고 테스트 파일도 만들지 않았다(`report-dir`을 뺀 `git status --porcelain`이 비어 있다)
+- [ ] `report-dir` 밖에 새 파일이 없고 테스트 파일도 만들지 않았다(공통 규칙 2의 명령, 즉 `report-dir`과 `.playwright-mcp/`를 뺀 `git status --porcelain`이 비어 있다)
 - [ ] 시나리오 표에 범위·완료 기준이 보인다(`test-planning.md`의 범위 템플릿)
 - [ ] `verdict.mjs` 출력 = 리포트 `verdict` = 마커 첫 줄
