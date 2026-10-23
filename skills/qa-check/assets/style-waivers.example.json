@@ -1,0 +1,11 @@
+[
+  {
+    "selector": ".btn",
+    "property": "background-color",
+    "figma": "#6750A4",
+    "actual": "rgb(103, 80, 160)",
+    "reason": "브랜드 컬러 변경이 시안에 아직 반영되지 않음",
+    "by": "designer",
+    "date": "2026-10-24"
+  }
+]

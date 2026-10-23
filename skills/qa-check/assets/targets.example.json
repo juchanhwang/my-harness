@@ -1,0 +1,13 @@
+[
+  {
+    "figma": "https://www.figma.com/design/tF7g5l6gdCdn9pF1AgZRt3/Example?node-id=57994-2312",
+    "selector": ".btn",
+    "viewport": "1280"
+  },
+  {
+    "figma": "https://www.figma.com/design/tF7g5l6gdCdn9pF1AgZRt3/Example?node-id=57994-2400",
+    "selector": ".card",
+    "viewport": "375",
+    "mockup-selector": ".card"
+  }
+]
