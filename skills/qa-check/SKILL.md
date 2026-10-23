@@ -19,10 +19,9 @@ user-invocable: true
 
 ## 시작 순서
 
-1. `$role`이 `review`, `style`, `acceptance`, `gate` 중 하나가 아니면 **아무것도 읽거나 실행하지 말고** 네 역할 이름을 나열한 뒤 `QA: BLOCKED -`로 시작하는 메시지로 끝낸다(리포트를 쓰지 않는 BLOCKED는 경로 자리에 `-`).
-2. SKILL_DIR이 `${CLAUDE_SKILL_DIR}` 글자 그대로 보이면(치환 실패) `.claude/skills/qa-check/` → `~/.claude/skills/qa-check/` 순서로 `SKILL.md`가 있는 디렉터리를 SKILL_DIR로 쓴다.
-3. `<SKILL_DIR>/references/$role.md` **하나만** Read하고 그 절차를 따른다. 다른 역할의 문서는 읽지 않는다. 지식 파일은 역할 문서가 지정한 `<SKILL_DIR>/../qa/<file>`만 읽는다.
-4. 인자에서 `key=value`를 파싱한다. 값에 공백이 있으면 큰따옴표로 묶여 온다.
+1. 역할(`$role`)이 `review`, `style`, `acceptance`, `gate` 중 하나가 아니면 **아무것도 읽거나 실행하지 말고** 네 역할 이름을 나열한 뒤 `QA: BLOCKED -`로 시작하는 메시지로 끝낸다(리포트를 쓰지 않는 BLOCKED는 경로 자리에 `-`).
+2. `<SKILL_DIR>/references/$role.md` **하나만** Read하고 그 절차를 따른다. 다른 역할의 문서는 읽지 않는다. 지식 파일은 역할 문서가 지정한 `<SKILL_DIR>/../qa/<file>`만 읽는다.
+3. 인자에서 `key=value`를 파싱한다. 값에 공백이 있으면 큰따옴표로 묶여 온다.
 
 ## 입력 키
 
@@ -46,7 +45,7 @@ user-invocable: true
 ## 공통 규칙
 
 1. **BLOCKED**: 필수 입력 누락이나 환경 차단(앱 다운, PRD 없음, Figma 소스 없음 등)으로 검증을 시작하거나 끝낼 수 없으면 BLOCKED다. 코드 결함이 아니다. 리포트에 `## Blocked by`와 `- 필요한 것: …` 목록을 쓰고 추측으로 진행하지 않는다. 다른 finding보다 우선한다.
-2. **리포트**: `<report-dir>/<role>-<sha7>.md`와 `<role>-<sha7>.findings.json`을 쓴다(`sha7` = `git rev-parse --short=7 HEAD`). 형식은 `<SKILL_DIR>/assets/report-template.md`. 헤더 `verdict` `commit`(전체 SHA) `tree`(세션 시작 직후, 리포트를 쓰기 전에 `git status --porcelain -- . ':(exclude)<report-dir>'`가 비어 있으면 `clean`, `<report-dir>`은 저장소 기준 상대 경로) `type`(gate만) `inputs` `source`(style만) `mode`를 채운다. `findings.json`은 `{role, blocked[], findings[], notChecked[]}`이고 finding은 `{id, severity, status, title, where, expected?, actual?, note?}`다. severity는 `Critical|Major|Minor|nit`, status는 `open|waived`다.
+2. **리포트**: `<report-dir>/<role>-<sha7>.md`와 `<role>-<sha7>.findings.json`을 쓴다(`sha7` = `git rev-parse --short=7 HEAD`). 형식은 `<SKILL_DIR>/assets/report-template.md`. 제목의 일시는 `date +%Y-%m-%dT%H:%M:%S%z` 출력을 쓰고 짐작해서 적지 않는다. 헤더 `verdict` `commit`(전체 SHA) `tree`(세션 시작 직후, 리포트를 쓰기 전에 `git status --porcelain -- . ':(exclude)<report-dir>'`가 비어 있으면 `clean`, `<report-dir>`은 저장소 기준 상대 경로) `type`(gate만) `inputs` `source`(style만) `mode`를 채운다. `findings.json`은 `{role, blocked[], findings[], notChecked[]}`이고 finding은 `{id, severity, status, title, where, expected?, actual?, note?}`다. severity는 `Critical|Major|Minor|nit`, status는 `open|waived`다.
 3. **판정**: 직접 계산하지 않는다. `node <SKILL_DIR>/scripts/verdict.mjs <findings.json>`의 출력(`PASS`, `PASS WITH MINOR`, `FAIL`, `BLOCKED`)을 그대로 쓴다. 리포트의 `verdict`와 첫 줄은 이 출력과 같아야 한다.
 4. **마커**: 마지막 **텍스트 메시지의 첫 줄**을 `QA: <verdict> <report-path>`로 시작한다(훅이 이 줄을 본다). `<report-path>`는 **저장소 루트 기준 상대 경로**다(기본값이면 `.orchestrator/qa/<role>-<sha7>.md`, 예: `QA: FAIL .orchestrator/qa/acceptance-dbca4ce.md`). 절대 경로를 쓰지 않는다. 보고용 도구로 결과를 넘기더라도 마지막 텍스트 메시지의 첫 줄은 이 줄이다. 그 아래에 요약과 finding 목록(severity·where)을 쓴다.
 5. **쓰기 범위**: `report-dir` 안에만 쓴다. 소스·테스트 파일을 만들거나 고치지 않는다(수정 제안은 리포트의 `fix:`에 쓴다).
