@@ -5,7 +5,8 @@ description: >
   케이스 설계, 단위/통합/E2E/API/성능/보안/접근성/모바일/시각적 테스트
   작성·리뷰, 코드 리뷰(엣지 케이스/보안/검증 완전성 관점), 타입 안전성
   설계, 정적 분석 도구 설정, CI/CD 파이프라인 품질 게이트, 버그 트리아지·결함
-  분석, 테스트 자동화 아키텍처, 회귀 전략, QA 메트릭(DRE, Escape Rate 등)
+  분석, 테스트 자동화 아키텍처, 회귀 전략, Figma 시안 대비 스타일 검수,
+  QA 메트릭(DRE, Escape Rate 등)
   관련 의사결정이 필요한 상황. 사용자가 명시적으로 'QA'라고 말하지 않더라도
   "이 코드가 안전한가?", "어떤 엣지 케이스를 놓쳤나?", "이 PR을 머지해도
   되나?", "커버리지 목표를 얼마로 잡아야 하나?" 같은 품질 관점의 판단이
@@ -57,6 +58,8 @@ description: >
 | 모바일 테스트 | 모바일 디바이스·반응형 검증 | `mobile-testing.md` |
 | 버그 트리아지 | 결함 분류·우선순위·재현 | `bug-management.md` + `qa-metrics.md` |
 | QA 프로세스 개선 | 품질 프로세스·메트릭·자동화 개선 | `qa-leadership.md` + `qa-metrics.md` + `regression-strategy.md` |
+| Figma 시안 ↔ 구현 스타일 검수 | 토큰 값 대조, 오차 0 | `figma-style-audit.md` + `visual-testing.md` |
+| 역할 세션(`/qa-check`) | review·style·acceptance·gate 실행 | `~/.claude/skills/qa-check/SKILL.md` (역할 문서가 읽을 파일을 지정한다) |
 
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 
