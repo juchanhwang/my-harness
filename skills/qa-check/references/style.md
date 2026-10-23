@@ -33,7 +33,7 @@
    - `app`으로 navigate → `document.fonts.ready` 대기 → 애니메이션·transition을 끄는 스타일 주입
    - 뷰포트 **1280×800과 375×812**(매니페스트 `viewport`로 변경 가능)마다 `browser_resize` 후 `<SKILL_DIR>/scripts/computed-style.snippet.js`를 실행한다. 파일 안의 `__SELECTOR_JSON__`을 `JSON.stringify(selector)`로 치환한 전체 문자열이 `browser_evaluate`의 function 인자다
    - 결과에 `target`과 `viewport`를 붙여 배열에 담는다. 셀렉터가 0개와 일치하면 그대로 담는다(스크립트가 BLOCKED로 만든다)
-6. **비교**: `node <SKILL_DIR>/scripts/compare-styles.mjs --design <style-design> --actual <style-actual> [--waivers <waivers 파일>] > <findings.json>`. `waivers=`가 없으면 `<report-dir>/style-waivers.json`이 있을 때만 쓴다. waiver 파일은 **읽기만** 한다. 출력의 `findings`·`blocked`·`notChecked`를 그대로 쓴다
+6. **비교**: `node <SKILL_DIR>/scripts/compare-styles.mjs --design <style-design> --actual <style-actual> [--waivers <waivers 파일>] > <findings.json>`. `waivers=`가 없으면 `<report-dir>/style-waivers.json`이 있을 때만 쓴다. waiver 파일은 **읽기만** 한다. 출력의 `findings`·`blocked`·`notChecked`를 그대로 쓴다. `blocked`가 하나라도 있으면 verdict는 BLOCKED이고, 각 문구(대상·속성·원문 값)가 `## Blocked by`의 필요한 것이다(해석할 수 없거나 없는 값 포함)
 7. **증거**: 스크린샷 2장(디자인·구현)을 `report-dir`에 저장한다. snapshot 모드는 디자인 스크린샷 대신 `Not checked`에 이유를 적는다
 8. **마무리**: `verdict.mjs <findings.json>` → 리포트(속성별로 묶어 쓰고, `waived` finding은 `[W-n]`에 waiver의 reason·by·date를 병기) → 마커(공통 규칙 2–4). 헤더에 `source: live | snapshot`을 쓴다
 
@@ -41,7 +41,7 @@
 
 - "의도된 차이" 판정(designer 소관. waiver 파일로만 반영된다), waiver 작성·수정
 - 픽셀 diff 판정, 코드 수정 제안 외의 리팩토링
-- Figma 값을 눈대중으로 읽거나 근사치로 같다고 하는 것. 해석할 수 없는 값은 finding이 아니라 `Not checked`에 이유와 함께 쓴다
+- Figma 값을 눈대중으로 읽거나 근사치로 같다고 하는 것. 해석할 수 없는 값은 finding으로도 PASS로도 처리하지 않는다. 스크립트가 `blocked`에 적고 verdict는 BLOCKED다(공통 규칙 1)
 
 ## DoD
 

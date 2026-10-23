@@ -59,7 +59,7 @@
 | Extra Light / Ultra Light | 200 | Bold | 700 |
 | Light | 300 | Extra Bold / Ultra Bold | 800 |
 | Regular / Normal / Book | 400 | Black / Heavy | 900 |
-| Medium | 500 | 그 외 이름 | Not checked |
+| Medium | 500 | 그 외 이름 | 해석 불가 → BLOCKED |
 
 ## 5. 비교 속성 21개와 severity
 
@@ -72,7 +72,7 @@
 
 - **오차 0은 예외가 없다.** 불일치는 전부 finding이다. 디자인에 없는 속성은 비교하지 않는다.
 - "의도된 차이"를 QA가 판정하지 않는다. designer가 `<report-dir>/style-waivers.json`에 `{selector, property, figma, actual, reason, by, date}`를 남기면, 값이 모두 일치하는 finding만 `WAIVED`로 표시하고 판정 집계에서 뺀다. 값이 하나라도 다르면 미적용이고 "waiver 갱신 필요" 메모를 붙인다. waiver 파일은 읽기만 한다.
-- 해석할 수 없는 값(`color(display-p3 …)`, 알 수 없는 굵기 이름)은 finding이 아니라 Not checked에 이유와 함께 적는다.
+- **요청한 속성을 검증하지 못하면 BLOCKED다**(SKILL.md 공통 규칙 1: 검증을 끝낼 수 없다). 디자인 값을 해석할 수 없거나(알 수 없는 굵기 이름, 지원하지 않는 색 표기, font-size 없는 `line-height: %`), 구현 값이 없거나 해석할 수 없으면 `compare-styles.mjs`가 target·속성·원문 값을 `blocked`에 적고 verdict가 BLOCKED가 된다. 이런 속성을 finding으로 바꾸거나 `Not checked`로 넘겨 PASS로 두지 않는다(그러면 검증하지 않은 속성이 통과로 보인다). 디자인에 없는 속성은 요청이 아니므로 비교하지 않고, 디자인 target이 없는 추출(`no design target`)만 `notChecked`에 남는다.
 
 ## 6. 셀렉터와 뷰포트
 

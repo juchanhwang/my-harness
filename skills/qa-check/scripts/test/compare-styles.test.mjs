@@ -203,14 +203,17 @@ test('multiple matches are indexed', () => assert.deepEqual(
   compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'rgb(0, 0, 0)' }, 2)).findings.map(f => f.where), ['.btn[0]', '.btn[1]']));
 test('viewport label appears in where', () => assert.equal(
   compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'rgb(0, 0, 0)' }, 1, '375')).findings[0].where, '.btn @375'));
-test('unparseable actual goes to notChecked', () => {
+test('unparseable actual blocks and names the target, the property and the original value', () => {
   const r = compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'color(rec2020 1 1 1)' }));
-  assert.equal(r.findings.length, 0); assert.equal(r.notChecked[0].reason, 'unparseable actual value');
+  assert.deepEqual([r.findings, r.notChecked], [[], []]);
+  assert.equal(r.blocked.length, 1);
+  for (const part of ['btn', '.btn', 'color', 'color(rec2020 1 1 1)', 'unparseable actual value']) assert.ok(r.blocked[0].includes(part), `${part} in: ${r.blocked[0]}`);
 });
-test('unparseable design value goes to notChecked once, props missing from design are skipped', () => {
+test('unparseable design value blocks once per target, props missing from design are skipped', () => {
   const r = compareTarget({ ...design, props: { color: 'papayawhip' } }, actual(ok, 2));
-  assert.equal(r.findings.length, 0);
-  assert.deepEqual(r.notChecked.map((n) => n.reason), ['unparseable design value']);
+  assert.deepEqual([r.findings, r.notChecked], [[], []]);
+  assert.equal(r.blocked.length, 1);
+  for (const part of ['btn', 'color', 'papayawhip', 'unparseable design value']) assert.ok(r.blocked[0].includes(part), `${part} in: ${r.blocked[0]}`);
 });
 test('line-height percent is converted to px with the design font-size; AUTO is normal', () => {
   const lh = (d, a) => compareTarget({ ...design, props: { 'font-size': 16, 'line-height': d } }, actual({ 'font-size': '16px', 'line-height': a }));
@@ -243,12 +246,28 @@ test('percent is allowed for letter-spacing and line-height only', () => {
   const ls = compareTarget({ ...design, props: { 'font-size': 16, 'letter-spacing': '0.5%' } }, actual({ 'font-size': '16px', 'letter-spacing': '0.08px' }));
   assert.deepEqual([ls.findings, ls.notChecked], [[], []]);
   const pad = compareTarget({ ...design, props: { 'padding-left': 24 } }, actual({ 'padding-left': '50%' }));
-  assert.deepEqual([pad.findings.length, pad.notChecked[0].reason], [0, 'unparseable actual value']);
+  assert.deepEqual([pad.findings.length, pad.notChecked.length, pad.blocked.length], [0, 0, 1]);
+  assert.ok(pad.blocked[0].includes('padding-left') && pad.blocked[0].includes('50%'), pad.blocked[0]);
 });
-test('actual property missing is not checked, not a pass', () => {
+test('actual property missing blocks, it is not a pass', () => {
   const { color: _drop, ...partial } = ok;
   const r = compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual(partial));
-  assert.deepEqual([r.findings.length, r.notChecked[0].reason], [0, 'actual value missing']);
+  assert.deepEqual([r.findings, r.notChecked], [[], []]);
+  assert.equal(r.blocked.length, 1);
+  for (const part of ['btn', '.btn', 'color', 'actual value missing']) assert.ok(r.blocked[0].includes(part), `${part} in: ${r.blocked[0]}`);
+  const empty = compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: '' }));
+  assert.equal(empty.blocked.length, 1);
+});
+test('every unchecked sample is blocked separately, and a requested prop that is fine still compares', () => {
+  const r = compareTarget({ ...design, props: { color: '#FFFFFF', 'padding-left': 24 } }, actual({ 'padding-left': '20px' }, 2, '375'));
+  assert.deepEqual(r.findings.map((f) => f.where), ['.btn[0] @375', '.btn[1] @375']);
+  assert.deepEqual(r.blocked.map((b) => b.split(' color:')[0]), ['.btn[0] @375', '.btn[1] @375']);
+});
+test('line-height percent with no font-size on either side blocks', () => {
+  const r = compareTarget({ ...design, props: { 'line-height': '150%' } }, actual({ 'line-height': '24px' }));
+  assert.deepEqual([r.findings, r.notChecked], [[], []]);
+  assert.equal(r.blocked.length, 1);
+  for (const part of ['btn', 'line-height', '150%', 'font-size']) assert.ok(r.blocked[0].includes(part), `${part} in: ${r.blocked[0]}`);
 });
 test('applyWaivers: exact match waives, stale match notes', () => {
   const [f] = compareTarget({ ...design, props: { 'background-color': '#6750A4' } }, actual({ 'background-color': 'rgb(103, 80, 160)' })).findings;
@@ -344,4 +363,16 @@ test('CLI e2e: oklch colors plus a wrong % line-height give FAIL with the line-h
   const right = write(dir, 'actual-ok.json', [actual({ 'background-color': hexToOklch('#6750A4'), color: 'oklch(1 0 0)', 'line-height': '24px', 'font-size': '16px' })]);
   const ok = JSON.parse(cli('--design', d, '--actual', right).stdout);
   assert.equal(spawnSync('node', [VERDICT, write(dir, 'findings-ok.json', ok)], { encoding: 'utf8' }).stdout.trim(), 'PASS');
+});
+test('CLI: an unusable value makes the verdict BLOCKED even next to a real finding, and the design-side message is not repeated per viewport', () => {
+  const dir = tmp();
+  const d = write(dir, 'design.json', [{ ...design, props: { color: '#FFFFFF', 'background-color': 'papayawhip', 'padding-left': 24 } }]);
+  const a = write(dir, 'actual.json', [actual({ color: 'rgb(0, 0, 0)', 'background-color': 'rgb(1, 2, 3)', 'padding-left': '24px' }, 1, '1280'),
+    actual({ color: 'rgb(0, 0, 0)', 'background-color': 'rgb(1, 2, 3)', 'padding-left': '24px' }, 1, '375')]);
+  const doc = JSON.parse(cli('--design', d, '--actual', a).stdout);
+  assert.deepEqual(doc.findings.map((f) => f.property), ['color', 'color']);
+  assert.equal(doc.blocked.length, 1, doc.blocked.join(' | '));
+  assert.match(doc.blocked[0], /background-color.*papayawhip/);
+  assert.deepEqual(doc.notChecked, []);
+  assert.equal(spawnSync('node', [VERDICT, write(dir, 'findings.json', doc)], { encoding: 'utf8' }).stdout.trim(), 'BLOCKED');
 });

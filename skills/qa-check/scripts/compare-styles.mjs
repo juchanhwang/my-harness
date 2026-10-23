@@ -232,6 +232,10 @@ const fontSizeOf = (props, rootFontSize) => {
   return typeof n === 'number' ? n : undefined;
 };
 
+const show = (v) => (typeof v === 'string' ? `'${v}'` : JSON.stringify(v));
+
+// 요청한(디자인에 값이 있는) 속성을 검증하지 못하면 blocked 다 — 값을 해석할 수 없거나 구현 값이 없는 경우(SKILL.md 공통 규칙 1).
+// notChecked 에 두면 verdict 에 반영되지 않아 검증하지 못한 속성이 PASS 로 보인다. notChecked 는 호출 쪽이 요청하지 않은 추출에만 쓴다.
 export function compareTarget(design, actual) {
   const findings = [];
   const notChecked = [];
@@ -258,7 +262,7 @@ export function compareTarget(design, actual) {
     if (n !== null) expected.set(prop, { norm: n });
     // 디자인에 font-size 가 없으면 line-height 의 %는 구현의 font-size × % 로 푼다
     else if (prop === 'line-height' && designCtx.fontSize === undefined && normalizeValue(prop, raw, { rootFontSize, fontSize: 16 }) !== null) expected.set(prop, { raw });
-    else notChecked.push({ what: `${target} ${prop}`, reason: 'unparseable design value' });
+    else blocked.push(`target '${target}' ${prop}: unparseable design value ${show(raw)}`);
   }
 
   for (const sample of actual.samples) {
@@ -267,17 +271,17 @@ export function compareTarget(design, actual) {
     for (const [prop, entry] of expected) {
       const raw = sample.props?.[prop];
       if (raw === undefined || raw === null || raw === '') {
-        notChecked.push({ what: `${where} ${prop}`, reason: 'actual value missing' });
+        blocked.push(`${where} ${prop}: actual value missing (target: ${target})`);
         continue;
       }
       const act = normalizeValue(prop, raw, actualCtx);
       if (act === null) {
-        notChecked.push({ what: `${where} ${prop}`, reason: 'unparseable actual value' });
+        blocked.push(`${where} ${prop}: unparseable actual value ${show(raw)} (target: ${target})`);
         continue;
       }
       const exp = entry.norm ?? normalizeValue(prop, entry.raw, actualCtx);
       if (exp === null) {
-        notChecked.push({ what: `${where} ${prop}`, reason: 'design value needs a font-size (neither design nor implementation has one)' });
+        blocked.push(`${where} ${prop}: design value ${show(entry.raw)} needs a font-size, but neither the design nor the implementation has one (target: ${target})`);
         continue;
       }
       if (act.key === exp.key) continue;
@@ -361,11 +365,16 @@ function run(argv) {
   for (const a of actuals) {
     if (!designs.some((d) => d.target === a.target)) doc.notChecked.push({ what: a.target, reason: 'no design target' });
   }
-  const seen = new Set();
-  doc.notChecked = doc.notChecked.filter((n) => {
-    const k = `${n.what}\u0000${n.reason}`;
-    return seen.has(k) ? false : (seen.add(k), true);
-  });
+  // 디자인 쪽 문구는 뷰포트마다 같은 compareTarget 호출에서 반복되므로 중복을 지운다.
+  const unique = (list, keyOf) => {
+    const seen = new Set();
+    return list.filter((item) => {
+      const k = keyOf(item);
+      return seen.has(k) ? false : (seen.add(k), true);
+    });
+  };
+  doc.blocked = unique(doc.blocked, (b) => b);
+  doc.notChecked = unique(doc.notChecked, (n) => `${n.what}\u0000${n.reason}`);
   if (flags.waivers) doc.findings = applyWaivers(doc.findings, readJsonArray(flags.waivers, '--waivers'));
   return doc;
 }
