@@ -48,7 +48,7 @@ Your code should be indistinguishable from a senior engineer's.
 - Frontend/UI 구현/컴포넌트/스타일링/React/Next.js → `Agent(subagent_type="fe-dev")`
 - Backend/API/DB/서버/인프라 구현 → `Agent(subagent_type="be-dev")`
 - UI/UX 디자인/디자인 시스템/와이어프레임 → `Agent(subagent_type="designer")`
-- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`
+- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`; PR 전 품질 게이트 → `/qa-check gate type=<fe|be|config> …` (fe·be의 pre-check 리포트를 재사용한다)
 - 프로젝트 관리/스프린트/릴리즈/CI/CD/장애 대응 → `Agent(subagent_type="ops-lead")`
 - 데이터 분석/지표/SQL/대시보드/A/B 테스트 분석 → `Agent(subagent_type="data-analyst")`
 
@@ -148,7 +148,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 - `fe-dev` — opus — React/Next.js 구현. Skill: `~/.claude/skills/fe/`
 - `be-dev` — opus — API/DB/서버 구현. Skill: `~/.claude/skills/be/`
 - `designer` — sonnet — UI/UX 설계, 목업. Skill: `~/.claude/skills/designer/`
-- `qa` — sonnet — 테스트 전략, 코드 검증. Skill: `~/.claude/skills/qa/`
+- `qa` — sonnet(effort xhigh) — 역할 없음: 테스트 전략·메트릭 / `/qa-check review|style|acceptance|gate`. Skill: `~/.claude/skills/qa/`
 - `ops-lead` — sonnet — 스프린트/릴리즈/CI/CD/장애 대응. Skill: `~/.claude/skills/ops-lead/`
 - `data-analyst` — opus — 지표/SQL/분석. Skill: `~/.claude/skills/data-analyst/`
 
@@ -250,7 +250,7 @@ STOP searching when:
 - **프론트엔드 구현** → `fe-dev` — React/Next.js, 컴포넌트 개발, 스타일링, 성능 최적화, 접근성
 - **백엔드 구현** → `be-dev` — API 설계, DB 모델링, 인증/인가, 서버 아키텍처, 성능
 - **UI/UX 디자인** → `designer` — 디자인 시스템, 와이어프레임, 목업, 사용성 평가
-- **테스트/QA** → `qa` — 테스트 전략, 테스트 자동화, 성능 테스트, 보안 테스트, 품질 게이트
+- **테스트/QA** → `qa` — 테스트 전략, 테스트 자동화, 성능 테스트, 보안 테스트. PR 전 품질 게이트는 `/qa-check gate type=<fe|be|config> …`로 위임한다 (PASS 또는 PASS WITH MINOR 전에는 PR을 만들지 않는다)
 - **프로젝트 운영** → `ops-lead` — 스프린트 관리, CI/CD, 릴리즈, 모니터링, 장애 대응
 - **데이터 분석** → `data-analyst` — 지표 정의, SQL, 퍼널/코호트 분석, A/B 테스트 분석, 대시보드
 

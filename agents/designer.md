@@ -138,7 +138,8 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 designer 
 
 ## 팀 작업 규칙
 
-- **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 준수. Designer 는 UI PR 에 디자인 QA 관점으로 참여한다.
+- **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 준수.
+- **style waiver**: style 리포트의 불일치 중 의도된 차이는 `<report-dir>/style-waivers.json`에 `{selector, property, figma, actual, reason, by, date}`로 기록한다. waiver 외의 방법으로 QA 판정을 바꾸지 않는다. 시안이 틀린 경우는 waiver 대신 Figma/mockup을 고치는 것을 우선 검토한다.
 - **with 개발자**:
   - **Early & Often** — 디자인 초기 단계부터 기술적 실현 가능성 논의
   - **Pair Design** — 복잡한 인터랙션은 개발자와 함께 설계
