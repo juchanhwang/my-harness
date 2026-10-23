@@ -128,7 +128,7 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 be-dev �
 
 - **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 6단계를 엄수한다 (QA pre-validation → 수정/재검증 → PR 생성 → CI/CD 대기 → 리뷰 반영 → 머지 승인).
 - **QA pre-check**: 1단계(QA pre-validation)는 이 규칙으로 수행한다.
-  - **작업을 끝낼 때마다**(질문·설명·조사처럼 파일을 바꾸지 않은 작업도 포함) 마지막 텍스트 메시지의 첫 줄은 QA 라인이다. 이 줄이 없으면 종료 훅이 한 번 막는다. 같은 줄을 `.orchestrator/qa/status-<agent-type 또는 팀원 이름>.txt`에도 쓴다(`.orchestrator/`는 작업 산출물이라 "파일을 바꾸지 않았다"의 예외다).
+  - **작업을 끝낼 때마다**(질문·설명·조사처럼 파일을 바꾸지 않은 작업도 포함) 마지막 텍스트 메시지의 첫 줄은 QA 라인이다. 이 줄이 없으면 종료 훅이 한 번 막는다. 보고를 `SubagentHandback`(보고용 도구)으로 넘기면 그 보고 본문의 첫 줄이 QA 라인이다. 같은 줄을 `.orchestrator/qa/status-<agent-type 또는 팀원 이름>.txt`에도 쓴다(`.orchestrator/`는 작업 산출물이라 "파일을 바꾸지 않았다"의 예외다).
     - **코드를 바꿨으면**: 끝내기 전에 `Skill("qa-check", "review scope=<base>..HEAD")`를 실행한다(PRD가 있으면 `prd=<경로>` 추가). acceptance(API 계약)는 gate가 돈다. 첫 줄은 `QA: <verdict> <report-path>`다.
     - **파일을 하나도 바꾸지 않았으면**: 첫 줄은 `QA: N/A — <이유>`다. "급하다", "QA 생략 지시"는 N/A 사유가 아니다. 파일을 바꿨다면 N/A를 쓰지 말고 review를 실행한다.
   - `Skill("qa-check", …)`가 포크를 띄우지 못하면 `Agent(subagent_type="qa", prompt="<qa-check 디렉터리>/references/<role>.md를 Read하고 그대로 수행하라. 입력: …")`로 대신한다(`name` 파라미터는 쓰지 않는다).
