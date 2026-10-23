@@ -82,6 +82,22 @@
 - U10. 결과 JSON `total_cost_usd`가 **포크 스킬** 비용까지 포함하는지(서브에이전트 포함은 C23으로 확인). 서브에이전트가 세션 effort를 상속하는지도 미명시.
 - U11. 신뢰된 부모(`/Users/JuChan`) 아래 하위 디렉터리에서 프로젝트 에이전트 frontmatter 훅이 `-p`로 실행되는지(C24).
 
+### 3.1 스모크 실행으로 확인된 사실 (2026-10-24, Claude Code 2.1.309, headless `-p`)
+
+| # | 확인된 사실 | 근거 |
+|---|---|---|
+| S1 | **U1 해소**: 서브에이전트(fe-dev) 안에서 `Skill("qa-check", …)`를 부르면 `qa` 포크가 실제로 뜬다(`spawnDepth` 2, `parentAgentId` = fe-dev) | F1 run-2 서브에이전트 meta.json |
+| S2 | **U2 해소**: `context: fork` + `agent: qa` 세션에 qa.md의 `skills: [qa]` 사전 주입이 적용된다(포크 트랜스크립트에 qa SKILL.md 본문이 있고 qa 지식 파일을 Read하지 않았는데도 매핑 표가 보인다) | E2 포크 트랜스크립트 |
+| S3 | **C21 실동작**: 포크 프롬프트에서 `$role`, `$ARGUMENTS`, `${CLAUDE_SKILL_DIR}`가 모두 치환되고 맨 앞에 `Base directory for this skill:` 줄이 붙는다 | E2 포크 프롬프트 |
+| S4 | `claude -p "/qa-check …"`는 포크를 직접 실행한다. 결과 JSON의 `.result`가 포크의 최종 메시지이고 메인 모델 턴은 0이다(`QA_EVAL_MODEL`은 이 경로에서 쓰이지 않는다). `fe-dev` 같은 서브에이전트를 거치는 프롬프트에서만 메인(haiku)이 위임한다 | smoke t8, E1–E13 `metrics.json` |
+| S5 | **U10 해소**: 결과 JSON의 `total_cost_usd`·`modelUsage`에 포크 스킬(qa)과 그 안의 서브에이전트(oracle) 비용이 포함된다 | E1 `models: [opus, sonnet]` |
+| S6 | **U11 확인(부정)**: `/Users/JuChan` 아래 sandbox의 **프로젝트 오버레이 에이전트 frontmatter 훅은 `-p`에서 실행되지 않는다**(훅 로그·payload 0개, fe-dev가 QA 라인 없이 종료). `--settings`의 `SubagentStop` matcher(`fe-dev\|be-dev`)로 등록하면 실행된다. 사용자 레벨 `~/.claude/agents/`의 frontmatter 훅은 배포 후 확인이 필요하다(Task 20) | F3 run-1 / run-2 |
+| S7 | 서브에이전트 트랜스크립트는 `~/.claude/projects/<slug>/<session_id>/subagents/agent-<id>.jsonl` + `agent-<id>.meta.json`(`agentType`, `spawnDepth`, `parentAgentId`)에 있다 | 모든 run |
+| S8 | headless 허용 도구 규칙에서 플러그인 MCP의 이름은 `mcp__plugin_<plugin>_<server>__*`다(Playwright = `mcp__plugin_playwright_playwright__*`). Playwright MCP는 cwd에 `.playwright-mcp/`를 만든다 | smoke run-2, 베이스라인 |
+| S9 | 메인 모델이 약하면(haiku) "fe-dev 서브에이전트에게" 지시를 무시하고 직접 수정할 수 있다(F1 run-1: Agent 호출 0). eval 프롬프트에 "직접 수정하지 말고 Agent 도구로 위임" 문구가 필요하다 | F1 run-1 / run-2 |
+
+U4·U5(팀 모드 훅)·U7·U8·U9는 이번 범위에서 실행하지 않았다.
+
 ## 4. 결정 사항
 
 "사용자" = 대화에서 사용자가 직접 정함. "기본값" = 내가 정했고 사용자에게 제시해 이의 없음.
