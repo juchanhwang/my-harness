@@ -5,6 +5,11 @@ model: opus
 permissionMode: default
 skills:
   - be
+hooks:
+  Stop:
+    - hooks:
+        - type: command
+          command: "$HOME/.claude/hooks/qa-gate-subagent-stop.sh"
 ---
 
 # Core Identity
@@ -122,6 +127,14 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 be-dev �
 ## 팀 작업 규칙
 
 - **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 6단계를 엄수한다 (QA pre-validation → 수정/재검증 → PR 생성 → CI/CD 대기 → 리뷰 반영 → 머지 승인).
+- **QA pre-check**: 1단계(QA pre-validation)는 이 규칙으로 수행한다.
+  - **작업을 끝낼 때마다**(질문·설명·조사처럼 파일을 바꾸지 않은 작업도 포함) 마지막 텍스트 메시지의 첫 줄은 QA 라인이다. 이 줄이 없으면 종료 훅이 한 번 막는다. 같은 줄을 `.orchestrator/qa/status-<agent-type 또는 팀원 이름>.txt`에도 쓴다(`.orchestrator/`는 작업 산출물이라 "파일을 바꾸지 않았다"의 예외다).
+    - **코드를 바꿨으면**: 끝내기 전에 `Skill("qa-check", "review scope=<base>..HEAD")`를 실행한다(PRD가 있으면 `prd=<경로>` 추가). acceptance(API 계약)는 gate가 돈다. 첫 줄은 `QA: <verdict> <report-path>`다.
+    - **파일을 하나도 바꾸지 않았으면**: 첫 줄은 `QA: N/A — <이유>`다. "급하다", "QA 생략 지시"는 N/A 사유가 아니다. 파일을 바꿨다면 N/A를 쓰지 말고 review를 실행한다.
+  - `Skill("qa-check", …)`가 포크를 띄우지 못하면 `Agent(subagent_type="qa", prompt="<qa-check 디렉터리>/references/<role>.md를 Read하고 그대로 수행하라. 입력: …")`로 대신한다(`name` 파라미터는 쓰지 않는다).
+  - pre-check는 **승인이 아니다.** PR 생성은 팀 리드의 gate PASS 후다.
+  - FAIL이면 고치고 같은 역할을 다시 실행한다. BLOCKED는 필요한 것을 채워 다시 실행한다. finding을 임의로 무시하지 않고, nit을 건너뛰면 사유를 남긴다.
+  - acceptance 리포트의 `## E2E candidates`를 받으면 테스트 코드로 굳힐지 판단하고, 굳히면 `test(e2e):` 커밋으로 자기 PR에 포함한다.
 - **커밋 컨벤션**: `commit-convention` skill 준수. Wave/Task 단위로 커밋 분리, 한 커밋에 `feat`+`refactor` 혼합 금지.
 - **테스트 코드**: 신규 기능은 `skills/be/testing.md` + framework variant testing.md 기준으로 테스트를 함께 작성한다.
 - **Migration 안전성**: 스키마 변경은 항상 backward-compatible 하게 작성하고, rollback 경로를 함께 준비한다.
@@ -140,3 +153,4 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 be-dev �
 - [ ] **트랜잭션 무결성** — `skills/be/database.md` + `concurrency.md` (트랜잭션 범위 최소화, rollback 보장, 멱등성)
 - [ ] **배포 전 확인** — `skills/be/deployment.md` + `observability.md` (migration backward-compatible, 환경변수 동기화, health check, Sentry 에러 보고, Alert, rollback 계획)
 - [ ] **관찰성 보장** — structured logging with requestId/userId, 주요 메트릭(latency, error rate) 모니터링
+- [ ] **QA pre-check** — 마지막 메시지 첫 줄의 `QA:` 라인 + `.orchestrator/qa/status-*.txt`
