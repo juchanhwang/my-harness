@@ -20,10 +20,14 @@
 ## 절차
 
 1. **역할 집합**: `fe` = review + style + acceptance, `be` = review + acceptance, `config` = review.
-2. **재사용 판정**: 역할마다 `report-dir`에서 가장 최근 `<role>-*.md`를 찾아 헤더를 읽는다. `commit:`이 `git rev-parse HEAD`와 같고 `tree: clean`이면 재사용한다. 재사용할 리포트의 판정은 `node <SKILL_DIR>/scripts/verdict.mjs <role>-<sha7>.findings.json` 출력으로 다시 확인하고, 헤더 `verdict:`와 다르면 재사용하지 않는다
+2. **재사용 판정**: 역할마다 `report-dir`에서 가장 최근 `<role>-*.md`를 찾아 헤더를 읽는다. 아래 조건을 **모두** 만족할 때만 재사용하고, 하나라도 어긋나면 그 역할은 새로 실행한다.
+   - (a) `commit:`이 `git rev-parse HEAD`와 같다
+   - (b) `tree: clean`이다
+   - (c) `verdict:`가 `BLOCKED`가 아니다. BLOCKED는 입력이 바뀌면 결과가 달라지므로(예: 같은 커밋에서 호출자가 뒤늦게 `figma=`를 채웠다) 재사용하지 않고 다시 실행한다
+   - (d) `node <SKILL_DIR>/scripts/verdict.mjs <role>-<sha7>.findings.json` 출력이 헤더 `verdict:`와 같다
 3. **실행**: 재사용하지 않는 역할은 **한 메시지에서 병렬로** `Agent(subagent_type: "qa", prompt: "<SKILL_DIR>/SKILL.md의 공통 규칙과 <SKILL_DIR>/references/<role>.md를 Read하고 그대로 수행하라. 입력: <해당 역할이 쓰는 키들> mode=gate")`로 띄운다. **`name` 파라미터는 쓰지 않는다**(팀원으로 승격되지 않게). 각 세션이 돌려준 마지막 메시지 첫 줄(`QA: <verdict> <path>`)에서 리포트 경로를 얻는다
 4. **집계**: 역할별 verdict를 `node <SKILL_DIR>/scripts/verdict.mjs --aggregate <verdict>...`로 집계한다. 하나라도 BLOCKED면 BLOCKED(FAIL보다 우선), 그다음 FAIL, PASS WITH MINOR, PASS 순이다
-5. **리포트**: `<report-dir>/gate-<sha7>.md`(`mode: gate`, `type:`)에 역할별 verdict·리포트 경로·재사용 여부를 표로 쓴다. BLOCKED 역할이 있으면 각 리포트의 `## Blocked by` "필요한 것"을 **병합**해 적는다. 이 역할은 `findings.json`을 만들지 않는다
+5. **리포트**: `<report-dir>/gate-<sha7>.md`(`mode: gate`, `type:`)에 역할별 verdict·리포트 경로·재사용 여부(새로 실행했다면 어긋난 조건)를 표로 쓴다. BLOCKED 역할이 있으면 각 리포트의 `## Blocked by` "필요한 것"을 **병합**해 적는다. 이 역할은 `findings.json`을 만들지 않는다
 6. **마커**: 마지막 텍스트 메시지 첫 줄을 `QA: <aggregate verdict> <gate 리포트 경로>`로 시작한다. 그 아래에 PASS 계열이면 "PR 생성 가능", 그 외에는 막힌 이유를 쓴다
 
 ## 이 역할이 하지 않는 것
@@ -36,6 +40,7 @@
 
 - [ ] tree가 clean임을 확인한 뒤 시작했다
 - [ ] 필요한 역할이 전부 리포트(재사용 또는 새 실행)로 모였다
+- [ ] BLOCKED였던 리포트는 재사용하지 않고 새로 실행했다
 - [ ] 새 실행은 한 메시지에서 병렬로 띄웠고 `name`을 쓰지 않았다
 - [ ] 집계는 `verdict.mjs --aggregate` 출력이고, 리포트 `verdict` = 마커 첫 줄이다
 - [ ] BLOCKED면 "필요한 것"이 병합되어 있다
