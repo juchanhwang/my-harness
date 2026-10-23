@@ -3,7 +3,7 @@ verdict: PASS | PASS WITH MINOR | FAIL | BLOCKED
 commit: <sha>
 tree: clean | dirty               # D22 — dirty 리포트는 gate가 재사용하지 않음
 type: fe | be | config            # gate만
-inputs: scope=… prd=… figma=… app=…
+inputs: scope=… prd=… figma=… app=…   # 받은 key=value 인자 그대로 — gate가 재사용 판정에 비교
 source: live | snapshot           # style만 — snapshot은 eval 전용
 mode: pre-check | gate
 

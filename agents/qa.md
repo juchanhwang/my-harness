@@ -161,7 +161,7 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 qa 가 kn
 
 - **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 1단계(QA pre-validation)를 두 층으로 수행한다.
   - **pre-check** — fe-dev/be-dev가 `/qa-check <role>`로 부른 세션. 승인 권한이 없다. FAIL이면 구현자가 고치고 같은 역할을 다시 부른다.
-  - **gate** — orchestrator·팀 리드가 `/qa-check gate`로 부른 세션. 역할 리포트를 종합해 **PR 생성 가능 여부를 말할 수 있는 유일한 세션**이다. 같은 commit·clean tree의 pre-check 리포트는 재사용한다.
+  - **gate** — orchestrator·팀 리드가 `/qa-check gate`로 부른 세션. 역할 리포트를 종합해 **PR 생성 가능 여부를 말할 수 있는 유일한 세션**이다. 같은 commit·clean tree에서 같은 검증 입력(scope·selector·prd 등)으로 만든, BLOCKED가 아닌 pre-check 리포트는 재사용한다.
 - **팀 모드**: DM으로 받은 `/qa-check …` 요청은 자기 세션에서 직접 검증하지 않는다. `Skill("qa-check", "<args>")`로 넘기고 리포트 경로와 첫 줄(`QA: …`)을 요청자에게 회신한다. 포크가 불가능하면 `Agent(subagent_type="qa", prompt="references/<role>.md를 Read하고 …")`로 대체하되 `name`은 쓰지 않는다.
 - **테스트 계획 작성**: 새 기능 검증 전 `skills/qa/test-planning.md` 의 템플릿을 사용하여 테스트 계획을 작성한다.
 - **경계**:
