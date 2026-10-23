@@ -1,0 +1,23 @@
+{
+  "fileKey": "tF7g5l6gdCdn9pF1AgZRt3",
+  "nodeId": "57994:2312",
+  "nodeName": "Type=Square, Size=Medium, State=Enabled",
+  "fetchedAt": "2026-10-24",
+  "variableDefs": {
+    "Schemes/On Primary": "#ffffff",
+    "M3/sys/light/on-primary": "#FFFFFF",
+    "Static/Title Medium/Tracking": "0.15000000596046448",
+    "Static/Title Medium/Size": "16",
+    "Static/Title Medium/Weight": "Medium",
+    "Static/Title Medium/Font": "Roboto",
+    "Static/Title Medium/Line Height": "24",
+    "M3/title/medium": "Font(family: \"Static/Title Medium/Font\", style: Static/Title Medium/Weight, size: Static/Title Medium/Size, weight: 500, lineHeight: Static/Title Medium/Line Height, letterSpacing: Static/Title Medium/Tracking)",
+    "Schemes/Primary": "#6750a4",
+    "M3/sys/light/primary": "#6750A4"
+  },
+  "designContext": {
+    "format": "react+tailwind (get_design_context 기본 출력, asset URL 제거)",
+    "code": "const imgIcon = \"<asset-url-removed>\";\n\ntype ButtonProps = {\n  className?: string;\n  icon?: React.ReactNode | null;\n  labelText?: string;\n  showIcon?: boolean;\n  size?: \"Medium\";\n  state?: \"Enabled\";\n  type?: \"Square\";\n};\n\nfunction Button({ className, icon = null, labelText = \"Label\", showIcon = true, size = \"Medium\", state = \"Enabled\", type = \"Square\" }: ButtonProps) {\n  return (\n    <div className={className || \"content-stretch flex items-center justify-center relative\"} data-node-id=\"57994:2312\">\n      <div className=\"bg-[var(--schemes\\/primary,#6750a4)] content-stretch flex items-center justify-center overflow-clip relative rounded-[16px] shrink-0\" data-node-id=\"58653:14065\" data-name=\"Content\">\n        <div className=\"content-stretch flex gap-[8px] items-center justify-center px-[24px] py-[16px] relative shrink-0\" data-node-id=\"58653:14066\" data-name=\"State-layer\">\n          {showIcon &&\n            (icon || (\n              <div className=\"relative shrink-0 size-[24px]\" data-node-id=\"58653:14067\" data-name=\"Icon\">\n                <img alt=\"\" className=\"absolute block inset-0 max-w-none size-full\" src={imgIcon} />\n              </div>\n            ))}\n          <div className=\"[word-break:break-word] flex flex-col font-[family-name:var(--static\\/title-medium\\/font,'Roboto:Medium')] font-medium justify-center leading-[0] relative shrink-0 text-[color:var(--schemes\\/on-primary,white)] text-[length:var(--static\\/title-medium\\/size,16px)] tracking-[var(--static\\/title-medium\\/tracking,0.15px)] whitespace-nowrap\" data-node-id=\"58653:14068\" style={{ fontVariationSettings: '\"wdth\" 100' }}>\n            <p className=\"leading-[var(--static\\/title-medium\\/line-height,24px)]\">{labelText}</p>\n          </div>\n        </div>\n      </div>\n    </div>\n  );\n}\n",
+    "styles": "M3/sys/light/on-primary: #FFFFFF, M3/title/medium: Font(family: \"Static/Title Medium/Font\", style: Static/Title Medium/Weight, size: Static/Title Medium/Size, weight: 500, lineHeight: Static/Title Medium/Line Height, letterSpacing: Static/Title Medium/Tracking), M3/sys/light/primary: #6750A4."
+  }
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "target": "button-medium",
+    "source": "figma:57994:2312",
+    "props": {
+      "background-color": "#6750a4",
+      "color": "#FFFFFF",
+      "font-family": "Roboto",
+      "font-size": 16,
+      "font-weight": "Medium",
+      "line-height": 24,
+      "letter-spacing": 0.15000000596046448,
+      "padding-top": 16,
+      "padding-right": 24,
+      "padding-bottom": 16,
+      "padding-left": 24,
+      "row-gap": 8,
+      "column-gap": 8,
+      "border-top-left-radius": 16,
+      "border-top-right-radius": 16,
+      "border-bottom-right-radius": 16,
+      "border-bottom-left-radius": 16
+    }
+  }
+]
