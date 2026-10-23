@@ -30,6 +30,103 @@ const RGB_SPACE = new RegExp(`^rgba?\\(\\s*${CH}\\s+${CH}\\s+${CH}\\s*(?:\\/\\s*
 const channel = (s) => (s.endsWith('%') ? (parseFloat(s) * 255) / 100 : parseFloat(s));
 const alphaOf = (s) => clamp(s.endsWith('%') ? parseFloat(s) / 100 : parseFloat(s), 0, 1);
 
+// ---- CSS Color 4: oklch() · oklab() · color(srgb|display-p3 …) → 8-bit sRGB ----
+// Chrome 의 computed 색은 작성한 표기를 유지한다(oklch 로 쓰면 oklch(…) 로 직렬화). 그대로 두면 색 속성 전체가 해석 불가가 된다.
+// OKLab 행렬: https://bottosson.github.io/posts/oklab/ (CSS Color 4 의 XYZ 경유 상수와 5e-8 안에서 일치).
+// Display P3 → 선형 sRGB 행렬은 D65 원색 좌표에서 유도한 값이다. 외부 의존성 없이 Node 내장만 쓴다.
+const NUMBER = '[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[+-]?\\d+)?';
+const TOKEN_RE = new RegExp(`^(${NUMBER})(%|deg|grad|rad|turn)?$`);
+const WIDE_RE = /^(oklch|oklab|color)\(\s*([^()]*?)\s*\)$/;
+const P3_TO_LINEAR_SRGB = [
+  [1.2249401762805598, -0.2249401762805598, 0],
+  [-0.0420569547118276, 1.0420569547118276, 0],
+  [-0.0196375545866131, -0.0786360454766487, 1.098273598463062],
+];
+const matVec = (m, v) => m.map((row) => row.reduce((sum, x, i) => sum + x * v[i], 0));
+const gammaEncode = (v) => { const a = Math.abs(v); return (v < 0 ? -1 : 1) * (a > 0.0031308 ? 1.055 * a ** (1 / 2.4) - 0.055 : 12.92 * a); };
+const gammaDecode = (v) => { const a = Math.abs(v); return (v < 0 ? -1 : 1) * (a <= 0.04045 ? a / 12.92 : ((a + 0.055) / 1.055) ** 2.4); };
+
+// 성분 토큰 → 숫자. none 은 0, 퍼센트는 pctBase 가 100% 다. 각도 단위나 모르는 토큰은 null.
+function componentValue(token, pctBase) {
+  if (token === 'none') return 0;
+  const m = TOKEN_RE.exec(token);
+  if (!m || (m[2] !== undefined && m[2] !== '%')) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n)) return null;
+  return m[2] === '%' ? (n * pctBase) / 100 : n;
+}
+
+function hueDegrees(token) {
+  if (token === 'none') return 0;
+  const m = TOKEN_RE.exec(token);
+  if (!m || m[2] === '%') return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n)) return null;
+  return { grad: n * 0.9, rad: (n * 180) / Math.PI, turn: n * 360 }[m[2]] ?? n;
+}
+
+function oklabToLinearSrgb(L, a, b) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+  ];
+}
+
+// s: trim·소문자. 감마 인코딩된 sRGB 성분(0..1, 범위 밖 가능)과 alpha. 해석 불가면 null.
+function parseWideGamut(s) {
+  const m = WIDE_RE.exec(s);
+  if (!m || m[2].includes(',')) return null; // 이 함수들에는 쉼표 문법이 없다
+  const sides = m[2].split('/');
+  if (sides.length > 2) return null;
+  const parts = sides[0].trim().split(/\s+/).filter(Boolean);
+  let alpha = 1;
+  if (sides.length === 2) {
+    const alphaParts = sides[1].trim().split(/\s+/).filter(Boolean);
+    const a = alphaParts.length === 1 ? componentValue(alphaParts[0], 1) : null;
+    if (a === null) return null;
+    alpha = clamp(a, 0, 1);
+  }
+  let encoded;
+  if (m[1] === 'color') {
+    const space = parts.shift();
+    if (parts.length !== 3 || (space !== 'srgb' && space !== 'display-p3')) return null;
+    const c = parts.map((t) => componentValue(t, 1));
+    if (c.includes(null)) return null;
+    encoded = space === 'srgb' ? c : matVec(P3_TO_LINEAR_SRGB, c.map(gammaDecode)).map(gammaEncode);
+  } else {
+    if (parts.length !== 3) return null;
+    const L = componentValue(parts[0], 1);
+    let a;
+    let b;
+    if (m[1] === 'oklch') {
+      const C = componentValue(parts[1], 0.4);
+      const h = hueDegrees(parts[2]);
+      if (C === null || h === null) return null;
+      a = Math.max(C, 0) * Math.cos((h * Math.PI) / 180);
+      b = Math.max(C, 0) * Math.sin((h * Math.PI) / 180);
+    } else {
+      a = componentValue(parts[1], 0.4);
+      b = componentValue(parts[2], 0.4);
+    }
+    if (L === null || a === null || b === null) return null;
+    encoded = oklabToLinearSrgb(clamp(L, 0, 1), a, b).map(gammaEncode);
+  }
+  return encoded.every(Number.isFinite) ? { encoded, alpha } : null;
+}
+
+// sRGB 안(성분이 [-0.5/255, 1+0.5/255])이면 8-bit hex 로, 밖이면 어떤 sRGB hex 와도 같을 수 없으니 hex 없이 범위 밖 값을 돌려준다.
+function wideGamutColor({ encoded, alpha }) {
+  const eps = 0.5 / 255;
+  if (encoded.some((v) => v < -eps || v > 1 + eps)) {
+    return { hex: null, alpha: round2(alpha), outOfGamut: true, srgb: encoded.map((v) => round2(v * 255)) };
+  }
+  return { hex: `#${encoded.map((v) => hex2(v * 255)).join('')}`, alpha: round2(alpha) };
+}
+
 export function normalizeColor(v) {
   if (typeof v !== 'string') return null;
   const s = v.trim().toLowerCase();
@@ -46,7 +143,8 @@ export function normalizeColor(v) {
     const [r, g, b] = [m[1], m[2], m[3]].map(channel);
     return { hex: `#${hex2(r)}${hex2(g)}${hex2(b)}`, alpha: round2(m[4] === undefined ? 1 : alphaOf(m[4])) };
   }
-  return null;
+  const wide = parseWideGamut(s);
+  return wide ? wideGamutColor(wide) : null;
 }
 
 // ---- 길이 ----
@@ -100,8 +198,13 @@ export function normalizeFontWeight(v) {
 function normalizeValue(prop, raw, ctx) {
   if (raw === undefined || raw === null) return null;
   if (COLOR_PROPS.includes(prop)) {
-    const c = normalizeColor(typeof raw === 'string' ? raw : String(raw));
+    const text = typeof raw === 'string' ? raw : String(raw);
+    const c = normalizeColor(text);
     if (!c) return null;
+    // sRGB 밖의 색은 hex 가 없다. 같은 값끼리만 같고(범위 밖 sRGB 성분을 둘째 자리까지 비교) 원문을 그대로 보여 준다.
+    if (c.hex === null) {
+      return { key: c.alpha === 0 ? 'transparent' : `out-of-srgb:${c.srgb.join(',')}/${c.alpha}`, display: text.trim(), outOfGamut: true };
+    }
     const rgb = [1, 3, 5].map((i) => parseInt(c.hex.slice(i, i + 2), 16));
     // alpha 0 은 RGB 와 무관하게 같은 색(완전 투명)이다: #FFFFFF00 ≡ transparent ≡ rgba(0, 0, 0, 0)
     return { key: c.alpha === 0 ? 'transparent' : `${c.hex}/${c.alpha}`, display: c.alpha === 1 ? c.hex : `rgba(${rgb.join(', ')}, ${c.alpha})` };
@@ -177,6 +280,7 @@ export function compareTarget(design, actual) {
         where,
         expected: exp.display,
         actual: act.display,
+        ...(exp.outOfGamut || act.outOfGamut ? { note: 'sRGB 범위 밖' } : {}),
         target,
         selector,
         index: sample.index,

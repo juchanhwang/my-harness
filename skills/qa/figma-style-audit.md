@@ -30,7 +30,7 @@
 
 - 비교 대상은 CSS 소스가 아니라 브라우저가 계산한 값이다. `getComputedStyle`은 "활성 스타일시트를 적용하고 계산을 끝낸 resolved value"를 돌려주므로 Tailwind든 CSS 파일이든 같은 방식으로 읽힌다. https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
 - `skills/qa-check/scripts/computed-style.snippet.js`의 자리표시자를 `JSON.stringify(selector)`로 치환해 `browser_evaluate`의 function 인자로 넘기면 21개 속성을 한 번에 읽는다. 결과에 `target`을 붙여 `compare-styles.mjs --actual`로 넘긴다.
-- computed 색상은 `rgb(r, g, b)` 문자열이다. hex와 직접 비교할 수 없어 정규화가 필요하다.
+- computed 색상은 보통 `rgb(r, g, b)` 문자열이다. hex와 직접 비교할 수 없어 정규화가 필요하다. 다만 CSS에서 `oklch()`·`oklab()`·`color()`로 쓴 색은 resolved value도 그 표기를 유지한다(https://www.w3.org/TR/css-color-4/#resolving-oklab-oklch-values , https://www.w3.org/TR/css-color-4/#resolving-color-function-values ). 하네스 FE 지침(`skills/fe/styling.md`)이 OKLCH를 권장하므로 이 표기도 정규화 대상이다.
 - Playwright `toHaveCSS(name, value)`는 문자열 **완전 일치**(또는 RegExp)만 받는다. 이 비교를 테스트 코드로 굳힐 때는 정규화한 값을 넣는다(작성은 fe-dev). https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-css
 - 상태별 값(hover·focus·disabled)은 `browser_hover` 등으로 상태를 만든 뒤 같은 스니펫을 다시 실행하고, 상태별로 target 이름을 분리한다.
 
@@ -43,12 +43,13 @@
 | `em` | × 해당 요소 font-size | font-size를 모르면 해석 불가 |
 | `%` (letter-spacing만) | × font-size ÷ 100 | 다른 속성의 %는 요소 크기를 몰라 환산할 수 없다 |
 | 소수 | 둘째 자리 반올림 | 아래 참고 |
-| 색 | 대문자 `#RRGGBB` + alpha(둘째 자리) | hex·alpha가 모두 같아야 일치. `rgb()`·`rgba()`·`rgb(r g b / a)`·`#RGB`·`#RRGGBBAA`·`transparent` 해석 |
+| 색 | 대문자 `#RRGGBB` + alpha(둘째 자리) | hex·alpha가 모두 같아야 일치. alpha가 0이면 RGB와 무관하게 같은 색(완전 투명). `rgb()`·`rgba()`·`rgb(r g b / a)`·`#RGB`·`#RRGGBBAA`·`transparent`·`oklch()`·`oklab()`·`color(srgb …)`·`color(display-p3 …)` 해석 |
 | `font-family` | 첫 패밀리, 따옴표 제거, 소문자 | computed `"Roboto", sans-serif` ↔ Figma `Roboto`는 같은 글꼴 |
 | `letter-spacing: normal` | 0 | CSS에서 normal은 추가 간격 없음 |
 | `line-height: normal` | 숫자와 **불일치** | normal은 글꼴 메트릭 비율이라 24px과 같다고 단정할 수 없다 |
 
 - **소수 둘째 자리 반올림은 허용 오차가 아니다.** Figma는 0.15를 `0.15000000596046448`(32비트 부동소수에서 0.15에 가장 가까운 값)로 내보낸다. 같은 값의 표현 노이즈를 지우는 것이며, 0.01px 이상의 차이는 그대로 불일치다. "근사하게 같다"는 판정은 하지 않는다.
+- `oklch()`·`oklab()`·`color()`는 CSS Color 4 식으로 sRGB 8-bit로 바꾼다. L 100% = 1, C·a·b 100% = 0.4, `none` = 0, 음수 chroma는 0, 각도는 deg·grad·rad·turn이다(https://www.w3.org/TR/css-color-4/#specifying-oklab-oklch ). 결과가 sRGB 범위(성분이 −0.5/255 ~ 1+0.5/255) 밖이면 어떤 sRGB hex와도 같을 수 없으므로, 원문을 `actual`(또는 `expected`)에 그대로 보여 주고 Major finding에 note `sRGB 범위 밖`을 쓴다. 디자인과 구현이 같은 범위 밖 값이면 일치다. 지원하는 표기는 위 네 가지뿐이다. `lab()`·`lch()`와 다른 `color()` 공간은 해석할 수 없다.
 - 굵기 이름은 대소문자·공백·하이픈을 무시하고 숫자로 바꾼다.
 
 | 이름 | 값 | 이름 | 값 |

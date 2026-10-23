@@ -37,7 +37,7 @@ test('normalizeColor: formats', () => {
   assert.deepEqual(normalizeColor('rgba(0, 0, 0, 0.5)'), { hex: '#000000', alpha: 0.5 });
   assert.deepEqual(normalizeColor('rgb(0 0 0 / 50%)'), { hex: '#000000', alpha: 0.5 });
   assert.deepEqual(normalizeColor('transparent'), { hex: '#000000', alpha: 0 });
-  assert.equal(normalizeColor('color(display-p3 1 0 0)'), null);
+  assert.equal(normalizeColor('color(rec2020 1 0 0)'), null);
 });
 test('normalizeColor: alpha difference is not equal, garbage is null', () => {
   assert.notDeepEqual(normalizeColor('rgba(0, 0, 0, 0.5)'), normalizeColor('rgb(0, 0, 0)'));
@@ -47,6 +47,91 @@ test('normalizeColor: alpha difference is not equal, garbage is null', () => {
   assert.equal(normalizeColor(''), null);
   assert.equal(normalizeColor(undefined), null);
 });
+// ---- CSS Color 4: oklch() · oklab() · color(srgb|display-p3) → 8-bit sRGB ----
+// 정방향(sRGB → OKLCH)은 구현과 독립으로 Ottosson 원 글의 행렬을 따로 써서 왕복을 검증한다.
+const srgbToLinear = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+function hexToOklch(hex, digits = 12) {
+  const [r, g, b] = [1, 3, 5].map((i) => srgbToLinear(parseInt(hex.slice(i, i + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+  const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+  const bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+  const h = ((Math.atan2(bb, a) * 180) / Math.PI + 360) % 360;
+  return `oklch(${L.toFixed(digits)} ${Math.hypot(a, bb).toFixed(digits)} ${h.toFixed(digits)})`;
+}
+
+test('normalizeColor: oklch known values', () => {
+  assert.deepEqual(normalizeColor('oklch(0.628 0.2577 29.23)'), { hex: '#FF0000', alpha: 1 });
+  assert.deepEqual(normalizeColor('oklch(1 0 0)'), { hex: '#FFFFFF', alpha: 1 });
+  assert.deepEqual(normalizeColor('oklch(0 0 0)'), { hex: '#000000', alpha: 1 });
+});
+test('normalizeColor: oklch alpha, percentages, hue units, none, case', () => {
+  const base = normalizeColor('oklch(0.5 0.1 270)');
+  assert.equal(base.alpha, 1);
+  assert.deepEqual(normalizeColor('oklch(0.5 0.1 270 / 0.5)'), { hex: base.hex, alpha: 0.5 });
+  assert.deepEqual(normalizeColor('oklch(0.5 0.1 270/50%)'), { hex: base.hex, alpha: 0.5 });
+  assert.deepEqual(normalizeColor('oklch(50% 25% 270)'), base);
+  for (const hue of ['270deg', '300grad', '0.75turn', `${(3 * Math.PI) / 2}rad`]) assert.deepEqual(normalizeColor(`oklch(0.5 0.1 ${hue})`), base, hue);
+  assert.deepEqual(normalizeColor('OKLCH( 0.5   0.1  270 )'), base);
+  const gray = normalizeColor('oklch(0.7 0 none)');
+  assert.deepEqual(gray, normalizeColor('oklch(0.7 0 0)'));
+  assert.match(gray.hex, /^#([0-9A-F]{2})\1\1$/);
+  assert.deepEqual(normalizeColor('oklch(none none none)'), { hex: '#000000', alpha: 1 });
+  assert.equal(normalizeColor('oklch(1 0 0 / none)').alpha, 0);
+});
+test('normalizeColor: oklab, color(srgb) and in-gamut display-p3', () => {
+  assert.deepEqual(normalizeColor('oklab(0.628 0.22486 0.12585)'), { hex: '#FF0000', alpha: 1 });
+  assert.deepEqual(normalizeColor('oklab(100% 0 0)'), { hex: '#FFFFFF', alpha: 1 });
+  assert.deepEqual(normalizeColor('color(srgb 1 0 0)'), { hex: '#FF0000', alpha: 1 });
+  assert.deepEqual(normalizeColor('color(srgb 100% 0% 0%)'), { hex: '#FF0000', alpha: 1 });
+  assert.deepEqual(normalizeColor('color(srgb 1 0 0 / 50%)'), { hex: '#FF0000', alpha: 0.5 });
+  assert.deepEqual(normalizeColor('color(srgb 0.5 0.5 0.5)'), { hex: '#808080', alpha: 1 });
+  assert.deepEqual(normalizeColor('color(display-p3 1 1 1)'), { hex: '#FFFFFF', alpha: 1 });
+  assert.deepEqual(normalizeColor('color(display-p3 0 0 0)'), { hex: '#000000', alpha: 1 });
+});
+test('normalizeColor: outside sRGB has no hex; half an 8-bit step is still inside', () => {
+  const p3 = normalizeColor('color(display-p3 1 0 0)');
+  assert.deepEqual([p3.hex, p3.outOfGamut, p3.alpha], [null, true, 1]);
+  assert.ok(p3.srgb[0] > 255 && p3.srgb[1] < 0, `unclamped sRGB kept: ${p3.srgb}`);
+  assert.equal(normalizeColor('color(srgb 1.2 0 0)').hex, null);
+  assert.equal(normalizeColor('color(srgb 1.003 0 0)').hex, null);
+  assert.deepEqual(normalizeColor('color(srgb 1.001 -0.001 0)'), { hex: '#FF0000', alpha: 1 });
+  assert.equal(normalizeColor('oklch(0.9 0.4 150)').hex, null);
+});
+test('normalizeColor: malformed or unsupported wide-gamut notations are null', () => {
+  for (const bad of ['oklch(0.5 0.1)', 'oklch(0.5, 0.1, 270)', 'oklch(abc 0 0)', 'oklch(0.5 0.1 270 / )', 'oklch(0.5 0.1 270 / 0.5 0.5)',
+    'oklch(0.5 0.1 270deg 5)', 'oklch(0.5 0.1 50%)', 'oklch(0.5 0.1 270 / 0.5 / 1)', 'oklch(from red l c h)', 'oklab(0.5 0.1)',
+    'color(srgb 1 0)', 'color(srgb)', 'color()', 'color(rec2020 1 0 0)', 'color(xyz 0.1 0.2 0.3)', 'color(srgb 1 0 0deg)', 'oklch(1e999 0 0)'])
+    assert.equal(normalizeColor(bad), null, bad);
+});
+test('normalizeColor: oklch round trip from sRGB is exact for every 8-bit value tried', () => {
+  assert.equal(normalizeColor(hexToOklch('#6750A4')).hex, '#6750A4');
+  const levels = [0, 1, 17, 51, 102, 127, 128, 200, 254, 255];
+  for (const r of levels) for (const g of levels) for (const b of levels) {
+    const hex = `#${[r, g, b].map((v) => v.toString(16).toUpperCase().padStart(2, '0')).join('')}`;
+    assert.equal(normalizeColor(hexToOklch(hex)).hex, hex, `${hex} via ${hexToOklch(hex)}`);
+  }
+});
+test('oklch actual equals the same color written as hex in the design', () => {
+  const r = compareTarget({ ...design, props: { 'background-color': '#6750A4', color: '#FFFFFF' } },
+    actual({ 'background-color': hexToOklch('#6750A4'), color: 'oklch(1 0 0)' }));
+  assert.deepEqual([r.findings, r.notChecked, r.blocked], [[], [], []]);
+});
+test('display-p3 red vs #FF0000 is a Major finding that shows the original text and notes the gamut', () => {
+  const [f, ...rest] = compareTarget({ ...design, props: { color: '#FF0000' } }, actual({ color: 'color(display-p3 1 0 0)' })).findings;
+  assert.equal(rest.length, 0);
+  assert.deepEqual([f.severity, f.expected, f.actual, f.property], ['Major', '#FF0000', 'color(display-p3 1 0 0)', 'color']);
+  assert.match(f.note, /sRGB 범위 밖/);
+});
+test('the same out-of-sRGB color on both sides matches, a different one does not', () => {
+  const run = (d, a) => compareTarget({ ...design, props: { color: d } }, actual({ color: a })).findings;
+  assert.deepEqual(run('color(display-p3 1 0 0)', 'color(display-p3 1 0 0)'), []);
+  assert.equal(run('color(display-p3 1 0 0)', 'color(display-p3 0.9 0 0)').length, 1);
+  assert.equal(run('color(display-p3 1 0 0)', '#FF0000')[0].note, 'sRGB 범위 밖');
+});
+
 test('normalizeLength: units and float noise', () => {
   const ctx = { rootFontSize: 16, fontSize: 16 };
   assert.equal(normalizeLength('16px', ctx), 16);
@@ -118,7 +203,7 @@ test('multiple matches are indexed', () => assert.deepEqual(
 test('viewport label appears in where', () => assert.equal(
   compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'rgb(0, 0, 0)' }, 1, '375')).findings[0].where, '.btn @375'));
 test('unparseable actual goes to notChecked', () => {
-  const r = compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'color(display-p3 1 1 1)' }));
+  const r = compareTarget({ ...design, props: { color: '#FFFFFF' } }, actual({ color: 'color(rec2020 1 1 1)' }));
   assert.equal(r.findings.length, 0); assert.equal(r.notChecked[0].reason, 'unparseable actual value');
 });
 test('unparseable design value goes to notChecked once, props missing from design are skipped', () => {
