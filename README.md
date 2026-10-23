@@ -9,9 +9,9 @@ Claude Code 개인 하네스 설정 저장소.
 ```
 my-harness/
 ├── agents/          # 서브 에이전트 정의 (16개)
-├── skills/          # 스킬 정의 (18개 — 도메인 7 + 범용 8 + workspace 3, 참조 파일 196개)
+├── skills/          # 스킬 정의 (19개 — 도메인 7 + 범용 8 + 역할 세션 1 + workspace 3, 참조 파일 197개)
 ├── commands/        # 슬래시 커맨드 (2개)
-├── hooks/           # 이벤트 훅 스크립트 (4개)
+├── hooks/           # 이벤트 훅 스크립트 (5개)
 ├── bin/             # CLI 커맨드 (1개)
 ├── CLAUDE.md        # 글로벌 지침
 ├── settings.json    # Claude Code 설정
@@ -44,11 +44,11 @@ my-harness/
 | `be-dev.md` | opus | 시니어 백엔드 엔지니어 (Node.js, PostgreSQL, API 설계) |
 | `designer.md` | sonnet | 시니어 프로덕트 디자이너 (UI/UX, 디자인 시스템) |
 | `po.md` | sonnet | 시니어 프로덕트 오너 (제품 전략, PRD, 로드맵) |
-| `qa.md` | sonnet | 시니어 QA 엔지니어 (테스트 전략, 자동화, 보안) |
+| `qa.md` | sonnet | 시니어 QA 엔지니어 (테스트 전략, 자동화, 보안, `/qa-check` 역할 세션 — effort xhigh) |
 | `ops-lead.md` | sonnet | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
-## 스킬 (18)
+## 스킬 (19)
 
 ### 도메인 스킬 (7)
 
@@ -60,7 +60,7 @@ my-harness/
 | `fe` | 프론트엔드 — React/Next.js, 상태 관리, 성능, 테스트, 접근성 | 32개 |
 | `po` | 프로덕트 오너 — 비전/전략, PRD, 우선순위, 사용자 리서치, 성장 | 24개 |
 | `designer` | 디자인 — UI/UX, 디자인 시스템, 토큰, 접근성, 리서치 | 24개 |
-| `qa` | QA — 테스트 전략, 자동화, 성능/보안/접근성 테스트, 정적 분석 | 24개 |
+| `qa` | QA — 테스트 전략, 자동화, 성능/보안/접근성 테스트, 정적 분석, Figma 스타일 검수 | 25개 |
 | `ops-lead` | 운영 — 프로젝트 관리, 클라이언트, SLA, 프로세스 최적화 | 24개 |
 | `data-analyst` | 데이터 — SQL, 퍼널/코호트 분석, A/B 테스트, 대시보드 | 24개 |
 
@@ -357,7 +357,7 @@ my-harness/
 </details>
 
 <details>
-<summary><b><code>qa</code> 참조 파일 (24)</b></summary>
+<summary><b><code>qa</code> 참조 파일 (25)</b></summary>
 
 **Strategy & Planning**
 
@@ -409,6 +409,7 @@ my-harness/
 | `code-review.md` | PR 리뷰 체크리스트 (QA 관점) |
 | `type-safety.md` | TypeScript strict·타입 설계 |
 | `static-analysis.md` | ESLint·SonarQube·SAST 설정 |
+| `figma-style-audit.md` | Figma 시안 ↔ 구현 토큰 값 대조(오차 0) — style 역할 지식 |
 
 **Operations**
 
@@ -556,6 +557,12 @@ my-harness/
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
 
+### 역할 세션 스킬 (1)
+
+| 스킬 | 역할 |
+|---|---|
+| `qa-check` | `/qa-check <review\|style\|acceptance\|gate> key=value…` — `qa` 에이전트를 역할별 포크 세션으로 띄운다. `references/`에 역할 문서, `scripts/`에 판정·스타일 비교 스크립트(Node 내장 모듈), `evals/`에 fixture 앱과 eval |
+
 ### 워크스페이스 (3)
 
 `skill-creator` 플러그인이 스킬 트리거 정확도를 평가할 때 생성하는 산출물(eval 입출력, grading, benchmark, skill snapshot 등). 각 워크스페이스는 대응되는 스킬의 트리거 품질을 측정한 데이터다.
@@ -600,6 +607,12 @@ my-harness/
 | 인라인 `osascript` | `Notification` | macOS 로컬 알림 |
 | `claude-remote-session-start.sh` | `SessionStart` | 세션 시작 알림 |
 | `claude-remote-stop.sh` | `Stop` | 세션 종료 알림 |
+
+### 에이전트 frontmatter 훅
+
+| 훅 | 이벤트 | 등록 위치 | 역할 |
+|---|---|---|---|
+| `qa-gate-subagent-stop.sh` | `SubagentStop`(frontmatter `Stop`) | `agents/fe-dev.md`, `agents/be-dev.md` | 마지막 메시지 첫 줄에 `QA:` 라인 없이 끝나는 fe·be 서브에이전트를 한 번 차단한다(`stop_hook_active`면 통과, 입력 오류도 통과) |
 
 > `hooks/` 디렉터리에는 위 3개 스크립트 외에 `notify.sh`가 남아 있지만, 현재 `settings.json`에 등록돼 있지 않다. macOS 로컬 알림은 `notify.sh`가 아니라 `Notification` 훅에 인라인으로 선언된 `osascript`가 처리한다.
 
