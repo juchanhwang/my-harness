@@ -421,6 +421,26 @@ U3(훅 스키마 로깅) → U1(서브에이전트 내 Skill fork) → U2(fork �
 - [ ] §5.9 승인 필요 항목은 변경안 제시 완료(적용 여부는 사용자)
 - [ ] `~/.claude/`로 복사 후 `/qa-check` 자동완성에 노출 확인
 
+### 6.7 결과 — 베이스라인 (2026-10-24, B1 1회)
+
+조건: 오버레이 없이 라이브 `~/.claude/agents/qa.md`(구버전, sonnet)에 review·style·acceptance를 한 세션으로 맡김. 메인 세션 haiku, fixture 앱, `figma-snapshot` 사용(Figma 호출 0회). 표본 1회라 run 간 분산은 측정하지 못했고, 채점은 grader 없이 리포트를 정답표 15항목과 직접 대조했다.
+
+| 항목 | 결과 |
+|---|---|
+| review 결함 R1·R2·R3 탐지 | 3/3 |
+| acceptance 위반 A1·A2·A4 탐지 | 3/3 (코드 원인 + 브라우저 재현) |
+| 통과 항목 P3·P5를 실패로 보고 | 0/2 (오탐 없음) |
+| style 편차 S1–S5 탐지 | 5/5 (속성별 Major/Minor 분류 없음 — "핵심 시각 속성 5건"으로 묶음) |
+| 함정 T1·T2를 불일치로 보고 | 0/2 (오탐 없음) |
+| 정답표 밖 finding | 7건 (코드 5 + 시안 대비 2), 코드·스냅샷으로 확인한 결과 모두 사실. 거짓 finding 0건 |
+| 형식 | `QA:` 마커 없음, `verdict.mjs`·`findings.json` 없음, 심각도 체계가 High/Medium/Low |
+| 비용 | `cost_usd` 3.14 (haiku 0.01 / sonnet 1.78 / opus(oracle) 1.35) |
+| 시간 | 1,045초(17.4분), 메인 turns 6, 서브에이전트 2(qa, oracle) |
+| 도구 호출 | Playwright 67회, Read 15, Bash 15, Edit 3(리포트 파일만) |
+| 부수 효과 | `app/` 수정 0, 테스트 파일 0, 샌드박스의 `.playwright-mcp/` 삭제 시도 1회가 권한 거부됨 |
+
+한계: 같은 fixture가 작아 컨텍스트 혼입 효과(재현율 하락)는 과소평가될 수 있다. b2(PRD·시안 없음)·b3(fe-dev 직접 수정)·b4(PR #65) 베이스라인은 범위 축소로 실행하지 않았다.
+
 ## 7. 빌더에게 맡기는 것
 - `$ARGUMENTS` 파싱 구현 방식과 key=value 외 형식 허용 여부
 - `expected.json` 스키마, fixture HTML의 마크업 구조
