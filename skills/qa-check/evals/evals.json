@@ -1,0 +1,156 @@
+{
+  "skill_name": "qa-check",
+  "evals": [
+    {
+      "id": 1,
+      "name": "E1 review-fixture",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check review scope=app/ prd=prd.md",
+      "expected_output": "fixture 앱의 review 결함 R1·R2·R3를 찾고 스타일·인수 시나리오 관점은 섞지 않는다",
+      "expectations": [
+        "`.orchestrator/qa/review-<sha7>.md`와 `.orchestrator/qa/review-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/review-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "R1: app.js에서 사용자 입력을 escape 없이 innerHTML에 넣는 XSS를 finding으로 보고한다",
+        "R2: 손상된 localStorage 값에서 JSON.parse 예외로 앱이 멈추는 문제를 finding으로 보고한다",
+        "R3: render 호출마다 resize 리스너가 누적되는 누수를 finding으로 보고한다",
+        "스타일 속성(색·글꼴·간격·radius) 불일치 finding이 0건이다",
+        "인수 시나리오 실행 결과를 근거로 한 finding이 0건이다",
+        "XSS finding을 확정하기 전에 oracle 서브에이전트를 호출한 흔적이 트랜스크립트에 있다",
+        "outputs/dirty.txt가 비어 있다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 2,
+      "name": "E2 review-no-scope",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check review",
+      "expected_output": "scope가 없으면 코드를 읽지 않고 BLOCKED로 끝난다",
+      "expectations": [
+        "`.orchestrator/qa/review-<sha7>.md`와 `.orchestrator/qa/review-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/review-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "최종 메시지 첫 줄이 `QA: BLOCKED`로 시작한다",
+        "리포트의 `## Blocked by`에 scope가 필요하다고 적혀 있다",
+        "findings가 0건이다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 3,
+      "name": "E3 style-snapshot",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check style figma-snapshot=figma-snapshot.json app=http://localhost:4791/app/ selector=.btn",
+      "expected_output": "스냅샷 기준으로 S1–S5를 정확히 찾고 함정 T1·T2는 보고하지 않는다",
+      "expectations": [
+        "`.orchestrator/qa/style-<sha7>.md`와 `.orchestrator/qa/style-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/style-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "S1–S5(background-color, font-weight, line-height, padding-left·padding-right, 4개 모서리 radius) 불일치를 모두 finding으로 보고한다",
+        "T1(font-size 1rem)과 T2(letter-spacing 0.15px)는 불일치로 보고하지 않는다",
+        "S1·S2·S3은 Major, S4·S5는 Minor로 보고한다",
+        "verdict가 FAIL이다",
+        "리포트 헤더에 `source: snapshot`이 있다",
+        "트랜스크립트에 Figma MCP 도구(mcp__plugin_figma_figma__*) 호출이 0회다",
+        "트랜스크립트에서 compare-styles.mjs를 실행했다",
+        "뷰포트 1280과 375 두 곳에서 값을 추출했다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 4,
+      "name": "E4 style-no-source",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check style app=http://localhost:4791/app/ selector=.btn",
+      "expected_output": "기준 소스가 없으면 값을 만들지 않고 Figma 노드 URL을 요청하며 BLOCKED로 끝난다",
+      "expectations": [
+        "`.orchestrator/qa/style-<sha7>.md`와 `.orchestrator/qa/style-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/style-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "최종 메시지 첫 줄이 `QA: BLOCKED`로 시작한다",
+        "Figma 노드 URL을 요청한다",
+        "트랜스크립트에서 compare-styles.mjs를 실행하지 않았다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 8,
+      "name": "E8 acceptance-fixture",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check acceptance prd=prd.md app=http://localhost:4791/app/",
+      "expected_output": "AC-1·AC-2·AC-4 실패를 재현 단계와 함께 보고하고 AC-3·AC-5는 통과로 둔다",
+      "expectations": [
+        "`.orchestrator/qa/acceptance-<sha7>.md`와 `.orchestrator/qa/acceptance-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/acceptance-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "A1(AC-1 공백만 입력해도 추가됨), A2(AC-2 51~60자가 추가됨), A4(AC-4 추가 직후 카운터가 1 작음)를 FAIL로 보고하고 각각 재현 단계가 있다",
+        "AC-3과 AC-5를 실패로 보고하지 않는다",
+        "리포트에 `## E2E candidates` 절이 있다",
+        "트랜스크립트에서 app/ 아래 소스 파일을 Read하는 호출이 첫 번째 리포트 Write보다 앞서지 않는다",
+        "outputs/dirty.txt가 비어 있고 report-dir 밖에 새로 만든 파일이 없다",
+        "verdict가 FAIL이다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 9,
+      "name": "E9 acceptance-no-prd",
+      "setup": [
+        "--overlay"
+      ],
+      "prompt": "/qa-check acceptance app=http://localhost:4791/app/",
+      "expected_output": "PRD가 없으면 시나리오를 만들지 않고 PRD를 요청하며 BLOCKED로 끝난다",
+      "expectations": [
+        "`.orchestrator/qa/acceptance-<sha7>.md`와 `.orchestrator/qa/acceptance-<sha7>.findings.json`이 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/acceptance-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "리포트가 인용한 파일 경로와 줄 번호가 모두 실제로 존재한다",
+        "최종 메시지 첫 줄이 `QA: BLOCKED`로 시작한다",
+        "PRD 경로를 요청한다",
+        "리포트에 시나리오 표가 없다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 13,
+      "name": "E13 gate-blocked",
+      "setup": [
+        "--overlay",
+        "--reports",
+        "review=PASS,style=BLOCKED,acceptance=FAIL"
+      ],
+      "prompt": "/qa-check gate type=fe scope=app/ prd=prd.md figma-snapshot=figma-snapshot.json app=http://localhost:4791/app/ selector=.btn",
+      "expected_output": "한 역할이 BLOCKED면 FAIL이 있어도 gate는 BLOCKED이고 필요한 것이 병합된다",
+      "expectations": [
+        "`.orchestrator/qa/gate-<sha7>.md`가 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: BLOCKED \\.orchestrator/qa/gate-[0-9a-f]{7}\\.md$` 형식이다",
+        "gate verdict가 BLOCKED이다(FAIL보다 우선한다)",
+        "gate 리포트의 필요한 것에 `Figma 노드 URL`이 포함돼 있다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    }
+  ]
+}
