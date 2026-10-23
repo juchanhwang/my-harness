@@ -9,3 +9,6 @@ skills/ops-lead/*
 !skills/ops-lead/SKILL.md
 skills/data-analyst/*
 !skills/data-analyst/SKILL.md
+
+# qa-check eval 산출물(트랜스크립트·리포트 — 공개 저장소에 올리지 않는다)
+skills/qa-check-workspace/
