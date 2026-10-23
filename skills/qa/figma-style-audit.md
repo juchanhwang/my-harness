@@ -41,12 +41,13 @@
 | `px`·단위 없는 숫자 | 그대로 | Figma 값은 px 숫자다 |
 | `rem` | × 실제 루트 font-size | 16으로 가정하지 않고 읽은 값을 쓴다 |
 | `em` | × 해당 요소 font-size | font-size를 모르면 해석 불가 |
-| `%` (letter-spacing만) | × font-size ÷ 100 | 다른 속성의 %는 요소 크기를 몰라 환산할 수 없다 |
+| `%` (letter-spacing·line-height만) | × font-size ÷ 100 | line-height는 디자인에 font-size가 있으면 그것을, 없으면 구현의 font-size를 쓴다(Figma `150%` → 16px 글자에서 24px). 다른 속성의 %는 요소 크기를 몰라 환산할 수 없다 |
 | 소수 | 둘째 자리 반올림 | 아래 참고 |
 | 색 | 대문자 `#RRGGBB` + alpha(둘째 자리) | hex·alpha가 모두 같아야 일치. alpha가 0이면 RGB와 무관하게 같은 색(완전 투명). `rgb()`·`rgba()`·`rgb(r g b / a)`·`#RGB`·`#RRGGBBAA`·`transparent`·`oklch()`·`oklab()`·`color(srgb …)`·`color(display-p3 …)` 해석 |
 | `font-family` | 첫 패밀리, 따옴표 제거, 소문자 | computed `"Roboto", sans-serif` ↔ Figma `Roboto`는 같은 글꼴 |
 | `letter-spacing: normal` | 0 | CSS에서 normal은 추가 간격 없음 |
 | `line-height: normal` | 숫자와 **불일치** | normal은 글꼴 메트릭 비율이라 24px과 같다고 단정할 수 없다 |
+| `line-height: AUTO`·`auto` | `normal` | Figma의 AUTO는 CSS의 normal이다 |
 
 - **소수 둘째 자리 반올림은 허용 오차가 아니다.** Figma는 0.15를 `0.15000000596046448`(32비트 부동소수에서 0.15에 가장 가까운 값)로 내보낸다. 같은 값의 표현 노이즈를 지우는 것이며, 0.01px 이상의 차이는 그대로 불일치다. "근사하게 같다"는 판정은 하지 않는다.
 - `oklch()`·`oklab()`·`color()`는 CSS Color 4 식으로 sRGB 8-bit로 바꾼다. L 100% = 1, C·a·b 100% = 0.4, `none` = 0, 음수 chroma는 0, 각도는 deg·grad·rad·turn이다(https://www.w3.org/TR/css-color-4/#specifying-oklab-oklch ). 결과가 sRGB 범위(성분이 −0.5/255 ~ 1+0.5/255) 밖이면 어떤 sRGB hex와도 같을 수 없으므로, 원문을 `actual`(또는 `expected`)에 그대로 보여 주고 Major finding에 note `sRGB 범위 밖`을 쓴다. 디자인과 구현이 같은 범위 밖 값이면 일치다. 지원하는 표기는 위 네 가지뿐이다. `lab()`·`lch()`와 다른 `color()` 공간은 해석할 수 없다.

@@ -217,8 +217,10 @@ function normalizeValue(prop, raw, ctx) {
     const w = normalizeFontWeight(raw);
     return w === null ? null : { key: String(w), display: String(w) };
   }
-  // % 는 letter-spacing 에서만 환산한다. 다른 속성의 %는 해석 불가(요소 크기를 모른다).
-  if (prop !== 'letter-spacing' && typeof raw === 'string' && raw.trim().endsWith('%')) return null;
+  // Figma 의 line-height AUTO 는 CSS 의 normal 이다.
+  if (prop === 'line-height' && typeof raw === 'string' && raw.trim().toLowerCase() === 'auto') raw = 'normal';
+  // % 는 font-size 기준인 letter-spacing·line-height 에서만 px 로 환산한다. 다른 속성의 %는 해석 불가(요소 크기를 모른다).
+  if (prop !== 'letter-spacing' && prop !== 'line-height' && typeof raw === 'string' && raw.trim().endsWith('%')) return null;
   let n = normalizeLength(raw, ctx);
   if (n === null) return null;
   if (n === 'normal' && prop === 'letter-spacing') n = 0; // letter-spacing 만 normal ≡ 0
@@ -248,19 +250,21 @@ export function compareTarget(design, actual) {
 
   const { rootFontSize } = actual;
   const designCtx = { rootFontSize, fontSize: fontSizeOf(design.props, rootFontSize) };
-  const expected = new Map();
+  const expected = new Map(); // prop → { norm } | { raw }(norm 이 없으면 샘플의 font-size 로 푼다)
   for (const prop of PROPS) {
     const raw = design.props?.[prop];
     if (raw === undefined) continue; // 디자인에 없는 속성은 비교하지 않는다
     const n = normalizeValue(prop, raw, designCtx);
-    if (n === null) notChecked.push({ what: `${target} ${prop}`, reason: 'unparseable design value' });
-    else expected.set(prop, n);
+    if (n !== null) expected.set(prop, { norm: n });
+    // 디자인에 font-size 가 없으면 line-height 의 %는 구현의 font-size × % 로 푼다
+    else if (prop === 'line-height' && designCtx.fontSize === undefined && normalizeValue(prop, raw, { rootFontSize, fontSize: 16 }) !== null) expected.set(prop, { raw });
+    else notChecked.push({ what: `${target} ${prop}`, reason: 'unparseable design value' });
   }
 
   for (const sample of actual.samples) {
     const where = `${selector}${actual.count > 1 ? `[${sample.index}]` : ''}${viewport ? ` @${viewport}` : ''}`;
     const actualCtx = { rootFontSize, fontSize: fontSizeOf(sample.props, rootFontSize) };
-    for (const [prop, exp] of expected) {
+    for (const [prop, entry] of expected) {
       const raw = sample.props?.[prop];
       if (raw === undefined || raw === null || raw === '') {
         notChecked.push({ what: `${where} ${prop}`, reason: 'actual value missing' });
@@ -269,6 +273,11 @@ export function compareTarget(design, actual) {
       const act = normalizeValue(prop, raw, actualCtx);
       if (act === null) {
         notChecked.push({ what: `${where} ${prop}`, reason: 'unparseable actual value' });
+        continue;
+      }
+      const exp = entry.norm ?? normalizeValue(prop, entry.raw, actualCtx);
+      if (exp === null) {
+        notChecked.push({ what: `${where} ${prop}`, reason: 'design value needs a font-size (neither design nor implementation has one)' });
         continue;
       }
       if (act.key === exp.key) continue;

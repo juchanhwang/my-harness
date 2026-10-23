@@ -13,6 +13,7 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CLI = join(HERE, '..', 'compare-styles.mjs');
 const SNIPPET = join(HERE, '..', 'computed-style.snippet.js');
+const VERDICT = join(HERE, '..', 'verdict.mjs');
 
 const design = { target: 'btn', source: 'test', props: {
   'background-color': '#6750A4', color: '#FFFFFF', 'font-family': 'Roboto', 'font-size': 16, 'font-weight': 'Medium',
@@ -211,7 +212,34 @@ test('unparseable design value goes to notChecked once, props missing from desig
   assert.equal(r.findings.length, 0);
   assert.deepEqual(r.notChecked.map((n) => n.reason), ['unparseable design value']);
 });
-test('percent is allowed for letter-spacing only', () => {
+test('line-height percent is converted to px with the design font-size; AUTO is normal', () => {
+  const lh = (d, a) => compareTarget({ ...design, props: { 'font-size': 16, 'line-height': d } }, actual({ 'font-size': '16px', 'line-height': a }));
+  assert.deepEqual(lh('150%', '24px').findings, []);
+  const [f, ...rest] = lh('150%', '20px').findings;
+  assert.equal(rest.length, 0);
+  assert.deepEqual([f.property, f.severity, f.expected, f.actual], ['line-height', 'Major', '24px', '20px']);
+  assert.deepEqual(lh('125.5%', '20.08px').findings, []);
+  assert.deepEqual(lh('AUTO', 'normal').findings, []);
+  assert.deepEqual(lh('auto', 'normal').findings, []);
+  const [g] = lh('AUTO', '24px').findings;
+  assert.deepEqual([g.severity, g.expected, g.actual], ['Major', 'normal', '24px']);
+});
+test('line-height percent uses the design font-size even when the implementation font-size differs', () => {
+  const r = compareTarget({ ...design, props: { 'font-size': 16, 'line-height': '150%' } }, actual({ 'font-size': '20px', 'line-height': '30px' }));
+  assert.deepEqual(r.findings.map((f) => [f.property, f.expected, f.actual]), [['font-size', '16px', '20px'], ['line-height', '24px', '30px']]);
+});
+test('line-height percent without a design font-size is resolved with the implementation font-size', () => {
+  const run = (a) => compareTarget({ ...design, props: { 'line-height': '150%' } }, actual(a));
+  assert.deepEqual(run({ 'font-size': '16px', 'line-height': '24px' }).findings, []);
+  assert.deepEqual(run({ 'font-size': '20px', 'line-height': '30px' }).findings, []);
+  const [f] = run({ 'font-size': '20px', 'line-height': '24px' }).findings;
+  assert.deepEqual([f.expected, f.actual], ['30px', '24px']);
+});
+test('line-height percent on the implementation side is resolved with its own font-size', () => {
+  const r = compareTarget({ ...design, props: { 'line-height': 24 } }, actual({ 'font-size': '16px', 'line-height': '150%' }));
+  assert.deepEqual([r.findings, r.notChecked, r.blocked], [[], [], []]);
+});
+test('percent is allowed for letter-spacing and line-height only', () => {
   const ls = compareTarget({ ...design, props: { 'font-size': 16, 'letter-spacing': '0.5%' } }, actual({ 'font-size': '16px', 'letter-spacing': '0.08px' }));
   assert.deepEqual([ls.findings, ls.notChecked], [[], []]);
   const pad = compareTarget({ ...design, props: { 'padding-left': 24 } }, actual({ 'padding-left': '50%' }));
@@ -301,4 +329,19 @@ test('CLI rejects invalid input with exit 2', () => {
   assert.equal(cli('--design', good, '--actual', good, '--bogus', 'x').status, 2);
   const notArray = write(dir, 'object.json', {});
   assert.equal(cli('--design', notArray, '--actual', good).status, 2);
+});
+test('CLI e2e: oklch colors plus a wrong % line-height give FAIL with the line-height finding only (reviewer repro)', () => {
+  const dir = tmp();
+  const d = write(dir, 'design.json', [{ target: 'btn', source: 'test', props: { 'background-color': '#6750A4', color: '#FFF', 'line-height': '150%', 'font-size': 16 } }]);
+  const a = write(dir, 'actual.json', [actual({ 'background-color': hexToOklch('#6750A4'), color: 'oklch(1 0 0)', 'line-height': '20px', 'font-size': '16px' })]);
+  const compared = cli('--design', d, '--actual', a);
+  assert.equal(compared.status, 0, compared.stderr);
+  const doc = JSON.parse(compared.stdout);
+  assert.deepEqual(doc.findings.map((f) => f.property), ['line-height']);
+  assert.deepEqual([doc.blocked, doc.notChecked], [[], []]);
+  const verdict = spawnSync('node', [VERDICT, write(dir, 'findings.json', doc)], { encoding: 'utf8' });
+  assert.equal(verdict.stdout.trim(), 'FAIL');
+  const right = write(dir, 'actual-ok.json', [actual({ 'background-color': hexToOklch('#6750A4'), color: 'oklch(1 0 0)', 'line-height': '24px', 'font-size': '16px' })]);
+  const ok = JSON.parse(cli('--design', d, '--actual', right).stdout);
+  assert.equal(spawnSync('node', [VERDICT, write(dir, 'findings-ok.json', ok)], { encoding: 'utf8' }).stdout.trim(), 'PASS');
 });
