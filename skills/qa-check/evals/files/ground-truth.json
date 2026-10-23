@@ -1,0 +1,19 @@
+{
+  "items": [
+    { "id": "R1", "roles": ["review"], "kind": "defect", "title": "사용자 입력을 escape 없이 innerHTML에 삽입 (XSS)", "detectWhen": "app.js에서 사용자 입력을 innerHTML에 그대로 넣는 XSS를 지적한다" },
+    { "id": "R2", "roles": ["review"], "kind": "defect", "title": "localStorage JSON.parse 예외 미처리", "detectWhen": "손상된 localStorage 값에서 JSON.parse 예외로 앱이 멈추는 문제를 지적한다" },
+    { "id": "R3", "roles": ["review"], "kind": "defect", "title": "render 호출마다 resize 리스너 누적", "detectWhen": "render 호출마다 resize 리스너가 누적되는 누수를 지적한다" },
+    { "id": "A1", "roles": ["acceptance", "review"], "kind": "defect", "title": "공백만 입력해도 추가됨 (AC-1 위반)", "detectWhen": "공백만 입력해도 추가되는 AC-1 위반을 지적한다" },
+    { "id": "A2", "roles": ["acceptance", "review"], "kind": "defect", "title": "최대 길이 60자 (AC-2는 50자)", "detectWhen": "51~60자가 추가되는 AC-2 위반을 지적한다" },
+    { "id": "A4", "roles": ["acceptance", "review"], "kind": "defect", "title": "추가 직후 카운터가 실제보다 1 작음 (AC-4 위반)", "detectWhen": "추가 직후 카운터가 실제보다 1 작은 AC-4 위반을 지적한다" },
+    { "id": "P3", "roles": ["acceptance"], "kind": "pass", "title": "삭제는 선택한 항목만 제거 (AC-3 통과)", "detectWhen": "AC-3을 실패로 보고하지 않는다" },
+    { "id": "P5", "roles": ["acceptance"], "kind": "pass", "title": "새로고침 후 목록 유지 (AC-5 통과)", "detectWhen": "AC-5를 실패로 보고하지 않는다" },
+    { "id": "S1", "roles": ["style"], "kind": "defect", "title": ".btn background #6750A0 (시안 #6750A4)", "detectWhen": "background-color 불일치를 Major로 보고한다" },
+    { "id": "S2", "roles": ["style"], "kind": "defect", "title": ".btn font-weight 600 (시안 500)", "detectWhen": "font-weight 불일치를 Major로 보고한다" },
+    { "id": "S3", "roles": ["style"], "kind": "defect", "title": ".btn line-height 22px (시안 24px)", "detectWhen": "line-height 불일치를 Major로 보고한다" },
+    { "id": "S4", "roles": ["style"], "kind": "defect", "title": ".btn padding-left·right 20px (시안 24px)", "detectWhen": "padding-left와 padding-right 불일치를 각각 Minor로 보고한다" },
+    { "id": "S5", "roles": ["style"], "kind": "defect", "title": ".btn 4모서리 radius 18px (시안 16px)", "detectWhen": "4개 모서리 radius 불일치를 Minor로 보고한다" },
+    { "id": "T1", "roles": ["style"], "kind": "trap", "title": ".btn font-size 1rem (= 16px, 시안과 같음)", "detectWhen": "font-size를 불일치로 보고하지 않는다" },
+    { "id": "T2", "roles": ["style"], "kind": "trap", "title": ".btn letter-spacing 0.15px (시안 0.15000000596046448, 표현만 다름)", "detectWhen": "letter-spacing을 불일치로 보고하지 않는다" }
+  ]
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>빠른 메모</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>빠른 메모</h1>
+    <form id="memo-form">
+      <input id="memo-input" type="text" autocomplete="off" placeholder="메모를 입력하세요" aria-label="메모">
+      <button type="submit" class="btn">추가</button>
+    </form>
+    <p id="error" role="alert"></p>
+    <p id="counter" aria-live="polite">0개</p>
+    <ul id="memo-list"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
