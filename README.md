@@ -357,7 +357,7 @@ my-harness/
 </details>
 
 <details>
-<summary><b><code>qa</code> 참조 파일 (25)</b></summary>
+<summary><b><code>qa</code> 참조 파일 (24)</b></summary>
 
 **Strategy & Planning**
 
@@ -417,7 +417,6 @@ my-harness/
 |---|---|
 | `bug-management.md` | 트리아지·우선순위·재현 |
 | `qa-metrics.md` | DRE·Escape Rate·MTTR |
-| `qa-leadership.md` | QA 프로세스·팀 운영 |
 
 </details>
 
