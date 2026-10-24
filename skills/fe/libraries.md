@@ -74,11 +74,13 @@ function Component() {
 }
 ```
 
-### Promise 기반 패턴
+### Promise 기반 패턴 — `overlay.openAsync`
+
+결과 값을 받아야 하는 오버레이는 `overlay.openAsync<T>`로 연다. `close(value)`에 넘긴 값이 Promise의 결과가 된다(1.3.0부터).
 
 ```tsx
 // 확인 다이얼로그
-const confirmed = await overlay.open<boolean>(({ isOpen, close }) => (
+const confirmed = await overlay.openAsync<boolean>(({ isOpen, close }) => (
   <ConfirmDialog
     open={isOpen}
     onConfirm={() => close(true)}
@@ -90,6 +92,10 @@ if (confirmed) {
   await deleteItem(id);
 }
 ```
+
+> ⚠️ `overlay.open`은 Promise가 아니라 오버레이 ID(문자열)를 바로 반환하고, 타입 인자도 받지 않는다. `close`도 인자를 받지 않는다. `await overlay.open(...)`으로 쓰면 사용자가 고르기 전에 ID 문자열이 들어와 `if (confirmed)`가 참이 된다.
+>
+> 출처: [overlay-kit 공식 문서 › overlay.openAsync](https://overlay-kit.slash.page/ko/api/utils/overlay-open-async) 「`close` 함수로 전달한 값을 반환해요.」, [overlay.open](https://overlay-kit.slash.page/ko/api/utils/overlay-open) 「오버레이의 고유한 ID를 문자열로 반환해요.」
 
 ***
 
@@ -124,14 +130,18 @@ isPhoneNumber('010-1234-5678'); // true
 
 한글 초성 검색, 조사 처리 등 한글 특화 기능. ESM 기반, TypeScript 내장.
 
-```tsx
-import { chosungIncludes, disassemble, josa } from 'es-hangul';
+> v2 기준 (2.4.0에서 실행 확인). v1의 `chosungIncludes`는 v2에서 제거됐고, `disassemble`은 배열이 아니라 문자열을 반환한다.
 
-// 초성 검색
-chosungIncludes('프론트엔드', 'ㅍㄹㅌ'); // true
+```tsx
+import { disassemble, disassembleToGroups, getChoseong, josa } from 'es-hangul';
+
+// 초성 검색 — 초성을 뽑아 includes로 비교
+getChoseong('프론트엔드'); // 'ㅍㄹㅌㅇㄷ'
+getChoseong('프론트엔드').includes('ㅍㄹㅌ'); // true
 
 // 한글 분해
-disassemble('토스'); // ['ㅌ', 'ㅗ', 'ㅅ', 'ㅡ']
+disassemble('토스'); // 'ㅌㅗㅅㅡ'
+disassembleToGroups('토스'); // [['ㅌ', 'ㅗ'], ['ㅅ', 'ㅡ']]
 
 // 조사 처리
 josa('토스', '이/가'); // '토스가'

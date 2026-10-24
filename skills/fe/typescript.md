@@ -206,7 +206,7 @@ const fakeRepo = { findById: vi.fn() } as unknown as UserRepository; // 테스�
 ```tsx
 // ✅ 스키마에서 타입 파생
 const userSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(1),
   role: z.enum(['USER', 'ADMIN']),
 });

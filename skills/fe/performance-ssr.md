@@ -132,9 +132,10 @@ export default function Layout({ children }) {
 ## ❌ 안티패턴
 
 - **`'use client'`를 root layout에 추가** — 전체 트리가 client bundle에 들어간다. boundary는 가능한 한 깊게.
+- **Layout·Navigation을 `<Suspense>` 안에 두기** — 하위 페이지가 suspend될 때마다 사이드바·헤더가 언마운트되어 애니메이션 컨텍스트·포커스·스크롤이 초기화된다. 항상 유지되어야 하는 셸은 경계 밖에, `<Suspense>`는 데이터를 기다리는 컴포넌트 바로 위에 둔다 ([debugging.md §5](debugging.md) 사례)
 - **dynamic API를 layout 상단에서 `await`** — static shell이 사라지고 전체 트리가 dynamic. `<Suspense>` 안으로 push down한다.
 - **LCP 이미지에 lazy loading** — `loading='lazy'`나 `<Suspense>` 안에 두면 LCP가 망가진다. LCP 요소는 static shell에 둔다.
-- **`priority` prop 사용** (Next.js 16+) — deprecated. `preload` 또는 `fetchPriority='high'`로 마이그레이션한다. 상세는 [next-assets.md](next-assets.md).
+- **`priority` prop 사용** (Next.js 16+) — deprecated. `loading='eager'` + `fetchPriority='high'`(기본, `fetchPriority`만 주면 lazy가 남는다) 또는 `preload`로 마이그레이션한다. 상세는 [next-assets.md](next-assets.md).
 - **`'use cache'` 안에서 `cookies()`/`headers()` 호출** — request-time API는 cache scope 밖에서 읽고 인자로 전달해 cache key에 포함시킨다. 상세는 vercel:next-cache-components 스킬.
 
 ***

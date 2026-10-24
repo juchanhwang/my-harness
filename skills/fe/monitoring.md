@@ -41,6 +41,19 @@ Sentry.setContext('subscription', { plan: user.plan });
 Sentry.setUser(null);
 ```
 
+**디버깅 맥락을 미리 남긴다.** 에러가 터진 뒤에 "어떤 경로로 왔는지"를 재구성할 수 없으면 재현이 안 된다.
+
+```ts
+// Breadcrumb — 사용자 행동 타임라인. 에러 발생 시 자동으로 첨부된다
+Sentry.addBreadcrumb({ category: 'ui.click', message: '결제 버튼 클릭', level: 'info' });
+
+// Tag — 버전·실험군·플랫폼으로 필터링. "이 버전에서만?" "이 플래그에서만?"을 즉시 답한다
+Sentry.setTag('feature_flag', 'new-recommendation');
+Sentry.setTag('app_version', process.env.NEXT_PUBLIC_APP_VERSION ?? 'unknown');
+```
+
+> 📎 재현·리포트 절차는 [debugging.md §4](debugging.md)
+
 ### 1.3 의도적 에러 캡처
 
 ```ts

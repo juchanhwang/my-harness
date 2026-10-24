@@ -363,21 +363,30 @@ Server Actions는 폼 제출, 간단한 mutation에 적합. `useActionState`로 
 'use server';
 
 import { z } from 'zod';
+import type { ActionResult } from '@/lib/action-result'; // 정의: forms.md §5.1
 
 const schema = z.object({
   name: z.string().min(1, '브랜드명을 입력하세요'),
-  domain: z.string().url('올바른 URL을 입력하세요'),
+  domain: z.url('올바른 URL을 입력하세요'),
 });
 
-export async function createBrand(prevState: any, formData: FormData) {
-  const parsed = schema.safeParse(Object.fromEntries(formData));
+export async function createBrand(
+  _prev: ActionResult<void> | null,
+  formData: FormData,
+): Promise<ActionResult<void>> {
+  const raw = {
+    name: String(formData.get('name') ?? ''),
+    domain: String(formData.get('domain') ?? ''),
+  };
+  const parsed = schema.safeParse(raw);
 
   if (!parsed.success) {
-    return { error: parsed.error.flatten().fieldErrors };
+    // values: React 19가 action 후 비제어 입력을 비우므로 입력값을 돌려준다 (forms.md §5.2)
+    return { success: false, errors: z.flattenError(parsed.error).fieldErrors, values: raw };
   }
 
   // DB 저장 로직
-  return { success: true };
+  return { success: true, data: undefined };
 }
 ```
 
@@ -390,12 +399,14 @@ import { createBrand } from '@/actions/create-brand';
 
 export function CreateBrandForm() {
   const [state, action, isPending] = useActionState(createBrand, null);
+  const failed = state?.success === false ? state : null;
 
   return (
     <form action={action}>
-      <input name="name" />
-      {state?.error?.name && <p className="text-red-500">{state.error.name}</p>}
-      <input name="domain" />
+      <input name="name" defaultValue={failed?.values?.name} />
+      {failed?.errors.name && <p className="text-red-500">{failed.errors.name[0]}</p>}
+      <input name="domain" defaultValue={failed?.values?.domain} />
+      {failed?.errors.domain && <p className="text-red-500">{failed.errors.domain[0]}</p>}
       <button disabled={isPending}>
         {isPending ? '생성 중...' : '브랜드 생성'}
       </button>

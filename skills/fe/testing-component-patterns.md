@@ -44,7 +44,7 @@ function AllProviders({ children }: { children: React.ReactNode }) {
       {/*
         프로젝트에 따라 아래 Provider를 추가한다 — 순서는 실제 앱의 layout.tsx /
         app/providers.tsx가 감싸는 순서를 그대로 반영하면 된다. 누락 시 context를 읽는
-        hook(useTheme, useOverlay 등)이 undefined를 반환하거나 throw한다.
+        hook(useTheme, useCurrentOverlay 등)이 undefined를 반환하거나 throw한다.
         - next-themes:    <ThemeProvider attribute="class">
         - overlay-kit:    <OverlayProvider />
         - nuqs:           <NuqsAdapter>

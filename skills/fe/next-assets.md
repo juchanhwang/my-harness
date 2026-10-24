@@ -53,7 +53,7 @@ import hero from './hero.jpg'
 
 → **`fill` + `sizes` 누락** = 최대 크기 다운로드. 항상 `sizes` 명시.
 
-### 1.3 LCP 이미지 — `preload` prop (Next.js 16 신규 API)
+### 1.3 LCP 이미지 — `fetchPriority` · `preload` (Next.js 16)
 
 > ⚠️ **Next.js 16부터 `priority` prop이 deprecated되고 `preload` prop으로 대체되었다.**
 >
@@ -77,14 +77,19 @@ import hero from './hero.jpg'
 
 #### 분기 규칙
 
+기본은 `loading="eager"`와 `fetchPriority="high"`를 함께 주는 것이다. 공식 문서가 "In most cases" 이쪽을 권한다. `fetchPriority`만 주면 안 된다. `<Image>`는 `priority`·`preload`·`loading`이 모두 없으면 `loading="lazy"`를 붙이므로 `<img loading="lazy" fetchpriority="high">`가 나온다 ([get-img-props.ts L426-429](https://github.com/vercel/next.js/blob/10cdcda5a88d20634f7bf1e80edbc9e2ed675a99/packages/next/src/shared/lib/get-img-props.ts#L426-L429), [L743](https://github.com/vercel/next.js/blob/10cdcda5a88d20634f7bf1e80edbc9e2ed675a99/packages/next/src/shared/lib/get-img-props.ts#L743)). `preload`는 `<head>`에 `<link rel="preload">`를 넣고 lazy를 끌 뿐 fetch 우선순위를 올리지 않는다 ([image-component.tsx](https://github.com/vercel/next.js/blob/10cdcda5a88d20634f7bf1e80edbc9e2ed675a99/packages/next/src/client/image-component.tsx#L328-L338)). `preload`는 `loading`·`fetchPriority`와 함께 쓰지 않는다 (위 "When not to use it").
+
 ```tsx
-// ✅ 단일 LCP hero — preload
+// ✅ LCP 이미지 기본값 — eager + fetchPriority (viewport별로 LCP가 달라져도 동일)
+<Image src={hero} alt="Hero" loading="eager" fetchPriority="high" />
+
+// ❌ fetchPriority만 — loading="lazy"가 붙어 LCP가 늦어진다
+<Image src={hero} alt="Hero" fetchPriority="high" />
+
+// ✅ LCP가 하나로 확정되고 <body>에서 늦게 발견돼 <head>에서 미리 받아야 할 때만 — preload
 <Image src={hero} alt="Hero" preload />
 
-// ✅ viewport별로 LCP가 달라지는 art direction — fetchPriority
-<Image src={heroDesktop} alt="Hero" fetchPriority="high" />
-
-// ✅ 즉시 로드가 필요하지만 preload는 과한 경우 — loading='eager'
+// ✅ 즉시 로드만 필요하고 우선순위를 올릴 필요는 없을 때 — loading='eager'
 <Image src="/secondary.jpg" alt="Secondary" loading="eager" />
 
 // ❌ Next.js 16에서 deprecated
@@ -118,7 +123,7 @@ module.exports = {
 
 ### 1.5 Image 체크리스트 — PR 리뷰 전 확인
 
-- [ ] **LCP 이미지** → `preload` prop 명시 (단일 LCP인 경우)
+- [ ] **LCP 이미지** → `loading="eager"` + `fetchPriority="high"` 명시 (`fetchPriority`만 주면 lazy가 남음. `preload`는 §1.3 조건일 때만, 다른 둘과 함께 쓰지 않음)
 - [ ] **LCP 이미지** → `<Suspense>` 밖, static shell에 배치
 - [ ] **`fill` 사용** → `sizes` 명시
 - [ ] **remote image** → `next.config.js`의 `images.remotePatterns`에 호스트 등록
@@ -249,7 +254,7 @@ export default function RootLayout({ children }) {
 ### Image
 - **LCP 이미지에 `loading='lazy'`** — LCP가 반드시 망가진다. ([web.dev](https://web.dev/articles/optimize-lcp))
 - **LCP 이미지를 `<Suspense>` 안에 배치** — boundary 해결 전까지 paint 안 됨.
-- **`priority` prop 사용** (Next.js 16+) — deprecated. `preload` 또는 `fetchPriority='high'`로 마이그레이션.
+- **`priority` prop 사용** (Next.js 16+) — deprecated. `loading='eager'` + `fetchPriority='high'`(기본) 또는 `preload`(§1.3 조건)로 마이그레이션.
 - **`fill` + `sizes` 누락** — 브라우저가 `100vw`로 가정해 불필요하게 큰 이미지 다운로드.
 - **`width`/`height`/`fill` 없는 `<Image>`** — 런타임 에러 또는 CLS 발생.
 - **`<img>` 태그 사용** — next/image 최적화를 완전히 포기.

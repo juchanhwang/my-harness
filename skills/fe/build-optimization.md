@@ -8,7 +8,7 @@
 
 1. [코드 스플리팅](#1-코드-스플리팅) — Route-level 자동 분할, dynamic import, `next/dynamic`, Suspense 경계
 2. [Tree Shaking — ESM이 전제 조건](#2-tree-shaking--esm이-전제-조건) — `sideEffects`, `optimizePackageImports`
-3. [번들 분석 — Turbopack 시대](#3-번들-분석--turbopack-시대) — `@next/bundle-analyzer` 실행·해석
+3. [번들 분석 — Turbopack 시대](#3-번들-분석--turbopack-시대) — `next experimental-analyze` · `@next/bundle-analyzer` · Vite `rollup-plugin-visualizer`
 4. [번들 크기 기준 (실무 가이드)](#4-번들-크기-기준-실무-가이드) — First Load JS 예산
 5. [서드파티 라이브러리 관리](#5-서드파티-라이브러리-관리) — 도입·교체·제거 판단
 6. [안티패턴](#-안티패턴)
@@ -227,6 +227,20 @@ module.exports = {
 
 → **`lodash-es`는 별도 설정 없이 자동 최적화된다.** CJS `lodash`는 자동 목록에 없으므로 cherry-pick(`lodash/debounce`) 또는 `lodash-es`로 마이그레이션해야 한다.
 
+### 2.3 내 패키지를 tree-shakable하게 — `sideEffects`와 `@__PURE__`
+
+번들러는 **사이드 이펙트가 없다고 확신하는 코드만** 제거한다. 모노레포 내부 패키지(`packages/ui`, `packages/utils`)나 직접 배포하는 라이브러리는 이 정보를 명시해야 소비자 쪽 번들에서 tree shaking이 동작한다.
+
+```jsonc
+// packages/ui/package.json
+{ "sideEffects": false }                           // 모든 모듈이 순수 → 미사용 export 제거 가능
+{ "sideEffects": ["*.css", "./src/polyfills.ts"] } // "import 자체가 효과"인 파일은 예외 목록으로 보호
+```
+
+> `sideEffects: false` 선언 후 CSS가 사라지면 이 설정이 원인이다 — [Webpack · Tree Shaking](https://webpack.js.org/guides/tree-shaking/#mark-the-file-as-side-effect-free)
+
+모듈 최상위의 함수 호출 결과(`const Icon = createIcon(...)`)는 번들러가 순수성을 판단할 수 없어 보존된다. 순수함을 안다면 `/* @__PURE__ */ createIcon(...)`으로 표시한다 (Babel·esbuild·SWC가 자동으로 붙이는 경우가 많다).
+
 ***
 
 ## 3. 번들 분석 — Turbopack 시대
@@ -264,6 +278,32 @@ module.exports = withBundleAnalyzer(nextConfig);
 ```bash
 ANALYZE=true next build --webpack
 ```
+
+### 3.3 Vite 프로젝트 — `rollup-plugin-visualizer` + `manualChunks`
+
+Vite는 production 빌드를 Rollup으로 수행하므로 분석·분할 도구도 Rollup 생태계를 쓴다.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
+
+export default defineConfig({
+  build: {
+    sourcemap: false, // 기본값. true면 .map이 dist에 생성됨 — 배포 산출물에 포함하지 않는다
+    rollupOptions: {
+      plugins: [visualizer({ open: true, filename: 'dist/stats.html', template: 'treemap' })],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) return 'vendor'; // 변경 빈도 낮은 외부 라이브러리를 분리 → 캐시 효율
+        },
+      },
+    },
+  },
+});
+```
+
+> `vendor` 하나로 묶는 것은 출발점이다. 분석 결과 특정 라이브러리가 vendor를 비대하게 만들면 그 패키지만 별도 청크로 분리한다. [Vite · build.rollupOptions](https://vite.dev/config/build-options.html#build-rollupoptions) · [Rollup · output.manualChunks](https://rollupjs.org/configuration-options/#output-manualchunks)
 
 ***
 
@@ -303,6 +343,8 @@ npx bundlephobia <package-name>
 - **`optimizePackageImports`를 lodash-es에 추가** — 이미 자동 목록에 있다. 중복 설정 불필요.
 - **개발 모드에서 번들 크기 측정** — 반드시 `next build` 후 측정한다.
 - **bundlephobia 확인 없이 의존성 추가** — 60KB짜리 라이브러리를 한 줄 유틸 때문에 추가하지 않는다.
+- **모노레포 내부 패키지에 `sideEffects` 미선언** — `packages/*`가 소비자 번들에 통째로 포함된다. §2.3.
+- **프로덕션 소스맵을 공개 배포 산출물에 포함** — 원본 코드가 노출된다. 에러 추적 도구(Sentry 등)에는 업로드하되 정적 서버에는 올리지 않는다.
 
 ### Code Splitting
 - **Server Component에서 `dynamic(..., { ssr: false })` 호출** — Next.js 공식 에러 조건. `'use client'` 모듈 안에서만 호출한다.

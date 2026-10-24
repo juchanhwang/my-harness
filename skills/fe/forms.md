@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const schema = z.object({
-  email: z.string().email('올바른 이메일을 입력하세요'),
+  email: z.email('올바른 이메일을 입력하세요'),
   password: z.string().min(8, '비밀번호는 8자 이상이어야 합니다'),
   name: z.string().min(2, '이름은 2자 이상이어야 합니다'),
 });
@@ -58,6 +58,8 @@ const form = useForm<FormData>({
   reValidateMode: 'onChange', // 에러 후에는 실시간 검증
 });
 ```
+
+> **검증 로직을 어디에 둘지**(필드마다 `register(..., { validate })` vs 스키마 한 곳 `zodResolver`)는 변경 단위가 필드인지 폼인지로 결정한다. 선택 기준표는 [code-quality.md §3.3 폼 응집도](code-quality.md#33-폼-응집도) 참조.
 
 ***
 
@@ -148,24 +150,33 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2),
 });
 
 type ActionResult<T> =
   | { success: true; data: T }
-  | { success: false; errors: Record<string, string[]> };
+  | {
+      success: false;
+      errors: Record<string, string[]>;
+      values?: Record<string, string>; // 실패 시 입력값 복원용 (§5.2)
+    };
 
 export async function createUser(
   _prev: ActionResult<User> | null,
   formData: FormData,
 ): Promise<ActionResult<User>> {
-  const parsed = schema.safeParse(Object.fromEntries(formData));
+  const raw = {
+    email: String(formData.get('email') ?? ''),
+    name: String(formData.get('name') ?? ''),
+  };
+  const parsed = schema.safeParse(raw);
 
   if (!parsed.success) {
     return {
       success: false,
-      errors: parsed.error.flatten().fieldErrors,
+      errors: z.flattenError(parsed.error).fieldErrors,
+      values: raw,
     };
   }
 
@@ -179,6 +190,11 @@ export async function createUser(
 
 `useActionState`로 폼 상태·pending 플래그를 함께 관리한다. RHF와 병행할 때는 `mode: 'onSubmit'`으로 두고 서버 에러를 `state.errors`에서 수동 매핑한다.
 
+> ⚠️ **React 19는 `<form action>`이 끝나면 비제어 입력을 초기화한다.** "After the `action` function succeeds, all uncontrolled field elements in the form are reset." — [React 문서 · form](https://react.dev/reference/react-dom/components/form)
+> 검증 실패를 throw하지 않고 `ActionResult`로 return하면 React에는 "성공"이라, 사용자가 입력한 값이 사라진다. 실패 결과에 `values`를 담아 `defaultValue`로 되돌린다. (React 19.3 + jsdom에서 확인: `defaultValue` 없으면 빈 값, 있으면 입력값 유지)
+>
+> `<select>`는 `defaultValue`만으로 안 된다. React는 마운트 뒤 바뀐 `defaultValue`를 select에 다시 적용하지 않아(`multiple`이 바뀔 때만 — [ReactDOMSelect.js `updateSelect`](https://github.com/facebook/react/blob/v19.2.0/packages/react-dom-bindings/src/client/ReactDOMSelect.js#L214-L230)), 초기화되면 처음 값으로 돌아간다. 복원할 값을 `key`로 걸어 다시 마운트한다: `<select name="grade" key={failed?.values?.grade} defaultValue={failed?.values?.grade ?? current}>`. (React 19.3 + jsdom에서 확인: `key` 없으면 처음 값, 있으면 고른 값 유지. input·textarea는 `defaultValue`만으로 유지)
+
 ```tsx
 'use client';
 
@@ -190,8 +206,16 @@ export function SignupForm() {
 
   return (
     <form action={formAction}>
-      <Input name="email" error={state?.success === false ? state.errors.email?.[0] : undefined} />
-      <Input name="name" error={state?.success === false ? state.errors.name?.[0] : undefined} />
+      <Input
+        name="email"
+        defaultValue={state?.success === false ? state.values?.email : undefined}
+        error={state?.success === false ? state.errors.email?.[0] : undefined}
+      />
+      <Input
+        name="name"
+        defaultValue={state?.success === false ? state.values?.name : undefined}
+        error={state?.success === false ? state.errors.name?.[0] : undefined}
+      />
       <Button type="submit" disabled={isPending}>
         {isPending ? '처리 중...' : '가입'}
       </Button>
@@ -233,6 +257,7 @@ export async function deleteUser(id: string): Promise<ActionResult<void>> {
 * **useState로 폼 관리**: 필드 10개면 useState 10개 → React Hook Form 사용
 * **클라이언트만 검증**: 서버에서도 반드시 Zod 검증 (동일 스키마 공유)
 * **에러 메시지 숨기기**: 에러는 즉시 필드 아래에 표시
+* **`handleSubmit(onSubmit)`만 등록**: Zod 검증 실패 시 `onSubmit`이 호출되지 않아 "제출 눌러도 무반응"으로 보인다. `transform` 전 단계에서 타입이 불일치하면 `ctx.addIssue` 커스텀 에러도 생성되지 않는다 → `handleSubmit(onSubmit, onError)`로 실패 경로를 항상 로깅·안내
 * **제출 중 버튼 미비활성화**: 더블 제출 방지 필수 (`isSubmitting`)
 * **Zod 스키마와 타입 따로 관리**: `z.infer<typeof schema>` 사용
 * **Server Action에서 `throw new Error()`**: 판별 유니온으로 `return { success: false, ... }` — 예외는 네트워크/DB 장애 같은 예기치 못한 상황에만

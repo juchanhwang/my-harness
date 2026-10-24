@@ -59,33 +59,38 @@
 
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
+import type { ActionResult } from '@/lib/action-result' // 정의: forms.md §5.1
 
 const DeletePostSchema = z.object({
-  postId: z.string().uuid(),
+  postId: z.uuid(), // RFC 9562 기준 검사. 형식(8-4-4-4-12)만 보면 되는 ID는 z.guid()
 })
 
-export async function deletePost(formData: FormData) {
+export async function deletePost(formData: FormData): Promise<ActionResult<void>> {
   // 1. 입력 검증 — TypeScript 타입은 런타임 방어가 아니다
   const parsed = DeletePostSchema.safeParse({
     postId: formData.get('postId'),
   })
-  if (!parsed.success) throw new Error('Invalid input')
+  if (!parsed.success) return { success: false, errors: { _form: ['잘못된 요청입니다'] } }
 
   // 2. 인증 — 페이지 인증에 의존하지 말고 매번 재검증
   const session = await auth()
-  if (!session?.user) throw new Error('Unauthorized')
+  if (!session?.user) return { success: false, errors: { _form: ['로그인이 필요합니다'] } }
 
   // 3. 인가 — 리소스 소유권 확인 (IDOR 방지)
   const post = await db.post.findUnique({ where: { id: parsed.data.postId } })
-  if (post?.authorId !== session.user.id) throw new Error('Forbidden')
+  if (post?.authorId !== session.user.id) {
+    return { success: false, errors: { _form: ['권한이 없습니다'] } }
+  }
 
   // 4. 실행
   await db.post.delete({ where: { id: parsed.data.postId } })
 
   // 5. 반환값 최소화 — 전체 레코드 반환 금지
-  return { success: true }
+  return { success: true, data: undefined }
 }
 ```
+
+> 검증·인증·인가 실패는 예상 가능한 에러이므로 throw하지 않고 `ActionResult`로 반환한다(forms.md §5). "For these errors, avoid using `try`/`catch` blocks and throw errors. Instead, model expected errors as return values." — [Next.js 문서 · Error Handling](https://nextjs.org/docs/app/getting-started/error-handling)
 
 ### `.bind()` 주의
 
@@ -309,14 +314,17 @@ export async function deletePost(postId: string) {
   await db.post.delete({ where: { id: postId } })
 }
 
-// ✅ 인증 + 인가
+// ✅ 인증 + 인가 — 실패는 throw하지 않고 ActionResult로 반환 (§2 5단계 참고)
 'use server'
-export async function deletePost(postId: string) {
+export async function deletePost(postId: string): Promise<ActionResult<void>> {
   const session = await auth()
-  if (!session) throw new Error('Unauthorized')
+  if (!session) return { success: false, errors: { _form: ['로그인이 필요합니다'] } }
   const post = await db.post.findUnique({ where: { id: postId } })
-  if (post?.authorId !== session.user.id) throw new Error('Forbidden')
+  if (post?.authorId !== session.user.id) {
+    return { success: false, errors: { _form: ['권한이 없습니다'] } }
+  }
   await db.post.delete({ where: { id: postId } })
+  return { success: true, data: undefined }
 }
 ```
 

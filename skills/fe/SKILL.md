@@ -41,6 +41,7 @@ description: >
 * **Language**: TypeScript (strict mode)
 * **Framework**: React latest, Next.js (App Router)
 * **상태 관리**: Zustand (클라이언트), TanStack Query (서버 상태)
+* **스키마 검증**: Zod 4 — 문자열 포맷은 `z.email()`·`z.url()`·`z.uuid()`, 필드 에러는 `z.flattenError(err).fieldErrors`. v3식 `z.string().email()`·`err.flatten()`은 deprecated
 * **디자인 시스템**: TDS (Toss Design System) 패턴, shadcn/ui
 * **유틸리티**: es-toolkit, overlay-kit, es-hangul
 * **빌드**: Turborepo, pnpm
@@ -76,6 +77,7 @@ description: >
 | Server Actions | 서버 mutation·form action·revalidation | ⚡ `vercel:nextjs` (자동, Read 불필요) + `forms.md` §5 (ActionResult 타입 + Zod + 권한 검증) + `error-handling.md` + `testing.md` |
 | 리팩토링 | 기존 코드 구조 개선 (기능 변경 없음) | `react-effects.md` + `code-quality.md` + `component-patterns.md` + `architecture.md` + `state-management.md` |
 | 코드 리뷰 | PR·코드 품질 검토 | `code-review.md` + `code-quality.md` + `react-effects.md` + `accessibility.md` + 리뷰 대상에 따라 관련 파일 추가 참조 |
+| 버그 수정/디버깅 | 재현·원인 추적·수정·재발 방지 | `debugging.md` + `error-handling.md` + `react-effects.md` + 버그 영역에 따라 관련 파일 추가 참조 |
 
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 - 새 페이지 개발 → architecture.md + code-quality.md + design-system.md + async-patterns.md + testing.md

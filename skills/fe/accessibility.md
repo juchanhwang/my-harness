@@ -14,6 +14,9 @@
 2. 아이콘 버튼에 접근 이름 누락 — `<span className="sr-only">` 또는 `aria-label`
 3. 폼 입력에 `<label>` 미연결 — shadcn Form 밖에서 직접 폼 만들 때 특히 주의
 4. `role="alert"` 남용 — 개별 필드 에러에 사용하면 인지 과부하
+5. 인터랙티브 요소 중첩 — `<Link><Button/></Link>`, 카드 `<button>` 안의 삭제 `<button>`. HTML content model 위반, 포커스 순서가 꼬인다 (→ Layer 2 "인터랙티브 요소 중첩 해소")
+6. `<form>` 없이 `<input>` + `onClick` 버튼 — Enter 제출·autocomplete 상실. `<form>` 안 `<button>`은 기본 `type="submit"`이므로 단순 버튼은 `type="button"` 명시
+7. `<tr onClick>` — 키보드 포커스 불가, 스크린 리더에 "클릭 가능" 정보가 전달되지 않는다
 
 ***
 
@@ -24,9 +27,10 @@
 ### Component-level
 
 - [ ] **클릭 가능 → `<button>` 또는 `<a href>`** — `<div onClick>` 금지
-- [ ] **이미지 → `alt`** — 의미 있는 설명, 장식용이면 `alt=""`
-- [ ] **폼 입력 → `<label>` 연결** — `htmlFor` 또는 감싸기
-- [ ] **아이콘 버튼 → 접근 이름** — `<span className="sr-only">삭제</span>`
+- [ ] **이미지 → `alt`** — 의미 있는 설명. 장식용·텍스트 옆 아이콘·캡션 있는 이미지는 `alt=""`. "아이콘"·"버튼" 대신 맥락(`"이전 페이지로 이동"`)
+- [ ] **폼 입력 → `<label>` 연결** — `htmlFor` 또는 감싸기. `placeholder`는 레이블 대체가 아니다
+- [ ] **입력 요소 → `<form>`으로 감싸기** — Enter 제출·autocomplete를 공짜로 얻는다. 단순 버튼은 `type="button"` 명시
+- [ ] **아이콘 버튼 → 접근 이름** — `<span className="sr-only">삭제</span>`. `aria-label`은 보이는 텍스트를 덮어쓴다
 - [ ] **색상만으로 정보 전달 금지** — 아이콘·텍스트로 보조
 - [ ] **키보드로 조작 가능** — Tab, Enter, Escape, 화살표
 - [ ] **포커스 인디케이터 유지** — Tailwind `ring` 커스터마이즈 시 제거하지 않기
@@ -76,8 +80,39 @@
 | shadcn/Radix 컴포넌트 사용 중 | ARIA 직접 추가하지 않는다 (이미 내장) |
 | 커스텀 위젯 | WAI-ARIA Authoring Practices 참조 후 추가 |
 | 의미적 라벨만 필요 | `aria-label`, `aria-describedby`만 추가 |
+| `<button>`을 못 쓰는 경우 (block 자식 필요) | `role="button" tabIndex={0}` + Enter/Space keydown, 또는 react-aria `useButton`. 링크는 예외 없이 `<a>` (block 자식 허용) |
 
 > "No ARIA is better than bad ARIA" — W3C WAI
+
+### 인터랙티브 요소 중첩 해소
+
+`<a>`·`<button>`·`<input>`·`<label>`·`<select>`·`<details>` 등 인터랙티브 요소는 서로 중첩할 수 없다(HTML content model). `stopPropagation()`으로 막아도 구조가 잘못된 것이라 포커스 순서·스크린 리더 낭독이 꼬인다.
+
+| 상황 | 해결 |
+|---|---|
+| 버튼처럼 보이는 링크 `<Link><Button/></Link>` | 다형 렌더링 — shadcn `<Button asChild><Link/></Button>`, TDS류는 `<Button as="a" href>` |
+| 카드 전체 클릭 + 내부 삭제 버튼 | 컨테이너 `div` + 투명 absolute 버튼(`inset-0 opacity-0`) + 내부 버튼은 `relative z-10`. 포커스 링은 `.wrapper:focus-within` |
+| 테이블 행 전체 클릭 `<tr onClick>` | `tr`를 `relative`로, 셀 안 `<a aria-label="자세히 보기">`에 `after:absolute after:inset-0`으로 클릭 영역만 확장 |
+
+> 📎 출처: [FF · 버튼 안에 버튼 넣지 않기](https://frontend-fundamentals.com/a11y/structure/button-inside-button.html) · [FF · 테이블 행에 onClick 붙이지 않기](https://frontend-fundamentals.com/a11y/structure/table-row-link.html)
+
+### 커스텀 위젯 — 네이티브 ↔ ARIA 상태 대응
+
+Radix 밖에서 위젯을 직접 만들 때만 적용한다. 네이티브 요소가 있으면 그것을 쓴다.
+
+| 상태 | 네이티브 | 커스텀 요소 |
+|---|---|---|
+| 체크 | `<input checked>` | `aria-checked` — checkbox · switch · radio |
+| 선택 | `<option selected>` | `aria-selected` — tab · listbox option |
+| 펼침 | `<details open>` | `aria-expanded` + 패널 `hidden` **항상 동기화** |
+| 비활성 | `disabled` | `aria-disabled` |
+| 현재 위치 | — | `aria-current="page"` (nav) / `"date"` (달력) |
+
+- 커스텀 체크박스·라디오·스위치: `role` + `aria-checked` + `tabIndex={0}` + Space keydown. 스위치는 `role="switch"`("켬/끔"으로 읽힘)
+- 라디오 그룹: `<fieldset><legend>` + 동일 `name` → 화살표 키 이동·개수 안내가 자동. 탭: 비활성 `tabpanel`은 `hidden` — `aria-selected`만으론 패널이 전부 낭독된다
+- `<dialog>`는 `showModal()`로 열어야 top-layer·포커스 트랩·ESC·복원이 자동. `show()`·`open` 속성은 비모달이라 아무것도 해주지 않는다
+
+> 📎 출처: [FF · 상태 지정하기](https://frontend-fundamentals.com/a11y/basic-guide/state.html) · [FF · UI 요소별 접근성 기초](https://frontend-fundamentals.com/a11y/ui-foundation/tab.html)
 
 ### aria-live 선택
 
@@ -175,7 +210,7 @@ export default function Loading() {
 
 **수동:** 키보드만으로 전체 흐름 탐색, macOS VoiceOver로 주요 흐름 검증
 
-**린팅:** `eslint-plugin-jsx-a11y` — Next.js에는 접근성 린트 규칙이 없으므로 별도 설치 필요
+**린팅:** `eslint-plugin-jsx-a11y` — Next.js에는 접근성 린트 규칙이 없으므로 별도 설치 필요. `flatConfigs.recommended`에서 **`control-has-associated-label`은 꺼져 있으므로 `error`로 직접 켠다.** 디자인 시스템 컴포넌트는 매핑하지 않으면 검사 대상이 아니다 — `settings['jsx-a11y']`에 `components: { Button: 'button', Txt: 'span' }`, `as` prop 패턴이면 `polymorphicPropName: 'as'`를 설정한다 (shadcn `asChild`는 해당 없음). ([FF · 디자인 시스템과 결합하기](https://frontend-fundamentals.com/a11y/eslint/design-system.html))
 
 > 📎 출처: WebAIM Million 2026, Deque 자동화 연구, A11Y Project Checklist
 

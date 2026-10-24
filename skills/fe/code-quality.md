@@ -105,6 +105,18 @@ function TabNavigation() {
 
 > queryKey, queryFn, staleTime 등 설정은 컴포넌트가 아닌 훅에 응집시킨다.
 
+**⚠️ 추상화의 반대 비용 — 시점 이동.** 추상화는 읽는 사람이 정의를 찾아 코드 위아래·파일 사이를 오가게 만든다. 로직이 단순한데 추상화 계층이 여러 겹이면 오히려 읽기 어렵다.
+
+```tsx
+// ❌ policy.canInvite → getPolicyByRole() → POLICY_SET — 3번 점프해야 "viewer는 초대 불가"를 안다
+const policy = getPolicyByRole(user.role);
+
+// ✅ 간단한 정책은 컴포넌트 안에 펼친다 — 한 번에 읽힌다
+const policy = { admin: { canInvite: true }, viewer: { canInvite: false } }[user.role];
+```
+
+> 판단 기준: 추상화를 걷어냈을 때 한 함수 안에서 6~7개 이하의 맥락으로 읽히면 인라인이 낫다. 분기가 그 이상으로 복잡해지면 그때 추상화한다.
+
 ### 1.3 훅 책임 분리
 
 하나의 훅에 여러 책임이 쌓이면 무한히 커진다. 도메인별로 분리한다.
@@ -122,7 +134,7 @@ const useCardIdQueryParam = () => useQueryParam("cardId");
 const useDateRangeQueryParam = () => useQueryParam("date");
 ```
 
-> 판단 기준: 훅의 책임이 무한히 늘어날 수 있으면 분리한다.
+> 판단 기준: 훅의 책임이 무한히 늘어날 수 있으면 분리한다. 성능 근거도 있다 — 통합 훅을 쓰는 컴포넌트는 `cardId`만 참조해도 `date`가 바뀔 때 리렌더링된다.
 
 ### 1.4 이름 붙이기
 
@@ -150,6 +162,16 @@ if (user.age > 19 && user.hasLicense && !user.isBanned) { /* ... */ }
 const canDrive = user.age > 19 && user.hasLicense && !user.isBanned;
 if (canDrive) { /* ... */ }
 ```
+
+**이름을 붙여야 할 때 / 붙이지 않아도 될 때**
+
+| 붙인다 | 붙이지 않는다 |
+|---|---|
+| 조건이 여러 줄에 걸쳐 복잡할 때 | 로직이 자명할 때 — `arr.map(x => x * 2)` |
+| 같은 조건을 여러 곳에서 재사용할 때 | 한 번만 쓰이고 단순할 때 — 익명 함수로 직접 처리 |
+| 독립적으로 단위 테스트하고 싶을 때 | |
+
+> 모든 조건에 변수를 뽑으면 오히려 시점 이동이 늘어난다(§1.2). 자명한 로직은 그대로 둔다.
 
 ### 1.5 위에서 아래로 읽기
 
@@ -187,6 +209,9 @@ return isLogin ? isAdmin ? <Admin /> : <User /> : <Guest />;
 if (!isLogin) return <Guest />;
 return isAdmin ? <Admin /> : <User />;
 ```
+
+> 문(statement) 위치면 early return. 값을 할당해야 하는 **표현식 위치**라 early return이 불가능하면 IIFE 안에 `if`를 나열한다:
+> `const status = (() => { if (a && b) return 'BOTH'; if (a) return 'A'; if (b) return 'B'; return 'NONE'; })();`
 
 **범위 비교는 수학 부등식처럼 왼쪽에서 오른쪽으로 작성한다.**
 
@@ -355,6 +380,16 @@ function useSignupForm() {
 }
 ```
 
+**응집의 단위를 먼저 정한다 — 필드 단위 vs 폼 전체 단위.** 위 예시는 폼 전체 단위다. 어느 쪽이 맞는지는 **변경이 필드 단위로 일어나는지, 폼 단위로 일어나는지**로 결정한다.
+
+| | 필드 단위 응집 | 폼 전체 단위 응집 |
+|---|---|---|
+| 구현 | `register('email', { validate })` — 필드마다 검증 로직 소유 | `zodResolver(schema)` — 스키마 한 곳에서 전체 검증 |
+| 선택 기준 | 필드별 독립·비동기 검증(이메일 형식, 아이디 중복, 추천 코드) / 필드+검증을 다른 폼에서 재사용 | 모든 필드가 하나의 기능(결제·배송 정보) / Wizard 스텝 폼 / 필드 간 의존(비밀번호 확인, 총액 계산) |
+| 트레이드오프 | 재사용성·독립성 ↑, 전체 흐름 파악 ↓ | 흐름 일관성 ↑, 필드 간 결합 ↑ → 재사용성 ↓ |
+
+> 구현 상세는 [forms.md](forms.md) 참조.
+
 ### 3.4 디렉토리 Co-location
 
 함께 수정되는 파일은 같은 디렉토리에 둔다. 기능 변경 시 여러 디렉토리를 오가지 않도록 한다.
@@ -444,11 +479,13 @@ function OrderCard({ order }: { order: Order }) { /* ... */ }
 
 ### 4.3 Props Drilling 제거
 
-Props가 3단계 이상 내려가면 다음 패턴을 고려한다:
+Props Drilling은 부모·자식 사이에 결합이 생겼다는 신호다 — prop 하나를 삭제하면(예: `recommendedItems` 기능 제거) 중간 컴포넌트를 전부 수정해야 한다. 다음 **순서대로** 시도한다:
 
-1. **합성(Composition)**: children을 활용하여 중간 컴포넌트가 props를 알 필요 없게 한다
-2. **Context**: 여러 컴포넌트가 같은 데이터를 공유할 때
-3. **커스텀 훅**: 데이터 접근 로직을 훅으로 추출
+1. **합성(Composition)**: children을 활용하여 중간 컴포넌트가 props를 알 필요 없게 한다 — **1순위**
+2. **커스텀 훅**: 데이터 접근 로직을 훅으로 추출해 필요한 곳에서 직접 읽는다
+3. **Context**: 합성으로도 깊이가 해소되지 않을 때만 — **최후 수단**. Context는 상태 관리 도구가 아니라 drilling 해소 도구이며, drilling되는 모든 값을 Context로 옮겨야 하는 것도 아니다
+
+> **drilling이어도 괜찮은 경우**: 그 prop이 컴포넌트의 역할과 의도를 표현한다면 문제가 아니다. 문제는 "사용하지 않고 전달만 하는" 중간 컴포넌트다. [component-patterns.md](component-patterns.md) 안티패턴 "Props drilling → Context 즉시 도피"와 동일 기준.
 
 ```tsx
 // ❌ Props Drilling

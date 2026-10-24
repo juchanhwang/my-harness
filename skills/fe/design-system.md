@@ -145,7 +145,7 @@ shadcn/ui는 **복사해서 사용하는** 컴포넌트 라이브러리다. 코�
 
 ```bash
 # 컴포넌트 추가
-npx shadcn-ui@latest add button dialog select
+npx shadcn@latest add button dialog select
 ```
 
 ### 커스텀 가이드
