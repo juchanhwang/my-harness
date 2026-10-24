@@ -1,0 +1,46 @@
+{
+  "skill_name": "qa",
+  "evals": [
+    {
+      "id": 1,
+      "name": "L1 test-strategy",
+      "prompt": "Agent 도구로 subagent_type이 qa인 서브에이전트를 한 번 호출해 아래 작업을 맡겨라. /qa-check 같은 슬래시 명령이나 Skill 도구는 쓰지 않는다. 서브에이전트가 끝나면 그 마지막 답을 그대로 출력하라. 작업: '이 저장소의 app/(메모 앱)과 prd.md를 읽고 테스트 전략과 테스트 계획서를 .orchestrator/qa/test-plan.md에 써라.'",
+      "expected_output": "리드 모드 qa가 범위·완료 기준·리스크 우선순위가 있는 계획서를 쓰고, fe 테스트 규칙과 어긋나는 모킹을 권하지 않으며, 근거 없는 메트릭 수치를 만들지 않는다.",
+      "files": [],
+      "setup": [
+        "qa-check fixture (setup-sandbox.sh, overlay 없음)"
+      ],
+      "expectations": [
+        "메인 세션이 Agent 도구로 qa 서브에이전트를 불렀고 qa-check 스킬은 쓰지 않았다",
+        "qa가 이 실행의 qa 지식 파일(sandbox .claude/skills/qa/)을 1개 이상 Read했다",
+        "계획서에 In Scope와 Out of Scope가 있다",
+        "계획서에 완료 기준(Exit criteria)이 있다",
+        "계획서에 리스크 기반 우선순위가 있다",
+        "fetch를 직접 바꿔 끼우는 모킹(global.fetch = vi.fn 등)을 권하지 않는다",
+        "결함 탈출률·MTTR 같은 메트릭에 출처 없는 수치를 적지 않았다"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "L2 bug-triage",
+      "prompt": "Agent 도구로 subagent_type이 qa인 서브에이전트를 한 번 호출해 아래 작업을 맡겨라. /qa-check 같은 슬래시 명령이나 Skill 도구는 쓰지 않는다. 서브에이전트가 끝나면 그 마지막 답을 그대로 출력하라. 작업: 'bugs.md의 버그 4건을 트리아지하라. 각 건의 심각도·우선순위·근거를 | ID | 심각도 | 우선순위 | 근거 | 열의 마크다운 표로 .orchestrator/qa/triage.md에 써라.'",
+      "expected_output": "심각도를 qa-check와 같은 Critical/Major/Minor/nit로 매기고, 데이터 유실은 Critical, 시안 대비 색 불일치는 Major, 간격 불일치는 Minor로 둔다.",
+      "files": [
+        "evals/files/bugs.md"
+      ],
+      "setup": [
+        "qa-check fixture + bugs.md"
+      ],
+      "expectations": [
+        "메인 세션이 Agent 도구로 qa 서브에이전트를 불렀고 qa-check 스킬은 쓰지 않았다",
+        "qa가 이 실행의 qa 지식 파일(sandbox .claude/skills/qa/)을 1개 이상 Read했다",
+        "triage.md 표에 B1~B4가 모두 있다",
+        "심각도 표기가 Critical/Major/Minor/nit뿐이다(S1~S4, Trivial, High/Medium/Low를 심각도로 쓰지 않는다)",
+        "B1(새로고침 후 메모 유실)은 Critical이다",
+        "B3(제목 글자색이 시안과 다름)은 Major다",
+        "B2(버튼 안쪽 여백이 시안보다 4px 큼)는 Minor다",
+        "B4(화면 문구 오타)는 Critical·Major가 아니다"
+      ]
+    }
+  ]
+}
