@@ -117,7 +117,7 @@ test('비동기 에러를 올바르게 처리한다', async () => {
 
 ### 언제 모킹하는가
 
-* ✅ 외부 API 호출
+* ✅ 외부 API 호출 — FE는 `fetch`를 직접 바꿔 끼우지 않고 MSW 핸들러로 응답을 정한다(`~/.claude/skills/fe/testing-msw.md`). BE는 HTTP 클라이언트 경계에서 대역을 쓴다(`~/.claude/skills/be/testing.md` §4)
 * ✅ 데이터베이스 접근
 * ✅ 파일 시스템 접근
 * ✅ 현재 시간 (Date.now)
@@ -135,9 +135,7 @@ vi.mock('./emailService', () => ({
   sendEmail: vi.fn().mockResolvedValue({ sent: true }),
 }));
 
-// 개별 함수 모킹
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+// 네트워크는 여기서 모킹하지 않는다 — FE는 MSW server.use()로 응답을 정한다
 
 describe('UserService', () => {
   beforeEach(() => {
