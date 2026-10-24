@@ -57,7 +57,7 @@ description: >
 | 접근성 검증 | a11y 기준 충족 여부 검증 | `accessibility-testing.md` |
 | 모바일 테스트 | 모바일 디바이스·반응형 검증 | `mobile-testing.md` |
 | 버그 트리아지 | 결함 분류·우선순위·재현 | `bug-management.md` + `qa-metrics.md` |
-| QA 프로세스 개선 | 품질 프로세스·메트릭·자동화 개선 | `qa-leadership.md` + `qa-metrics.md` + `regression-strategy.md` |
+| QA 프로세스 개선 | 품질 프로세스·메트릭·자동화 개선 | `test-strategy.md` + `qa-metrics.md` + `regression-strategy.md` |
 | Figma 시안 ↔ 구현 스타일 검수 | 토큰 값 대조, 오차 0 | `figma-style-audit.md` + `visual-testing.md` |
 | 역할 세션(`/qa-check`) | review·style·acceptance·gate 실행 | `~/.claude/skills/qa-check/SKILL.md` (역할 문서가 읽을 파일을 지정한다) |
 
@@ -78,8 +78,8 @@ description: >
   - *디바이스 매트릭스, a11y, Lighthouse mobile profile.*
 - **장애 후 재발 방지** → regression-strategy.md + qa-metrics.md + bug-management.md + test-design.md
   - *5 Whys → 재현 테스트 작성 → 회귀 suite 편입 → DER/MTTR 추적.*
-- **테스트 전략 팀 온보딩** → test-strategy.md + test-planning.md + qa-leadership.md + qa-metrics.md
-  - *피라미드/트로피 합의 → 테스트 계획서 → 프로세스 가이드 → 측정 기준.*
+- **테스트 전략 팀 온보딩** → test-strategy.md + test-planning.md + qa-metrics.md
+  - *피라미드/트로피 합의 → 전략 문서(test-strategy.md의 목차) → 테스트 계획서 → 측정 기준.*
 - **보안 감사 대응 (PCI-DSS, SOC2 등)** → security-testing.md + qa-metrics.md + ci-cd-testing.md + test-environments.md
   - *OWASP 증빙 + 감사 메트릭 + 보안 파이프라인 + 격리 환경.*
 - **Flaky E2E 테스트 안정화** → e2e-testing.md + test-automation-architecture.md + qa-metrics.md
