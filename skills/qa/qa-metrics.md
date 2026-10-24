@@ -63,10 +63,10 @@ DER = 프로덕션 버그 수 / (QA에서 발견된 버그 + 프로덕션 버그
 MTTR = Σ(수정 완료 시간 - 신고 시간) / 총 버그 수
 
 Severity별 MTTR 목표:
-- S1 (Critical): < 4시간
-- S2 (Major): < 2일
-- S3 (Minor): < 1주
-- S4 (Trivial): < 2주
+- Critical: < 4시간
+- Major: < 2일
+- Minor: < 1주
+- nit: 스킵 가능(백로그)
 ```
 
 > 🔀 **프로덕션 장애 복구 관점의 MTTR(Mean Time to Restore)은 §6-4 참조.** 두 지표는 개념이 다르다 — 여기는 "버그 티켓 수정 시간", §6-4는 "장애 발생 → 복구 완료 시간" (DORA Four Keys 기준).
@@ -255,19 +255,19 @@ Error Budget = 100% - SLO
 ├──────────┴──────────┴──────────┴────────────┤
 │                                             │
 │ 📊 Bugs by Severity                        │
-│ S1: 0  S2: 2  S3: 8  S4: 5                │
+│ Critical: 0  Major: 2  Minor: 8  nit: 5                │
 │                                             │
 │ 📈 Trend (last 5 sprints)                  │
 │ DER:     12% → 10% → 9% → 8.5% → 8.3%    │
 │ Coverage: 75% → 78% → 80% → 82% → 83%    │
 │                                             │
-│ 🐛 Open Bugs: 15 (S1:0, S2:2, S3:8, S4:5) │
+│ 🐛 Open Bugs: 15 (Critical:0, Major:2, Minor:8, nit:5) │
 │ 🔄 Flaky Tests: 3 (1.2%)                  │
 │ ⏱️ CI Pipeline: 18m 32s                    │
 │                                             │
 │ 🚨 Action Items                            │
 │ - Flaky: checkout.spec.ts (3rd week)       │
-│ - S2 #1234: 결제 timeout (assigned: Alice) │
+│ - Major #1234: 결제 timeout (assigned: Alice) │
 └─────────────────────────────────────────────┘
 ```
 
@@ -351,7 +351,7 @@ async function collectMetrics(): Promise<QualityMetrics> {
 
 ## 요약
 - 테스트 케이스: N개 실행, N개 통과 (X%)
-- 발견 버그: N개 (S1: N, S2: N, S3: N, S4: N)
+- 발견 버그: N개 (Critical: N, Major: N, Minor: N, nit: N)
 - 수정된 버그: N개
 - DER: X%
 
@@ -361,10 +361,10 @@ async function collectMetrics(): Promise<QualityMetrics> {
 | DER | X% | X% | ↓ |
 | Coverage | X% | X% | ↑ |
 | Pass Rate | X% | X% | → |
-| MTTR (S1) | Xh | Xh | ↓ |
+| MTTR (Critical) | Xh | Xh | ↓ |
 
 ## 주요 이슈
-1. [S2] 이슈 설명 — 상태, 담당자
+1. [Major] 이슈 설명 — 상태, 담당자
 
 ## 개선 제안
 1. 제안 내용

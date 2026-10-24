@@ -201,7 +201,7 @@ npx playwright test --grep @regression --grep-invert @critical
 ### 실패 테스트
 | # | 테스트 | 상태 | 담당자 | 분석 |
 |---|--------|------|--------|------|
-| 1 | 장바구니 수량 변경 | ❌ Fail | Alice | 새 API 호환 이슈 → S2 생성 |
+| 1 | 장바구니 수량 변경 | ❌ Fail | Alice | 새 API 호환 이슈 → Major 생성 |
 | 2 | 이메일 인증 링크 | ❌ Fail | Bob | 플레이키 (타이밍) → 수정 중 |
 
 ### 스킵된 테스트
