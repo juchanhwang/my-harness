@@ -62,11 +62,11 @@ JavaScript의 `undefined is not a function`은 런타임에 터진다. TypeScrip
 
 ```typescript
 // ❌ 위험 — 상태에 따라 존재하지 않는 필드 접근 가능
-interface ApiResponse {
+type ApiResponse = {
   status: 'success' | 'error';
   data?: any;
   error?: string;
-}
+};
 
 // ✅ 안전 — 각 상태별 타입이 명확
 type ApiResponse<T> =
@@ -256,8 +256,8 @@ function formatValue(value: string | number | Date): string {
 ### 커스텀 타입 가드
 
 ```typescript
-interface Dog { kind: 'dog'; bark(): void; }
-interface Cat { kind: 'cat'; meow(): void; }
+type Dog = { kind: 'dog'; bark(): void };
+type Cat = { kind: 'cat'; meow(): void };
 type Animal = Dog | Cat;
 
 // 타입 가드 함수
