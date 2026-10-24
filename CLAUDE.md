@@ -23,8 +23,8 @@
 
 에이전트 팀에서 PR을 생성할 때 반드시 아래 순서를 따른다. **순서를 건너뛰거나 변경하지 않는다.**
 
-- [ ] **1. QA pre-validation** — FE/BE 구현 완료 후, PR 생성 전에 QA가 먼저 코드를 검증한다.
-- [ ] **2. 이슈 수정 → QA 재검증** — QA가 이슈를 발견하면 FE/BE가 수정하고, QA가 재검증한다. QA 통과할 때까지 반복한다.
+- [ ] **1. QA pre-validation** — FE/BE는 구현 직후 `/qa-check` pre-check(FE: review·style, BE: review)를 통과시키고, 팀 리드가 `/qa-check gate type=<fe|be|config> …`를 실행한다. gate가 PASS 또는 PASS WITH MINOR가 되기 전에는 PR을 만들지 않는다.
+- [ ] **2. 이슈 수정 → QA 재검증** — QA가 이슈를 발견하면 FE/BE가 수정하고, QA가 재검증한다. QA 통과할 때까지 반복한다. BLOCKED는 결함이 아니라 입력 부족이다 — 필요한 것을 채워 다시 요청한다.
 - [ ] **3. QA 통과 후 PR 생성** — QA가 승인한 뒤에 담당 FE 또는 BE가 PR을 생성한다. **QA 통과 전에 PR을 생성하지 않는다.**
 - [ ] **4. CI/CD 대기** — `run_in_background`로 대기한다. 수동 폴링하지 않는다. 완료 알림을 받으면 재개한다.
 - [ ] **5. 코드 리뷰 분석 및 반영** — GitHub 리뷰와 코멘트를 한 번에 병렬로 fetch한다. 리뷰에서 언급된 파일만 읽는다 (전체 코드베이스를 다시 읽지 않는다). 변경사항을 반영하고 push한다.
@@ -41,6 +41,7 @@
 ## Anti-Patterns (Agent Team)
 
 - QA 검증 전에 PR을 생성한다.
+- pre-check 리포트 없이 gate를 요청하거나 gate 없이 PR을 만든다.
 - 구현 전체를 단일 커밋으로 만든다.
 - PR 생성 후 PR의 리뷰를 확인하지 않고 머지한다.
 - FE 코드와 BE 코드를 하나의 PR에 섞는다.
