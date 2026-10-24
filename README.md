@@ -678,7 +678,7 @@ claude-team dev "작업 설명"
 
 ## 환경 변수
 
-원격 훅 스크립트가 API 키를 사용한다. 사용 전 환경 변수를 설정해야 한다.
+원격 훅 스크립트(`hooks/claude-remote-*.sh`)는 `CLAUDE_REMOTE_API_KEY`로 Claude Remote 서버에 인증한다. 값이 없으면 요청을 보내지 않고 끝난다. 키는 저장소에 커밋하지 않는다.
 
 ```bash
 export CLAUDE_REMOTE_API_KEY="your-actual-api-key"
