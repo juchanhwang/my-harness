@@ -363,60 +363,60 @@ my-harness/
 
 | 파일 | 역할 |
 |---|---|
-| `test-strategy.md` | 테스트 피라미드/트로피·커버리지 목표 |
-| `test-planning.md` | 테스트 계획서·스코프·일정 |
-| `test-design.md` | 케이스 설계·엣지 케이스 도출 |
-| `regression-strategy.md` | 회귀 스위트·우선순위 |
+| `test-strategy.md` | 리스크 기반 우선순위·전략 문서 목차 (커버리지 수치는 fe/be threshold) |
+| `test-planning.md` | 범위 템플릿·완료 기준·시간 부족 시 검증 순서 |
+| `test-design.md` | 기법 선택 표·엣지 케이스 체크리스트 |
+| `regression-strategy.md` | 회귀 범위·스위트 관리·장애 후 재발 방지 기록 |
 
 **Unit & Integration**
 
 | 파일 | 역할 |
 |---|---|
-| `unit-testing.md` | 함수·훅·모듈 단위 격리 |
-| `integration-testing.md` | 모듈 간 연동·API·DB |
-| `test-automation-architecture.md` | 테스트 자동화 구조·DRY·유지보수 |
+| `unit-testing.md` | 단위 테스트 판별 기준 (작성 규칙은 fe/be testing) |
+| `integration-testing.md` | 통합 범위(실제 연결 vs 대역)·확인 항목 |
+| `test-automation-architecture.md` | 테스트 코드 품질 규칙·린트 |
 
 **E2E & Exploratory**
 
 | 파일 | 역할 |
 |---|---|
-| `e2e-testing.md` | Playwright·사용자 시나리오 |
-| `visual-testing.md` | 시각적 회귀 테스트 (Chromatic) |
-| `exploratory-testing.md` | 휴리스틱·세션 기반 탐색 |
+| `e2e-testing.md` | 요소 선택·대기·네트워크 가로채기·E2E 범위 |
+| `visual-testing.md` | 스크린샷 증거 규칙·시각 회귀 확인 항목 |
+| `exploratory-testing.md` | 휴리스틱(SFDPOT·FEW HICCUPPS)·세션 리포트 형식 |
 
 **Specialized Testing**
 
 | 파일 | 역할 |
 |---|---|
-| `api-testing.md` | endpoint·계약 검증·contract test |
-| `database-testing.md` | 스키마·마이그레이션·seed |
-| `performance-testing.md` | 부하·스트레스·Core Web Vitals |
-| `security-testing.md` | OWASP·취약점·인증/권한 |
-| `accessibility-testing.md` | a11y 자동/수동 검증 |
+| `api-testing.md` | 상태 코드 매트릭스·계약 확인 항목 |
+| `database-testing.md` | 마이그레이션·무결성·트랜잭션 확인 항목 |
+| `performance-testing.md` | CWV·성능 예산·부하 테스트 유형 |
+| `security-testing.md` | OWASP 2025 diff 체크리스트·보안 헤더·rate limit |
+| `accessibility-testing.md` | 색 대비 기준·axe·키보드·스크린리더 확인 항목 |
 
 **Platform & Environment**
 
 | 파일 | 역할 |
 |---|---|
-| `mobile-testing.md` | 디바이스 매트릭스·반응형 |
-| `ci-cd-testing.md` | 빌드·테스트 파이프라인·품질 게이트 |
-| `test-environments.md` | 격리·seed·환경 동기화 |
+| `mobile-testing.md` | 모바일 웹 확인 항목 (뷰포트·터치 타깃·네트워크) |
+| `ci-cd-testing.md` | CI 설정 변경 리뷰 체크리스트 |
+| `test-environments.md` | 검증 환경 인수 시 확인 항목 (격리·시드·환경 변수) |
 
 **Code Quality & Review**
 
 | 파일 | 역할 |
 |---|---|
-| `code-review.md` | PR 리뷰 체크리스트 (QA 관점) |
-| `type-safety.md` | TypeScript strict·타입 설계 |
-| `static-analysis.md` | ESLint·SonarQube·SAST 설정 |
+| `code-review.md` | 리뷰 관점별 확인처·성능·엣지 케이스·테스트 |
+| `type-safety.md` | diff 타입 점검 (규칙은 fe/typescript) |
+| `static-analysis.md` | lint·typecheck·test 실행·실패 분류·diff 점검 |
 | `figma-style-audit.md` | Figma 시안 ↔ 구현 토큰 값 대조(오차 0) — style 역할 지식 |
 
 **Operations**
 
 | 파일 | 역할 |
 |---|---|
-| `bug-management.md` | 트리아지·우선순위·재현 |
-| `qa-metrics.md` | DRE·Escape Rate·MTTR |
+| `bug-management.md` | 심각도(qa-check 4단계)·우선순위·버그 리포트 형식 |
+| `qa-metrics.md` | DER·MTTR 등 정의·데이터 출처 규칙 |
 
 </details>
 
