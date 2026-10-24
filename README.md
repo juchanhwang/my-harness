@@ -612,7 +612,7 @@ my-harness/
 
 | 훅 | 이벤트 | 등록 위치 | 역할 |
 |---|---|---|---|
-| `qa-gate-subagent-stop.sh` | `SubagentStop`(frontmatter `Stop`) | `agents/fe-dev.md`, `agents/be-dev.md` | 마지막 메시지 첫 줄에 `QA:` 라인 없이 끝나는 fe·be 서브에이전트를 한 번 차단한다(`stop_hook_active`면 통과, 입력 오류도 통과). 보고를 `SubagentHandback`으로 넘기면 `agent_transcript_path`에서 그 보고 본문의 첫 줄을 검사한다 |
+| `qa-gate-subagent-stop.sh` | `SubagentStop`(frontmatter `Stop`), `PreToolUse`(matcher `SubagentHandback`) | `agents/fe-dev.md`, `agents/be-dev.md` | 첫 줄에 `QA:` 라인 없이 끝나는 fe·be 서브에이전트를 한 번 막는다. 텍스트로 끝나면 `SubagentStop`에서 차단하고(`stop_hook_active`면 통과), 보고를 `SubagentHandback`으로 넘기면 `PreToolUse`에서 보고 본문 첫 줄을 검사해 에이전트당 한 번 거부한다. `agent_type`이 `fe-dev`·`be-dev`가 아니거나(팀원 등) 입력이 깨졌으면 통과한다 |
 
 > `hooks/` 디렉터리에는 위 3개 스크립트 외에 `notify.sh`가 남아 있지만, 현재 `settings.json`에 등록돼 있지 않다. macOS 로컬 알림은 `notify.sh`가 아니라 `Notification` 훅에 인라인으로 선언된 `osascript`가 처리한다.
 
