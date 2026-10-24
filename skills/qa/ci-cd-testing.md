@@ -41,5 +41,5 @@ CI 설정 변경을 리뷰할 때(gate `type=config`) 읽는다. 파이프라인
 - [ ] CI에 의존성 audit, 갱신 자동화, SAST가 있다 (`security-testing.md` 「그 밖의 확인 항목」의 의존성 취약점).
 
 ### 실행 시간
-- [ ] 단계 순서는 빠른 것 먼저다 (`~/.claude/skills/fe/ci-cd.md` §1). 시간 예산은 `qa-metrics.md` §5(단위 < 2분 · 통합 < 5분 · E2E < 15분 · 전체 < 20분)를 넘지 않는다.
+- [ ] 단계 순서는 빠른 것 먼저다 (`~/.claude/skills/fe/ci-cd.md` §1). 시간 예산은 `qa-metrics.md` 「핵심 QA 메트릭」 5번(단위 < 2분 · 통합 < 5분 · E2E < 15분 · 전체 < 20분)를 넘지 않는다.
 - [ ] 같은 브랜치의 이전 실행은 `concurrency`의 `cancel-in-progress`로 취소된다.
