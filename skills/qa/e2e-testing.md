@@ -14,7 +14,7 @@ E2E 도구는 Playwright다(`~/.claude/skills/fe/testing.md` §4). 테스트 코
 4. `getByText('환영합니다')`
 5. `getByTestId('submit-button')` — 위 방법으로 찾을 수 없을 때만 쓰는 최후 수단
 
-CSS 클래스(`.btn-primary.mt-4`)·`nth-child`·XPath는 쓰지 않는다. 빌드나 레이아웃이 바뀌면 깨지는 구현 종속 선택자이고, `testing.md` §8도 CSS 선택자 검색을 금지한다.
+CSS 클래스(`.btn-primary.mt-4`)·`nth-child`·XPath는 쓰지 않는다. 빌드나 레이아웃이 바뀌면 깨지는 구현 종속 선택자이고, `fe/testing.md` §8도 CSS 선택자 검색을 금지한다.
 
 ## 대기와 플레이키 방지
 

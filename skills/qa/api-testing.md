@@ -7,7 +7,7 @@ PRD 인수 조건과 FE-BE 계약(`shared/api-contracts.md`, OpenAPI가 있으�
 
 ## HTTP 상태 코드 테스트 매트릭스
 
-엔드포인트마다 해당하는 코드를 유발하는 요청을 하나씩 보낸다. 400과 422는 구분한다: 스키마·형식 위반은 400, 형식은 맞지만 도메인 규칙에 걸리는 요청은 422다(`api-design.md` §2, `error-handling.md` §3).
+엔드포인트마다 해당하는 코드를 유발하는 요청을 하나씩 보낸다. 400과 422는 구분한다: 스키마·형식 위반은 400, 형식은 맞지만 도메인 규칙에 걸리는 요청은 422다(`be/api-design.md` §2, `be/error-handling.md` §3).
 
 | 코드 | 유발하는 요청 → 확인 |
 | --- | --- |
@@ -30,7 +30,7 @@ PRD 인수 조건과 FE-BE 계약(`shared/api-contracts.md`, OpenAPI가 있으�
 - 필드 이름·타입·nullable·필수 여부가 계약과 같다.
 - 값의 형식이 스키마와 같다: ID, 이메일, enum 범위, 날짜, 정수·양수.
 - 계약에 없는 필드, 특히 민감 정보(비밀번호 해시 등)가 응답에 없다.
-- 에러 응답은 RFC 9457이다(`api-design.md` §3): `Content-Type: application/problem+json`, `type`·`title`·`status`(HTTP 상태 코드와 같은 값), 필드별 오류는 확장 필드 `errors: [{ field, message }]`.
+- 에러 응답은 RFC 9457이다(`be/api-design.md` §3): `Content-Type: application/problem+json`, `type`·`title`·`status`(HTTP 상태 코드와 같은 값), 필드별 오류는 확장 필드 `errors: [{ field, message }]`.
 - 목록 응답은 `data`와 `pagination`을 둔다(§5). cursor(기본)는 `{ nextCursor, hasMore, limit }`, offset은 `{ page, limit, total, totalPages }`.
 - URL에 버전이 있다(`/api/v1/...`).
 
@@ -44,8 +44,8 @@ PRD 인수 조건과 FE-BE 계약(`shared/api-contracts.md`, OpenAPI가 있으�
 ### 보안
 
 - [ ] SQL injection 방어 (파라미터화 쿼리)
-- [ ] CORS: 허용 목록 밖 `Origin`을 허용하지 않고 `*`를 쓰지 않는다 (`security.md` §5)
-- [ ] Rate limiting이 적용된다. 계약에 값이 없으면 전역 IP 분당 100회, 로그인 이메일 기준 15분 5회 (`security.md` §4)
+- [ ] CORS: 허용 목록 밖 `Origin`을 허용하지 않고 `*`를 쓰지 않는다 (`be/security.md` §5)
+- [ ] Rate limiting이 적용된다. 계약에 값이 없으면 전역 IP 분당 100회, 로그인 이메일 기준 15분 5회 (`be/security.md` §4)
 
 ### 에러 처리
 
