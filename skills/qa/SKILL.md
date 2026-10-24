@@ -28,7 +28,6 @@ description: >
 > | Vercel 배포 CI/CD, GitHub Actions 워크플로우, `vercel deploy --prebuilt`, 배포 전 품질 게이트 | `vercel:deployments-cicd` |
 > | Next.js 풀스택 동작 검증 (dev server → API → DB → 응답), "왜 안 돌아가는지" 디버깅 | `vercel:verification` |
 > | React/Next.js 컴포넌트 품질 리뷰 체크리스트 (hooks 사용, 접근성, 성능, TypeScript) | `vercel:react-best-practices` |
-> | Turbopack 빌드 이슈·번들 디버깅 | `vercel:turbopack` |
 > | Next.js 버전 업그레이드 검증, 마이그레이션 codemods | `vercel:next-upgrade` |
 > | Vercel Sandbox에서 테스트 코드 격리 실행 | `vercel:vercel-sandbox` |
 

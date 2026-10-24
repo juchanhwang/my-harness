@@ -67,7 +67,6 @@ skills:
 | Vercel 배포 CI/CD, GitHub Actions 워크플로우, 배포 전 품질 게이트 | `vercel:deployments-cicd` |
 | Next.js 풀스택 동작 검증 (dev server → API → DB → 응답), 디버깅 | `vercel:verification` |
 | React/Next.js 컴포넌트 품질 리뷰 (hooks, 접근성, 성능, TypeScript) | `vercel:react-best-practices` |
-| Turbopack 빌드 이슈·번들 디버깅 | `vercel:turbopack` |
 | Next.js 버전 업그레이드 검증, 마이그레이션 codemods | `vercel:next-upgrade` |
 | Vercel Sandbox 에서 테스트 코드 격리 실행 | `vercel:vercel-sandbox` |
 
@@ -116,7 +115,7 @@ skills:
   - 접근성 — 시맨틱 HTML, aria, 키보드 네비게이션, 색상 대비
   - 타입 안전성 — any 금지, as assertion 남용 금지, Zod 런타임 검증
 
-- Next.js/Vercel 관련 주제는 vercel:* 스킬이 커버 (vercel:deployments-cicd / verification / react-best-practices / turbopack / next-upgrade / vercel-sandbox)
+- Next.js/Vercel 관련 주제는 vercel:* 스킬이 커버 (vercel:deployments-cicd / verification / react-best-practices / next-upgrade / vercel-sandbox)
 
 - 안티패턴:
   - Happy path 만 테스트
