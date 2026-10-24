@@ -1,270 +1,31 @@
 # Static Analysis
 
-## 정적 분석이란
+> 📎 QA는 린터·포매터·훅·품질 게이트를 설정하지 않는다. 설정 기준은 `~/.claude/skills/fe/ci-cd.md` §1(CI 실행 순서)·§2(pre-commit/pre-push), `~/.claude/skills/fe/architecture.md` §4.3(ESLint 경계 규칙), `~/.claude/skills/fe/typescript.md` §6(tsconfig), `~/.claude/skills/fe/accessibility.md` 「Testing」(`jsx-a11y`)이다.
 
-코드를 **실행하지 않고** 분석하여 버그, 보안 취약점, 코드 스멜을 찾는 기법. 테스트 피라미드/트로피 아래 Static Analysis 레이어에 해당한다. 가장 빠르고 저렴한 품질 관리 수단.
+## 실행과 첨부
 
-## ESLint
+프로젝트의 lint·typecheck·test를 실행하고 결과를 리포트에 붙인다(절차는 `references/review.md` 4단계). 순서는 lint → typecheck → test다(빠른 것 먼저, `fe/ci-cd.md` §1).
 
-### 핵심 규칙 설정
+* [ ] `test`가 watch 모드(`vitest`)면 한 번 실행하는 스크립트(`test:run`, 없으면 `vitest run`)를 쓴다. watch 모드는 끝나지 않는다 (`~/.claude/skills/fe/testing-vitest-setup.md` 「스크립트 설정」)
+* [ ] scripts에 `--fix`·`--write`·`-u`(스냅샷 갱신)가 들어 있으면 그대로 실행하지 않는다. 소스를 고치면 공통 규칙 5(쓰기 범위)를 어긴다. 쓰기 없는 형태로 실행하거나 `Not checked`에 이유를 쓴다
 
-```javascript
-// eslint.config.js (Flat Config, ESLint 9+)
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import react from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
-import importPlugin from 'eslint-plugin-import';
+## 실패 분류
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  {
-    languageOptions: {
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: {
-      // 버그 방지
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-debugger': 'error',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
+환경 문제는 finding이 아니다. 코드 문제만 finding이 된다.
 
-      // 타입 안전성
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
-      '@typescript-eslint/no-unsafe-call': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error',
-      '@typescript-eslint/strict-boolean-expressions': 'error',
+| 구분 | 신호 | 처리 |
+|---|---|---|
+| 코드 문제 | 오류 위치가 diff 안이거나 diff가 바꾼 심볼의 호출부다. `TS####`, lint 규칙 id, 테스트 `expected`/`received` 불일치. `Cannot find module`이 diff가 추가한 상대 경로(`./foo`)를 가리킨다 | finding. `where`는 오류가 가리키는 `path:line` |
+| 환경 문제 | 코드에 닿기 전에 죽는다. `command not found`, `Cannot find module`이 패키지 이름이다(의존성 미설치), `ENOTFOUND`·`ETIMEDOUT`(네트워크), `ECONNREFUSED`(DB·서비스 미기동), `EADDRINUSE`, 필수 환경변수 없음, 권한·메모리·타임아웃 종료 | `Not checked`에 명령·종료 코드·원인 한 줄 |
+| 판단 불가 | diff와 무관한 파일에서 실패하거나, 재실행하면 결과가 바뀐다(플레이키) | 한 번 더 실행한다. 그래도 diff와 이어지지 않으면 `Not checked`에 "diff 밖 실패"와 실패 내용을 쓴다 |
 
-      // 코드 스타일
-      '@typescript-eslint/naming-convention': [
-        'error',
-        { selector: 'interface', format: ['PascalCase'] },
-        { selector: 'typeAlias', format: ['PascalCase'] },
-        { selector: 'enum', format: ['PascalCase'] },
-      ],
+## diff에서 볼 항목
 
-      // Import 정리
-      'import/order': ['error', {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-        'newlines-between': 'always',
-        alphabetize: { order: 'asc' },
-      }],
-      'import/no-duplicates': 'error',
-    },
-  },
-  {
-    files: ['**/*.test.ts', '**/*.spec.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off', // 테스트에서는 완화
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-    },
-  }
-);
-```
+* [ ] **검사 비활성화 추가** — `eslint-disable`(파일 전체 `/* eslint-disable */` 포함), 커버리지 제외 주석(`istanbul ignore`·`v8 ignore`). 사유가 적혀 있고 한 줄·한 규칙으로 좁혀져 있는가. TS 억제 주석(`@ts-*`)과 tsconfig 완화는 `type-safety.md`
+* [ ] **설정 완화** — ESLint 규칙을 `off`·`warn`으로 내리거나 `ignores`를 늘렸는가. `--max-warnings` 증가, 커버리지 threshold 하향
+* [ ] **검사 우회** — scripts에서 lint·typecheck·test 제거, `|| true`, `--passWithNoTests`, CI의 `continue-on-error`. 테스트 `skip`·`only`·삭제는 `code-review.md` 「테스트」
+* [ ] **복잡도 급증** — 한 함수에 분기·중첩이 몰렸는가. 순환 복잡도 11 이상은 높음, 21 이상은 위험이고 인지 복잡도는 함수당 15 이하다. 새 분기마다 테스트가 있는지 본다
 
-### React 전용 규칙
+## 품질 게이트
 
-```javascript
-{
-  plugins: { react, 'react-hooks': reactHooks },
-  rules: {
-    'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
-    'react/jsx-no-leaked-render': 'error', // {count && <div>} 방지
-    'react/no-array-index-key': 'warn',
-    'react/no-unstable-nested-components': 'error',
-    'react/hook-use-state': 'error', // useState 네이밍 강제
-  },
-}
-```
-
-### 커스텀 규칙 예시
-
-```javascript
-// no-hardcoded-secrets.js — 하드코딩된 시크릿 감지
-module.exports = {
-  meta: {
-    type: 'problem',
-    messages: {
-      noHardcodedSecret: 'Hardcoded secret detected. Use environment variables.',
-    },
-  },
-  create(context) {
-    const patterns = [
-      /api[_-]?key\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]/i,
-      /password\s*[:=]\s*['"][^'"]+['"]/i,
-      /secret\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]/i,
-    ];
-
-    return {
-      Literal(node) {
-        if (typeof node.value === 'string') {
-          for (const pattern of patterns) {
-            if (pattern.test(`${node.parent?.type}=${node.value}`)) {
-              context.report({ node, messageId: 'noHardcodedSecret' });
-            }
-          }
-        }
-      },
-    };
-  },
-};
-```
-
-## TypeScript Strict Mode
-
-### tsconfig.json 엄격 설정
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true
-  }
-}
-```
-
-### 각 옵션의 의미
-
-| 옵션                           | 역할                            | 잡아내는 버그                                          |
-| ---------------------------- | ----------------------------- | ------------------------------------------------ |
-| `strict`                     | 모든 strict 옵션 활성화              | null 참조, 암시적 any                                 |
-| `noUncheckedIndexedAccess`   | 배열/객체 인덱스 접근 시 `undefined` 포함 | 배열 범위 초과                                         |
-| `exactOptionalPropertyTypes` | optional과 undefined 구분        | `{ x?: string }` vs `{ x: string \| undefined }` |
-| `noImplicitReturns`          | 모든 경로에서 return 필수             | 누락된 return                                       |
-
-## SonarQube / SonarCloud
-
-### 핵심 메트릭
-
-| 메트릭                  | 기준       | 설명          |
-| -------------------- | -------- | ----------- |
-| Bugs                 | 0 (A등급)  | 잠재적 버그      |
-| Vulnerabilities      | 0 (A등급)  | 보안 취약점      |
-| Code Smells          | 적을수록 좋음  | 유지보수성 저하 코드 |
-| Coverage             | ≥ 80%    | 테스트 커버리지    |
-| Duplications         | < 3%     | 코드 중복률      |
-| Cognitive Complexity | 함수당 ≤ 15 | 인지 복잡도      |
-
-### Quality Gate 설정
-
-```yaml
-# sonar-project.properties
-sonar.projectKey=my-project
-sonar.sources=src
-sonar.tests=test
-sonar.typescript.lcov.reportPaths=coverage/lcov.info
-
-# Quality Gate 기준
-sonar.qualitygate.conditions=
-  new_bugs=0
-  new_vulnerabilities=0
-  new_code_smells_ratio<=5
-  new_coverage>=80
-  new_duplicated_lines_density<=3
-```
-
-## 코드 복잡도 측정
-
-### Cyclomatic Complexity (순환 복잡도)
-
-코드의 분기 수. if, switch, for, while, catch 등이 하나씩 복잡도를 증가.
-
-```typescript
-// 복잡도 = 1 (분기 없음) ✅
-function add(a: number, b: number): number {
-  return a + b;
-}
-
-// 복잡도 = 6 (if × 5 + else × 1) ❌ 리팩토링 필요
-function calculateShipping(order: Order): number {
-  if (order.total > 100000) {
-    if (order.isVip) { return 0; }
-    else { return 3000; }
-  } else if (order.total > 50000) {
-    if (order.isVip) { return 0; }
-    else { return 5000; }
-  } else {
-    return 10000;
-  }
-}
-
-// 복잡도 = 1 (전략 패턴) ✅
-const shippingRules = [
-  { match: (o: Order) => o.isVip, cost: 0 },
-  { match: (o: Order) => o.total > 100000, cost: 3000 },
-  { match: (o: Order) => o.total > 50000, cost: 5000 },
-];
-const DEFAULT_SHIPPING = 10000;
-
-function calculateShipping(order: Order): number {
-  const rule = shippingRules.find(r => r.match(order));
-  return rule?.cost ?? DEFAULT_SHIPPING;
-}
-```
-
-### 복잡도 기준
-
-| 복잡도   | 등급 | 조치       |
-| ----- | -- | -------- |
-| 1-5   | 좋음 | 유지       |
-| 6-10  | 보통 | 모니터링     |
-| 11-20 | 높음 | 리팩토링 권장  |
-| 21+   | 위험 | 반드시 리팩토링 |
-
-## Prettier + ESLint 통합
-
-```json
-// .prettierrc
-{
-  "semi": true,
-  "singleQuote": true,
-  "trailingComma": "es5",
-  "tabWidth": 2,
-  "printWidth": 100
-}
-```
-
-**원칙: 포매팅은 Prettier, 로직은 ESLint.** 겹치는 규칙은 `eslint-config-prettier`로 ESLint 쪽을 끈다.
-
-## Husky + lint-staged (커밋 전 검증)
-
-```json
-// package.json
-{
-  "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md}": ["prettier --write"]
-  }
-}
-```
-
-```bash
-# .husky/pre-commit
-npx lint-staged
-```
-
-## 정적 분석 체크리스트
-
-* [ ] ESLint strict 규칙이 프로젝트에 적용되어 있는가
-* [ ] TypeScript strict mode가 활성화되어 있는가
-* [ ] Prettier로 포매팅이 자동화되어 있는가
-* [ ] pre-commit hook이 설정되어 있는가
-* [ ] CI에서 lint 검사가 실행되는가
-* [ ] SonarQube/SonarCloud Quality Gate가 설정되어 있는가
-* [ ] 코드 복잡도 임계값이 설정되어 있는가
-* [ ] `any` 타입 사용이 금지/제한되어 있는가
+SonarQube·SonarCloud 같은 게이트가 CI에 있으면 결과를 리포트에 붙인다. 참고 기준은 Bugs·Vulnerabilities 0, 중복 < 3%다. 커버리지 기준값은 프로젝트 threshold가 원본이다(FE `~/.claude/skills/fe/testing-vitest-setup.md`, BE `~/.claude/skills/be/testing.md`). 숫자보다 핵심 로직의 branch가 덮였는지를 본다(`test-strategy.md` 「커버리지」).
