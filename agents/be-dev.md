@@ -10,6 +10,11 @@ hooks:
     - hooks:
         - type: command
           command: "$HOME/.claude/hooks/qa-gate-subagent-stop.sh"
+  PreToolUse:
+    - matcher: "SubagentHandback"
+      hooks:
+        - type: command
+          command: "$HOME/.claude/hooks/qa-gate-subagent-stop.sh"
 ---
 
 # Core Identity
