@@ -1,278 +1,46 @@
 # Accessibility Testing
 
-## 왜 접근성이 중요한가
+> 참조: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) · [Understanding SC 1.4.3](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html) · [axe-core API](https://github.com/dequelabs/axe-core/blob/develop/doc/API.md) · [jest-axe](https://github.com/nickcolley/jest-axe)
 
-전 세계 인구의 15%가 장애를 가지고 있다. 접근성은 선택이 아니라 **사용자 기본 권리**다. 또한 많은 국가에서 법적 요구사항이기도 하다 (미국 ADA, 한국 장애인차별금지법).
+기준은 WCAG 2.2 AA다. 구현 규칙은 `~/.claude/skills/fe/accessibility.md`, 디자인 기준은 `~/.claude/skills/designer/accessibility.md`를 따른다. 이 파일은 QA의 확인 항목과 판정 기준만 둔다.
 
-## WCAG 2.1 핵심 원칙 (POUR)
+## 자동 검사 (axe)
 
-| 원칙                      | 설명                  | 예시            |
-| ----------------------- | ------------------- | ------------- |
-| **Perceivable** (인지)    | 모든 콘텐츠를 인지할 수 있어야 함 | 이미지에 alt 텍스트  |
-| **Operable** (조작)       | 모든 기능을 조작할 수 있어야 함  | 키보드로 모든 기능 사용 |
-| **Understandable** (이해) | 콘텐츠를 이해할 수 있어야 함    | 명확한 에러 메시지    |
-| **Robust** (견고)         | 다양한 기술로 접근 가능해야 함   | 시맨틱 HTML      |
+자동 검사는 WCAG 이슈의 30~57%만 잡는다(Deque, `~/.claude/skills/fe/accessibility.md`의 Testing). `violations: []`는 통과의 증거가 아니므로 아래 수동 확인을 건너뛰지 않는다.
 
-## 자동 테스트 — axe-core
+- 태그는 `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`를 모두 지정한다. 태그가 규칙이 속한 WCAG 버전·레벨별이라 `wcag2aa`만 쓰면 2.1·2.2의 AA 규칙이 빠진다.
+- `results.incomplete`("needs review")는 axe가 판정하지 못한 항목이다(예: 배경 이미지 위 텍스트의 대비). 위반이 0이어도 열어서 수동 확인한다.
+- 모달·에러·펼침 상태는 그 상태를 만든 뒤에 스캔한다. 클릭 핸들러만 단 `div`는 axe가 알 수 없으므로 키보드로 도달하는지 직접 본다.
+- jsdom에서 도는 컴포넌트 테스트(jest-axe·vitest-axe)는 **색 대비를 검사하지 못한다**(jest-axe는 이 규칙을 끈다). 대비는 실제 브라우저(`@axe-core/playwright`)로 확인한다.
 
-### Playwright + axe-core
+## 색 대비
 
-```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+| 대상 | 기준 (AA) | SC |
+|---|---|---|
+| 일반 텍스트 | 4.5:1 이상 | 1.4.3 |
+| 큰 텍스트 (18pt=24px 이상, 또는 14pt≈18.66px 이상 굵은 글씨) | 3:1 이상 | 1.4.3 |
+| UI 컴포넌트 경계·상태(포커스 표시 포함), 의미를 전달하는 아이콘·그래픽 | 인접 색과 3:1 이상 | 1.4.11 |
+| 면제 | 비활성(disabled) 컴포넌트, 순수 장식, 로고 | 1.4.3, 1.4.11 |
 
-test.describe('접근성 테스트', () => {
-  test('홈페이지가 접근성 기준을 충족한다', async ({ page }) => {
-    await page.goto('/');
+- 반올림하지 않는다. 4.499:1은 4.5:1에 미달이다. 플레이스홀더와 hover·포커스 때 나오는 텍스트도 대상이다.
+- 기본·hover·focus·에러·다크 모드의 색 조합을 각각 잰다. 눈대중이나 색 이름으로 판정하지 않고 계산한 수치를 쓴다.
+- 측정은 ① 실제 브라우저에서 axe `color-contrast`, ② `incomplete`(배경 이미지·그라디언트 위 텍스트)는 `getComputedStyle`로 전경·배경색을 읽어 WCAG 상대 휘도식으로 직접 계산한다. 알파가 있는 색은 뒤 배경과 합성한 뒤 계산하고, DevTools 색 선택기나 WebAIM Contrast Checker로 교차 확인한다.
+- 보고 형식: `#777777 on #FFFFFF = 4.48:1 (일반 텍스트 기준 4.5:1 미달)`
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze();
+## 키보드·시맨틱·스크린리더
 
-    expect(results.violations).toEqual([]);
-  });
+- **키보드**: Tab 순서가 시각 순서와 같다. 포커스 표시가 보이고(인접 색 3:1), Enter·Space·Escape·화살표로 모든 기능이 된다(hover·드래그에는 대체 수단). 모달 밖에 키보드 트랩이 없고, 스킵 링크가 첫 Tab에 나타난다.
+- **모달·동적 변경**: 모달은 열면 포커스가 안에서 순환하고 Escape로 닫히며 닫으면 트리거로 돌아간다. 항목 삭제·라우트 전환 뒤 포커스가 `<body>`로 떨어지지 않는다(`~/.claude/skills/fe/accessibility.md`의 Focus management).
+- **시맨틱·폼**: `<main>` 1개, `<h1>` 1개, 제목 수준을 건너뛰지 않는다. 랜드마크, `<html lang>`, 고유한 `<title>`이 있다. 모든 입력에 `<label>`이 연결되고 에러는 `aria-describedby`로 연결된다.
+- **이미지**: `alt` 속성이 **없을 때** 위반이다. 장식 이미지의 `alt=""`는 올바르다. `!img.alt`로 검사하면 정상 이미지를 위반으로 잡으므로 `getAttribute('alt') === null`로 판정한다.
+- **스크린리더(수동)**: VoiceOver(macOS, Cmd+F5)·NVDA(Windows)·TalkBack(Android)로 페이지 제목, 제목(heading) 탐색 구조, 폼 레이블 낭독, 에러 메시지 자동 낭독(`aria-live`), 동적 변경 알림을 본다. 자동 검사가 못 잡는 포커스 이동 순서의 논리, 맥락 없이 이해되는 링크·버튼 텍스트, 복잡한 위젯(탭·아코디언·드래그앤드롭)이 대상이다.
 
-  test('로그인 폼이 접근성 기준을 충족한다', async ({ page }) => {
-    await page.goto('/login');
+## 체크리스트
 
-    const results = await new AxeBuilder({ page })
-      .include('#login-form')  // 특정 영역만
-      .analyze();
-
-    if (results.violations.length > 0) {
-      console.log('접근성 위반:', JSON.stringify(results.violations, null, 2));
-    }
-    expect(results.violations).toEqual([]);
-  });
-
-  test('모달이 열린 상태의 접근성', async ({ page }) => {
-    await page.goto('/dashboard');
-    await page.getByRole('button', { name: '새 항목' }).click();
-
-    // 모달이 열린 후 검사
-    await expect(page.getByRole('dialog')).toBeVisible();
-
-    const results = await new AxeBuilder({ page })
-      .include('[role="dialog"]')
-      .analyze();
-
-    expect(results.violations).toEqual([]);
-  });
-});
-```
-
-### Vitest + axe-core (컴포넌트 테스트)
-
-```typescript
-import { render } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
-
-expect.extend(toHaveNoViolations);
-
-test('Button 컴포넌트가 접근성 기준을 충족한다', async () => {
-  const { container } = render(
-    <Button variant="primary">제출하기</Button>
-  );
-  const results = await axe(container);
-  expect(results).toHaveNoViolations();
-});
-
-test('Form 컴포넌트가 접근성 기준을 충족한다', async () => {
-  const { container } = render(
-    <LoginForm onSubmit={vi.fn()} />
-  );
-  const results = await axe(container);
-  expect(results).toHaveNoViolations();
-});
-```
-
-## Pa11y — CLI 접근성 스캐너
-
-```bash
-# 단일 페이지 스캔
-npx pa11y http://localhost:3000
-
-# 여러 페이지 스캔
-npx pa11y-ci
-```
-
-```json
-// .pa11yci.json
-{
-  "defaults": {
-    "standard": "WCAG2AA",
-    "timeout": 10000,
-    "wait": 1000
-  },
-  "urls": [
-    "http://localhost:3000/",
-    "http://localhost:3000/login",
-    "http://localhost:3000/signup",
-    "http://localhost:3000/dashboard",
-    {
-      "url": "http://localhost:3000/products",
-      "actions": [
-        "wait for element .product-list to be visible"
-      ]
-    }
-  ]
-}
-```
-
-## 키보드 네비게이션 테스트
-
-```typescript
-test('키보드만으로 로그인할 수 있다', async ({ page }) => {
-  await page.goto('/login');
-
-  // Tab으로 이메일 필드 포커스
-  await page.keyboard.press('Tab');
-  const emailFocused = await page.evaluate(() =>
-    document.activeElement?.getAttribute('type') === 'email'
-  );
-  expect(emailFocused).toBe(true);
-
-  // 이메일 입력
-  await page.keyboard.type('test@test.com');
-
-  // Tab으로 비밀번호 필드
-  await page.keyboard.press('Tab');
-  await page.keyboard.type('password123');
-
-  // Tab으로 버튼 → Enter로 제출
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Enter');
-
-  await expect(page).toHaveURL('/dashboard');
-});
-
-test('모달에 포커스 트랩이 작동한다', async ({ page }) => {
-  await page.goto('/dashboard');
-  await page.getByRole('button', { name: '삭제' }).click();
-
-  // 모달 안에서 Tab 순환
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-
-  // 모달 내 첫 번째 포커스 가능 요소에 자동 포커스
-  const focused = await page.evaluate(() => document.activeElement?.tagName);
-  expect(['BUTTON', 'INPUT']).toContain(focused);
-
-  // Escape로 모달 닫기
-  await page.keyboard.press('Escape');
-  await expect(dialog).not.toBeVisible();
-});
-
-test('스킵 네비게이션 링크가 있다', async ({ page }) => {
-  await page.goto('/');
-
-  // Tab으로 첫 번째 포커스 → 스킵 링크
-  await page.keyboard.press('Tab');
-  const skipLink = page.getByRole('link', { name: /메인 콘텐츠로 이동|skip to/i });
-  await expect(skipLink).toBeFocused();
-});
-```
-
-## 색상 대비 테스트
-
-```typescript
-test('텍스트의 색상 대비가 충분하다', async ({ page }) => {
-  await page.goto('/');
-
-  const results = await new AxeBuilder({ page })
-    .withRules(['color-contrast'])
-    .analyze();
-
-  expect(results.violations).toEqual([]);
-});
-```
-
-### 수동 체크 도구
-
-* Chrome DevTools → Rendering → "Emulate vision deficiencies"
-* Contrast Checker: WebAIM (webaim.org/resources/contrastchecker)
-* 최소 대비비: 일반 텍스트 4.5:1, 큰 텍스트 3:1
-
-## 시맨틱 HTML 검증
-
-```typescript
-test('페이지 구조가 시맨틱하다', async ({ page }) => {
-  await page.goto('/');
-
-  // <main> 요소 존재
-  const main = page.locator('main');
-  await expect(main).toHaveCount(1);
-
-  // 헤딩 계층 구조 (h1 → h2 → h3, 건너뛰기 없음)
-  const headings = await page.evaluate(() => {
-    const hs = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    return Array.from(hs).map(h => parseInt(h.tagName[1]));
-  });
-
-  // h1이 하나만 존재
-  expect(headings.filter(h => h === 1)).toHaveLength(1);
-
-  // 헤딩 레벨이 2 이상 건너뛰지 않음
-  for (let i = 1; i < headings.length; i++) {
-    expect(headings[i] - headings[i - 1]).toBeLessThanOrEqual(1);
-  }
-});
-
-test('이미지에 alt 텍스트가 있다', async ({ page }) => {
-  await page.goto('/');
-
-  const imagesWithoutAlt = await page.evaluate(() => {
-    const images = document.querySelectorAll('img');
-    return Array.from(images).filter(
-      img => !img.alt && !img.getAttribute('role')?.includes('presentation')
-    ).length;
-  });
-
-  expect(imagesWithoutAlt).toBe(0);
-});
-
-test('폼 요소에 레이블이 있다', async ({ page }) => {
-  await page.goto('/signup');
-
-  const results = await new AxeBuilder({ page })
-    .withRules(['label'])
-    .analyze();
-
-  expect(results.violations).toEqual([]);
-});
-```
-
-## 스크린리더 테스트 가이드
-
-### 자동 테스트로 잡을 수 없는 것들 (수동 필요)
-
-* aria-live 영역이 올바르게 읽히는가
-* 포커스 이동 순서가 논리적인가
-* 맥락 없이도 링크/버튼 텍스트가 이해되는가
-* 복잡한 위젯(탭, 아코디언, 드래그앤드롭)의 사용성
-
-### 스크린리더 테스트 순서
-
-1. **VoiceOver** (macOS): Cmd + F5로 활성화
-2. **NVDA** (Windows): 무료 다운로드
-3. **TalkBack** (Android): 설정에서 활성화
-
-### 체크 항목
-
-* [ ] 페이지 제목이 의미 있게 읽히는가
-* [ ] 헤딩으로 탐색 시 구조가 논리적인가
-* [ ] 폼 필드에 레이블이 올바르게 연결되는가
-* [ ] 에러 메시지가 자동으로 읽히는가 (aria-live)
-* [ ] 동적 콘텐츠 변경이 알려지는가
-
-## 접근성 테스트 체크리스트
-
-* [ ] axe-core가 CI에서 자동 실행되는가
-* [ ] 컴포넌트 테스트에 접근성 검사가 포함되는가
-* [ ] 키보드만으로 모든 기능을 사용할 수 있는가
-* [ ] 색상 대비가 WCAG AA 기준을 충족하는가
-* [ ] 시맨틱 HTML이 사용되는가
-* [ ] 이미지에 적절한 alt 텍스트가 있는가
-* [ ] 폼 요소에 레이블이 연결되어 있는가
-* [ ] 포커스 표시가 시각적으로 명확한가
-* [ ] 스크린리더로 주요 플로우를 수동 테스트했는가
+- [ ] axe가 CI에서 실행되고 `incomplete`를 확인했는가
+- [ ] 컴포넌트 테스트에 접근성 검사가 있는가 (색 대비는 컴포넌트 테스트로 검증되지 않는다)
+- [ ] 키보드만으로 모든 기능을 쓸 수 있는가
+- [ ] 색 대비가 AA 기준을 충족하는가 (측정값 첨부)
+- [ ] 시맨틱 HTML, alt, 폼 레이블이 맞는가
+- [ ] 포커스 표시가 명확한가
+- [ ] 스크린리더로 주요 플로우를 수동 테스트했는가

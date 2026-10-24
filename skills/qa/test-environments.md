@@ -1,261 +1,40 @@
 # Test Environments
 
-## 환경 유형
+> 참조: [Next.js — Environment Variables](https://nextjs.org/docs/app/guides/environment-variables)
 
-| 환경             | 용도        | 데이터     | 외부 서비스     |
-| -------------- | --------- | ------- | ---------- |
-| **Local**      | 개발자 로컬    | 시드 데이터  | 모킹         |
-| **CI**         | 자동 테스트    | 일회성     | 모킹 or 테스트용 |
-| **Staging**    | 통합/인수 테스트 | 프로덕션 유사 | 실제 (샌드박스)  |
-| **Preview**    | PR별 환경    | 시드 데이터  | 모킹 or 샌드박스 |
-| **Production** | 실 서비스     | 실 데이터   | 실제         |
+QA가 검증 환경을 받을 때 확인할 것만 둔다. 구성 방법은 `~/.claude/skills/be/deployment.md`(Docker Multi-Stage Build), `~/.claude/skills/fe/ci-cd.md`(Preview Deploy, 환경별 `.env`), `~/.claude/skills/be/nestjs/testing.md`(compose DB 통합 테스트)를, 테스트 코드의 격리·시딩 패턴은 `integration-testing.md`·`e2e-testing.md`를 따른다.
 
-## Docker 테스트 환경
+## 격리
 
-### docker-compose.test.yml
+- [ ] DB·캐시·큐·외부 연동의 주소와 키가 운영을 가리키지 않는다(환경 변수 값을 열어 확인). Preview도 같다 — PR별 환경이 운영 DB나 시크릿을 쓰면 안 된다.
+- [ ] 병렬 실행(워커·샤드)이 같은 DB·계정·데이터를 공유해 서로 깨뜨리지 않는다.
+- [ ] 테스트 간 격리 방식을 알고 한계를 본다.
+  - 트랜잭션 롤백(빠름·격리 높음): 테스트와 앱이 같은 트랜잭션을 공유할 때만 성립한다. 별도 서버 프로세스를 거치는 E2E에서는 쓸 수 없고, 앱이 자체 트랜잭션을 열면 SAVEPOINT가 필요하다.
+  - TRUNCATE + 재시딩(보통·높음): 같은 DB를 병렬로 쓰면 서로 지운다. 테스트별 DB(느림·최고)는 마이그레이션 비용이 든다.
+  - 고유 데이터(UUID, 빠름·중간): 데이터가 쌓여 목록·집계 테스트가 영향을 받는다.
 
-```yaml
-version: '3.8'
+## 시드 데이터
 
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: test
-    environment:
-      NODE_ENV: test
-      DATABASE_URL: postgresql://test:test@postgres:5432/testdb
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./test-results:/app/test-results
+- [ ] 시드를 다시 실행할 수 있고(기존 데이터 정리 후 삽입) 결과가 결정적이다(고정 ID·이메일).
+- [ ] 시드·정리용 테스트 전용 엔드포인트(`/api/test/seed`, `/api/test/cleanup`)가 운영과 외부에 열린 환경(Staging, Preview)에서 닫혀 있다. 환경 변수 가드만 믿지 말고 실제로 요청해 404나 차단을 확인한다.
+- [ ] 시드의 종류·규모가 검증 목적에 맞다. 목록·페이지네이션·성능은 몇 건으로 검증할 수 없다.
+- [ ] Staging의 "프로덕션 유사" 데이터는 개인정보가 익명화돼 있다.
 
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: testdb
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    tmpfs:
-      - /var/lib/postgresql/data
+## 운영과의 차이
 
-  redis:
-    image: redis:7-alpine
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-```
+차이를 목록으로 받아, 검증하지 못한 범위로 리포트에 적는다.
 
-```bash
-# 테스트 실행
-docker compose -f docker-compose.test.yml run --rm app npm test
+- [ ] DB·Redis·Node의 엔진과 버전이 운영과 같다. In-memory DB 대체는 운영과 같은 종류의 DB가 아니다(`~/.claude/skills/be/testing.md`의 Integration Testing 전략).
+- [ ] 테스트에서만 끈 기능을 파악한다 — 레이트 리밋(`ENABLE_RATE_LIMIT=false`), 인증, 캐시, 로그 수준. 꺼진 기능은 이 환경에서 검증되지 않은 것이다.
+- [ ] 외부 서비스가 모킹·샌드박스·실제 중 무엇인지 알고, 모킹이 실제의 오류·지연·페이지네이션을 재현하는지 본다.
+- [ ] 인프라 차이를 안다: tmpfs DB(디스크 I/O 없음), 단일 인스턴스(분산 환경 문제가 안 드러남), 시간대, 데이터 규모.
 
-# 정리
-docker compose -f docker-compose.test.yml down -v
-```
+## 환경 변수 누락으로 인한 조용한 실패
 
-### Testcontainers (프로그래밍 방식)
+변수가 없어도 앱이 기본값이나 비활성 상태로 떠서 테스트가 통과한다. 이때의 통과는 검증이 아니다.
 
-```typescript
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
-import { RedisContainer } from '@testcontainers/redis';
-
-let pgContainer: StartedPostgreSqlContainer;
-let redisContainer: StartedRedisContainer;
-
-beforeAll(async () => {
-  pgContainer = await new PostgreSqlContainer('postgres:16')
-    .withDatabase('testdb')
-    .start();
-
-  redisContainer = await new RedisContainer('redis:7').start();
-
-  process.env.DATABASE_URL = pgContainer.getConnectionUri();
-  process.env.REDIS_URL = redisContainer.getConnectionUrl();
-
-  // 마이그레이션 실행
-  await runMigrations(process.env.DATABASE_URL);
-}, 60000);
-
-afterAll(async () => {
-  await pgContainer?.stop();
-  await redisContainer?.stop();
-});
-```
-
-## 데이터 시딩 (Test Data Seeding)
-
-### 시딩 스크립트
-
-```typescript
-// test/seed.ts
-import { db } from '@/db';
-import { users, products, orders } from '@/db/schema';
-
-export async function seedTestData() {
-  // 기존 데이터 정리
-  await db.delete(orders);
-  await db.delete(products);
-  await db.delete(users);
-
-  // 사용자 시딩
-  const [alice, bob] = await db.insert(users).values([
-    { name: 'Alice', email: 'alice@test.com', role: 'admin', password: await hash('password123') },
-    { name: 'Bob', email: 'bob@test.com', role: 'member', password: await hash('password123') },
-  ]).returning();
-
-  // 상품 시딩
-  const [product1, product2] = await db.insert(products).values([
-    { name: '상품 A', price: 10000, stock: 100 },
-    { name: '상품 B', price: 20000, stock: 50 },
-  ]).returning();
-
-  // 주문 시딩
-  await db.insert(orders).values([
-    { userId: alice.id, productId: product1.id, quantity: 2, status: 'completed' },
-    { userId: bob.id, productId: product2.id, quantity: 1, status: 'pending' },
-  ]);
-
-  return { users: { alice, bob }, products: { product1, product2 } };
-}
-
-// E2E 시딩 API 엔드포인트 (테스트 환경에서만)
-if (process.env.NODE_ENV === 'test') {
-  app.post('/api/test/seed', async (req, res) => {
-    const data = await seedTestData();
-    res.json(data);
-  });
-
-  app.post('/api/test/cleanup', async (req, res) => {
-    await cleanupTestData();
-    res.json({ ok: true });
-  });
-}
-```
-
-### Fixture 파일
-
-```json
-// test/fixtures/users.json
-[
-  {
-    "id": "user-1",
-    "name": "Test Admin",
-    "email": "admin@test.com",
-    "role": "admin"
-  },
-  {
-    "id": "user-2",
-    "name": "Test Member",
-    "email": "member@test.com",
-    "role": "member"
-  }
-]
-```
-
-## 환경 격리
-
-### 테스트 간 격리 전략
-
-| 전략             | 속도 | 격리 수준 | 복잡도 |
-| -------------- | -- | ----- | --- |
-| 트랜잭션 롤백        | 빠름 | 높음    | 낮음  |
-| TRUNCATE + 재시딩 | 보통 | 높음    | 중간  |
-| 테스트별 DB        | 느림 | 최고    | 높음  |
-| 고유 데이터 (UUID)  | 빠름 | 중간    | 낮음  |
-
-### 트랜잭션 롤백 (가장 추천)
-
-```typescript
-import { beforeEach, afterEach } from 'vitest';
-
-let savepoint: string;
-
-beforeEach(async () => {
-  savepoint = `test_${Date.now()}`;
-  await db.execute(sql.raw(`SAVEPOINT ${savepoint}`));
-});
-
-afterEach(async () => {
-  await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT ${savepoint}`));
-});
-```
-
-### 고유 데이터 전략
-
-```typescript
-function uniqueEmail() {
-  return `test-${crypto.randomUUID()}@test.com`;
-}
-
-test('사용자 생성', async () => {
-  const email = uniqueEmail();
-  await createUser({ email });
-  const user = await findByEmail(email);
-  expect(user).toBeTruthy();
-});
-```
-
-## 환경 변수 관리
-
-### .env 파일 계층
-
-```
-.env                  # 기본값 (커밋)
-.env.local            # 로컬 오버라이드 (gitignore)
-.env.test             # 테스트 환경 (커밋)
-.env.test.local       # 테스트 로컬 오버라이드 (gitignore)
-.env.production       # 프로덕션 (커밋, 민감 정보 없음)
-```
-
-```bash
-# .env.test
-NODE_ENV=test
-DATABASE_URL=postgresql://test:test@localhost:5432/testdb
-REDIS_URL=redis://localhost:6379
-LOG_LEVEL=error
-ENABLE_RATE_LIMIT=false
-EXTERNAL_API_URL=http://localhost:9090
-```
-
-## Preview 환경 (PR별 환경)
-
-### Vercel Preview Deployments
-
-```yaml
-e2e-preview:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - name: Wait for Vercel preview
-      uses: patrickedqvist/wait-for-vercel-preview@v1
-      id: preview
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    - run: npx playwright test
-      env:
-        BASE_URL: ${{ steps.preview.outputs.url }}
-```
-
-## 환경 관리 체크리스트
-
-* [ ] 테스트 환경이 프로덕션과 격리되어 있는가
-* [ ] 테스트 데이터가 자동으로 시딩/정리되는가
-* [ ] 테스트 간 데이터 격리가 보장되는가
-* [ ] Docker로 일관된 환경이 재현 가능한가
-* [ ] 환경 변수가 계층적으로 관리되는가
-* [ ] 테스트 전용 API 엔드포인트가 프로덕션에서 비활성화되는가
-* [ ] 외부 서비스가 모킹/샌드박스로 대체되는가
-* [ ] CI 환경이 로컬과 동일한 결과를 내는가
+- [ ] 필요한 변수 목록(`.env.example`)과 환경에 주입된 값을 대조한다. 이름만 있고 값이 빈 것도 누락이다.
+- [ ] 앱이 시작할 때 환경 변수를 검증하고 누락되면 바로 종료한다(`~/.claude/skills/be/security.md`의 Secrets 관리). 그렇지 않으면 누락이 기본값 동작에 숨는다.
+- [ ] 빌드 시점 변수: Next.js `NEXT_PUBLIC_*`는 빌드할 때 번들에 박힌다. 빌드 뒤 값을 바꿔도 반영되지 않으므로 빌드 환경에 변수가 있었는지 본다.
+- [ ] Turborepo에서 `tasks.build.env`에 필수 변수를 빼먹으면 Vercel이 조용히 잘못된 캐시를 가져온다(`~/.claude/skills/fe/architecture.md`의 함정).
+- [ ] CI 결과가 로컬과 같고 Docker 이미지·의존 버전이 고정돼 환경이 재현된다. 다르면 변수·버전·이미지 차이를 먼저 찾는다.
