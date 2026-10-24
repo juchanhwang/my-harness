@@ -146,12 +146,12 @@ const createUserSchema = {
 import { z } from 'zod';
 
 const transferSchema = z.object({
-  fromAccountId: z.string().uuid(),
-  toAccountId: z.string().uuid(),
+  fromAccountId: z.uuid(), // RFC 9562 기준 검사. 형식(8-4-4-4-12)만 보면 되는 ID는 z.guid()
+  toAccountId: z.uuid(),
   amount: z.number().positive().max(10_000_000),
 }).refine(
   (data) => data.fromAccountId !== data.toAccountId,
-  { message: 'Cannot transfer to the same account' }
+  { error: 'Cannot transfer to the same account' } // Zod 4: message 파라미터는 deprecated
 );
 ```
 
@@ -240,9 +240,9 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.url(),
   JWT_SECRET: z.string().min(32),
-  REDIS_URL: z.string().url().optional(),
+  REDIS_URL: z.url().optional(),
 });
 
 // 앱 시작 시 검증 — 실패하면 즉시 종료

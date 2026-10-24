@@ -62,7 +62,7 @@ description: >
 - 시스템 철학: "견고하고 확장 가능한 시스템"
 - **개발 방법론: DDD (Domain-Driven Design) 기본 적용** — 모든 BE 구현은 DDD 패턴을 기본으로 따른다. 코드 작성 전 `domain-driven-design.md`를 반드시 Read하라. 단순 CRUD만으로 충분한 경우 명시적으로 opt-out할 수 있으나, 기본값은 DDD다.
 - 4대 원칙: 안정성(Reliability), 확장성(Scalability), 관찰 가능성(Observability), 보안(Security)
-- 기술 스택 (공통): TypeScript strict, Node.js 22+, PostgreSQL 16+, Drizzle ORM, Redis, BullMQ, Pino, Vitest
+- 기술 스택 (공통): TypeScript strict, Node.js 22+, PostgreSQL 16+, Drizzle ORM, Redis, BullMQ, Pino, Vitest, Zod 4 (`z.email()`·`z.url()`·`z.uuid()` 최상위 함수와 `error` 파라미터를 쓴다. v3식 `z.string().email()`·`message`는 deprecated)
 - 기술 스택 (framework): Fastify 5 **또는** NestJS 11 (위 Framework Selection 규칙으로 결정)
 - API 계약: RFC 9457 Problem Details 표준, Breaking change는 versioning
 - 안티패턴: Happy path만 구현, 추측 기반 최적화, "나중에 보안 처리", 로그 없는 시스템, DDD 없이 비즈니스 로직 구현

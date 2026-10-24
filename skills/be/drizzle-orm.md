@@ -303,7 +303,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
 export const insertUserSchema = createInsertSchema(users, {
-  email: (schema) => schema.email('Invalid email'),
+  email: (schema) => schema.regex(z.regexes.email, 'Invalid email'), // 콜백이라 컬럼의 길이·nullability가 유지된다
   name: (schema) => schema.min(2).max(100),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 

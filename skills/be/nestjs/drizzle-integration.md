@@ -460,7 +460,7 @@ import { z } from 'zod';
 import { users } from '../../../core/database/schema';
 
 export const insertUserSchema = createInsertSchema(users, {
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(50),
 }).omit({
   id: true,
