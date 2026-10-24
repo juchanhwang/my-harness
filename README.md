@@ -9,7 +9,7 @@ Claude Code 개인 하네스 설정 저장소.
 ```
 my-harness/
 ├── agents/          # 서브 에이전트 정의 (16개)
-├── skills/          # 스킬 정의 (19개 — 도메인 7 + 범용 8 + 역할 세션 1 + workspace 3, 참조 파일 197개)
+├── skills/          # 스킬 정의 (20개 — 도메인 7 + 범용 9 + 역할 세션 1 + workspace 3, 참조 파일 197개)
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (5개)
 ├── bin/             # CLI 커맨드 (1개)
@@ -48,7 +48,7 @@ my-harness/
 | `ops-lead.md` | sonnet | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
-## 스킬 (19)
+## 스킬 (20)
 
 ### 도메인 스킬 (7)
 
@@ -57,10 +57,10 @@ my-harness/
 | 스킬 | 역할 | 참조 파일 |
 |---|---|---|
 | `be` | 백엔드 — Node.js/TS, PostgreSQL/Drizzle, Redis, BullMQ, Fastify 5 / NestJS 11 variant | 44개 |
-| `fe` | 프론트엔드 — React/Next.js, 상태 관리, 성능, 테스트, 접근성 | 32개 |
+| `fe` | 프론트엔드 — React/Next.js, 상태 관리, 성능, 테스트, 접근성 | 33개 |
 | `po` | 프로덕트 오너 — 비전/전략, PRD, 우선순위, 사용자 리서치, 성장 | 24개 |
 | `designer` | 디자인 — UI/UX, 디자인 시스템, 토큰, 접근성, 리서치 | 24개 |
-| `qa` | QA — 테스트 전략, 자동화, 성능/보안/접근성 테스트, 정적 분석, Figma 스타일 검수 | 25개 |
+| `qa` | QA — 테스트 전략, 자동화, 성능/보안/접근성 테스트, 정적 분석, Figma 스타일 검수 | 24개 |
 | `ops-lead` | 운영 — 프로젝트 관리, 클라이언트, SLA, 프로세스 최적화 | 24개 |
 | `data-analyst` | 데이터 — SQL, 퍼널/코호트 분석, A/B 테스트, 대시보드 | 24개 |
 
@@ -151,7 +151,7 @@ my-harness/
 </details>
 
 <details>
-<summary><b><code>fe</code> 참조 파일 (32)</b></summary>
+<summary><b><code>fe</code> 참조 파일 (33)</b></summary>
 
 **Architecture & Code Quality**
 
@@ -219,6 +219,7 @@ my-harness/
 | `security.md` | XSS·CSRF·인증 토큰 처리 |
 | `seo.md` | 메타태그·OG·구조화 데이터 |
 | `i18n.md` | 다국어·번역 키·로케일 |
+| `debugging.md` | 에러 메시지 분류·재현·근본 원인 수정·재발 방지, FE 빈출 버그 패턴 |
 
 </details>
 
@@ -357,7 +358,7 @@ my-harness/
 </details>
 
 <details>
-<summary><b><code>qa</code> 참조 파일 (24)</b></summary>
+<summary><b><code>qa</code> 참조 파일 (24 + <code>evals/</code>)</b></summary>
 
 **Strategy & Planning**
 
@@ -543,12 +544,13 @@ my-harness/
 
 </details>
 
-### 범용 스킬 (8)
+### 범용 스킬 (9)
 
 | 스킬 | 역할 |
 |---|---|
 | `commit-convention` | Conventional Commits + Tim Pope + Chris Beams 기반 Git 커밋 컨벤션 |
 | `find-skills` | `npx skills` CLI로 오픈 스킬 생태계 검색 및 설치 지원 |
+| `frontend-design` | 새 UI를 만들거나 바꿀 때의 미적 방향·타이포그래피 가이드 (anthropics/skills, 같은 이름의 플러그인과 별개) |
 | `planning-workflow` | 도메인 스페셜리스트의 "플랜 모드" 트리거 시 표준 계획 수립 5단계 워크플로우 |
 | `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node) |
 | `pdf` | PDF 읽기·병합·분할·워터마크·폼 작성·OCR 등 전방위 PDF 처리 |
@@ -572,7 +574,7 @@ my-harness/
 | `fe-performance-workspace/` | `fe` (performance) | `evals/`, `iteration-1/` (eval-0~2: ssr-boundary, react-compiler-memo, code-splitting) |
 | `po-workspace/` | `po` | `iteration-1/` (eval-0~2: prd-writing, prioritization-rice, implicit-feature-decision), `skill-snapshot/` |
 
-## 플러그인 (10)
+## 플러그인 (11)
 
 `settings.json`의 `enabledPlugins`에 선언. Claude Code가 자동으로 설치/업데이트한다.
 
@@ -588,6 +590,7 @@ my-harness/
 | `playwright` | Playwright 브라우저 자동화 테스트 |
 | `github` | GitHub MCP 서버 (이슈·PR·레포 관리) |
 | `vercel` | Vercel 플랫폼 연동 (배포, 로그, 환경 변수) |
+| `figma` | Figma MCP 서버 (시안 변수·디자인 컨텍스트·스크린샷 조회, `/qa-check style`이 사용) |
 
 ## 커맨드 (2)
 
