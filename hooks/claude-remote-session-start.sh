@@ -1,6 +1,9 @@
 #!/bin/bash
 # Claude Code webhook hook for Claude Remote - SessionStart event
 
+# The API key comes from the environment; never hardcode it in this repo.
+[ -n "$CLAUDE_REMOTE_API_KEY" ] || exit 0
+
 PORT="${CLAUDE_REMOTE_PORT:-8765}"
 HOOK_SERVER_URL="http://localhost:${PORT}/hook"
 
@@ -15,5 +18,5 @@ JSON=$(cat <<JSONEOF
 {"event":"SessionStart","project":"$PROJECT","tmux_session":"$TMUX_SESSION","timestamp":$TIMESTAMP}
 JSONEOF
 )
-curl -s -X POST "$HOOK_SERVER_URL"     -H "Content-Type: application/json"     -H "X-API-Key: ***REMOVED***"     -d "$JSON"     > /dev/null 2>&1 &
+curl -s -X POST "$HOOK_SERVER_URL"     -H "Content-Type: application/json"     -H "X-API-Key: ${CLAUDE_REMOTE_API_KEY}"     -d "$JSON"     > /dev/null 2>&1 &
 exit 0
