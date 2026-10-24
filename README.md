@@ -9,7 +9,7 @@ Claude Code 개인 하네스 설정 저장소.
 ```
 my-harness/
 ├── agents/          # 서브 에이전트 정의 (16개)
-├── skills/          # 스킬 정의 (20개 — 도메인 7 + 범용 9 + 역할 세션 1 + workspace 3, 참조 파일 197개)
+├── skills/          # 스킬 정의 (17개 — 도메인 7 + 범용 6 + 역할 세션 1 + workspace 3, 참조 파일 197개)
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (5개)
 ├── bin/             # CLI 커맨드 (1개)
@@ -48,7 +48,7 @@ my-harness/
 | `ops-lead.md` | sonnet | 클라이언트 운영 총괄 (프로젝트 관리, CI/CD) |
 | `data-analyst.md` | opus | 시니어 데이터 애널리스트 (SQL, 퍼널/코호트 분석) |
 
-## 스킬 (20)
+## 스킬 (17)
 
 ### 도메인 스킬 (7)
 
@@ -544,19 +544,18 @@ my-harness/
 
 </details>
 
-### 범용 스킬 (9)
+### 범용 스킬 (6)
 
 | 스킬 | 역할 |
 |---|---|
 | `commit-convention` | Conventional Commits + Tim Pope + Chris Beams 기반 Git 커밋 컨벤션 |
 | `find-skills` | `npx skills` CLI로 오픈 스킬 생태계 검색 및 설치 지원 |
-| `frontend-design` | 새 UI를 만들거나 바꿀 때의 미적 방향·타이포그래피 가이드 (anthropics/skills, 같은 이름의 플러그인과 별개) |
 | `planning-workflow` | 도메인 스페셜리스트의 "플랜 모드" 트리거 시 표준 계획 수립 5단계 워크플로우 |
 | `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node) |
-| `pdf` | PDF 읽기·병합·분할·워터마크·폼 작성·OCR 등 전방위 PDF 처리 |
-| `pptx` | PPTX 읽기·생성·편집·템플릿 작업 (markitdown + pptxgenjs 기반) |
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
+
+PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-skills:pptx`)을 쓴다. 이 스킬은 그 계정으로 로그인한 환경에만 내려오므로 저장소에는 없다. 프론트엔드 디자인 가이드는 `frontend-design` 플러그인이 맡는다.
 
 ### 역할 세션 스킬 (1)
 
@@ -584,7 +583,7 @@ my-harness/
 | `context7` | 라이브러리 공식 문서 실시간 검색 |
 | `code-review` | 멀티 에이전트 기반 PR 코드 리뷰 |
 | `feature-dev` | 탐색→설계→구현→리뷰 기능 개발 워크플로우 |
-| `frontend-design` | 고품질 프론트엔드 UI/UX 디자인 |
+| `frontend-design` | 새 UI를 만들거나 바꿀 때의 미적 방향·타이포그래피 가이드 |
 | `skill-creator` | 스킬 생성·테스트·평가·개선 루프 |
 | `typescript-lsp` | TypeScript LSP 연동 (타입 진단, 자동 완성) |
 | `playwright` | Playwright 브라우저 자동화 테스트 |
