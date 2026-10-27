@@ -1,0 +1,9 @@
+{
+  "name": "playwright-runner",
+  "private": true,
+  "description": "QA acceptance 배치 모드용 하네스 Playwright 러너. 프로젝트에 설치하지 않고 report-dir의 임시 spec을 돌린다.",
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
