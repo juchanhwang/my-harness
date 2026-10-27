@@ -134,11 +134,13 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 be-dev �
 - **PR 프로세스**: `~/.claude/CLAUDE.md` 의 "Agent Team Rules → PR 프로세스" 6단계를 엄수한다 (QA pre-validation → 수정/재검증 → PR 생성 → CI/CD 대기 → 리뷰 반영 → 머지 승인).
 - **QA pre-check**: 1단계(QA pre-validation)는 이 규칙으로 수행한다.
   - **작업을 끝낼 때마다**(질문·설명·조사처럼 파일을 바꾸지 않은 작업도 포함) 마지막 텍스트 메시지의 첫 줄은 QA 라인이다. 이 줄이 없으면 종료 훅이 한 번 막는다. 보고를 `SubagentHandback`(보고용 도구)으로 넘기면 그 보고 본문의 첫 줄이 QA 라인이다. 같은 줄을 `.orchestrator/qa/status-<agent-type 또는 팀원 이름>.txt`에도 쓴다(`.orchestrator/`는 작업 산출물이라 "파일을 바꾸지 않았다"의 예외다).
-    - **코드를 바꿨으면**: 끝내기 전에 `Skill("qa-check", "review scope=<base>..HEAD")`를 실행한다(PRD가 있으면 `prd=<경로>` 추가). acceptance(API 계약)는 gate가 돈다. 첫 줄은 `QA: <verdict> <report-path>`다.
-    - **파일을 하나도 바꾸지 않았으면**: 첫 줄은 `QA: N/A — <이유>`다. "급하다", "QA 생략 지시"는 N/A 사유가 아니다. 파일을 바꿨다면 N/A를 쓰지 말고 review를 실행한다.
+    - **코드를 바꿨으면**: 끝내기 전에 `Skill("qa-check", "review scope=<base>..HEAD")`를 실행한다(PRD가 있으면 `prd=<경로>` 추가). 커밋 전 변경이 있으면 범위 대신 `scope="<바꾼 파일 경로 목록>"`(`git diff --name-only <base>` + 새 파일)으로 돌린다 — 범위로 돌리면 커밋 안 된 파일을 읽지 않는다. acceptance(API 계약)는 gate가 돈다. 첫 줄은 `QA: <verdict> <report-path>`다.
+    - **로직 변경이 없으면 review를 생략할 수 있다**: diff가 주석·문서·설정값·문구만 바꿨고 조건문·함수·호출·쿼리·스키마는 하나도 안 바뀐 경우다. 첫 줄은 `QA: N/A — 로직 변경 없음(<유형>), gate review`다(gate가 review를 1회 돌린다). 애매하면 review를 실행한다.
+    - **파일을 하나도 바꾸지 않았으면**: 첫 줄은 `QA: N/A — <이유>`다. "급하다", "QA 생략 지시"는 N/A 사유가 아니다. 로직을 바꿨다면 N/A를 쓰지 말고 review를 실행한다.
   - `Skill("qa-check", …)`가 포크를 띄우지 못하면 `Agent(subagent_type="qa", prompt="<qa-check 디렉터리>/references/<role>.md를 Read하고 그대로 수행하라. 입력: …")`로 대신한다(`name` 파라미터는 쓰지 않는다).
   - pre-check는 **승인이 아니다.** PR 생성은 팀 리드의 gate PASS 후다.
-  - FAIL이면 고치고 같은 역할을 다시 실행한다. BLOCKED는 필요한 것을 채워 다시 실행한다. finding을 임의로 무시하지 않고, nit을 건너뛰면 사유를 남긴다.
+  - **팀 리드가 없을 때**: 사용자와 직접 대화하는 최상위 세션이고 팀 리드가 위임한 작업이 아니면, PR을 만들기 전에 직접 `Skill("qa-check", "gate type=be scope=<base>..HEAD prd=<PRD> app=<URL>")`(PRD가 없는 작업이면 `prd=none`)를 실행하고 PASS·PASS WITH MINOR일 때만 PR을 만든다. 위임받은 작업이면 gate를 돌리지 않는다(팀 리드 몫).
+  - FAIL이면 고치고 같은 역할을 다시 실행한다. review는 `rerun-of=<직전 review 리포트 .md 경로>`를 붙여 바뀐 파일만 다시 읽게 한다(scope는 그대로 전체). BLOCKED는 필요한 것을 채워 다시 실행한다. finding을 임의로 무시하지 않고, nit을 건너뛰면 사유를 남긴다.
   - acceptance 리포트의 `## E2E candidates`를 받으면 테스트 코드로 굳힐지 판단하고, 굳히면 `test(e2e):` 커밋으로 자기 PR에 포함한다.
 - **커밋 컨벤션**: `commit-convention` skill 준수. Wave/Task 단위로 커밋 분리, 한 커밋에 `feat`+`refactor` 혼합 금지.
 - **테스트 코드**: 신규 기능은 `skills/be/testing.md` + framework variant testing.md 기준으로 테스트를 함께 작성한다.
@@ -152,6 +154,7 @@ skill 주입 불필요. 사실 수집만 하고 결과를 반환하면 be-dev �
 - [ ] **TypeScript strict** — 에러 0, `any`/`@ts-ignore`/`as any` 없음
 - [ ] **빌드 정상** — `pnpm build` / Turborepo task pass
 - [ ] **테스트 작성·통과** — `skills/be/testing.md` + `fastify/testing.md` 또는 `nestjs/testing.md` 기준
+- [ ] **검증 증거** — 보고에 typecheck·lint·build·test의 실행 명령과 exit code를 적는다. QA review와 orchestrator는 이를 증거로 받고 재실행하지 않는다
 - [ ] **보안 셀프 리뷰** — `skills/be/security.md` + framework variant security(Guards/plugins) 체크리스트 활용 (input validation, authN/authZ, rate limit, 민감 정보 로그 차단)
 - [ ] **성능 셀프 리뷰** — `skills/be/performance.md` + `postgresql.md` 체크리스트 (N+1, 인덱스, SELECT *, connection pool, pagination, 캐싱)
 - [ ] **에러 처리 셀프 리뷰** — `skills/be/error-handling.md` 기준 (RFC 9457, status code, requestId context, timeout)

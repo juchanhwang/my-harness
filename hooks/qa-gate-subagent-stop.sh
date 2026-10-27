@@ -96,7 +96,7 @@ record_denial() {
   (set -o noclobber; : > "$marker") 2> /dev/null
 }
 
-reason="QA 라인 누락: 코드를 변경했다면 /qa-check review(FE는 UI 변경 시 style도)를 실행하고 마지막 메시지 첫 줄을 'QA: <verdict> <report-path>'로 시작하라. 코드 변경이 없으면 'QA: N/A — <이유>'로 시작하라. 같은 줄을 <report-dir>/status-<name>.txt에도 기록하라."
+reason="QA 라인 누락: 코드를 변경했다면 /qa-check review(FE는 UI 변경 시 style도)를 실행하고 마지막 메시지 첫 줄을 'QA: <verdict> <report-path>'로 시작하라. 코드 변경이 없거나 로직 변경 없이 주석·문서·설정값·문구(·CSS 값)만 바꿨으면 'QA: N/A — <이유>'로 시작하라(후자는 gate가 review를 돌린다). 같은 줄을 <report-dir>/status-<name>.txt에도 기록하라."
 
 if [ "$event" = "PreToolUse" ]; then
   # 보고 본문이 비어 있지 않은 문자열이 아니면 검사할 게 없다

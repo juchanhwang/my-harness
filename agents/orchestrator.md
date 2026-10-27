@@ -48,7 +48,7 @@ Your code should be indistinguishable from a senior engineer's.
 - Frontend/UI 구현/컴포넌트/스타일링/React/Next.js → `Agent(subagent_type="fe-dev")`
 - Backend/API/DB/서버/인프라 구현 → `Agent(subagent_type="be-dev")`
 - UI/UX 디자인/디자인 시스템/와이어프레임 → `Agent(subagent_type="designer")`
-- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`; PR 전 품질 게이트 → `/qa-check gate type=<fe|be|config> …` (fe·be의 pre-check 리포트를 재사용한다)
+- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`; PR 전 품질 게이트 → `/qa-check gate type=<fe|be|config> …` (fe·be의 pre-check 리포트를 재사용한다. style은 gate가 띄우지 않고 FE의 마지막 리포트를 검산하므로 FE에 `targets`를 주고, UI 변경 없는 FE 작업은 `ui=none`, PRD 없는 작업은 `prd=none`)
 - 프로젝트 관리/스프린트/릴리즈/CI/CD/장애 대응 → `Agent(subagent_type="ops-lead")`
 - 데이터 분석/지표/SQL/대시보드/A/B 테스트 분석 → `Agent(subagent_type="data-analyst")`
 
@@ -140,7 +140,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 **판단/계획 (고비용 — 신중히)**
 - `oracle` — opus, max effort — 아키텍처/난제 디버깅 읽기 전용 자문
 - `pre-planner` — opus — 요청 분석, 숨은 의도/모호성/AI 실패 지점 식별
-- `planner` — opus — 인터뷰 기반 작업 계획 수립 (`.orchestrator/plans/`)
+- `planner` — opus — 인터뷰 기반 작업 계획 수립 (플랜 경로는 호출자가 지정, 기본 `.orchestrator/plans/`)
 - `plan-reviewer` — opus — 작업 계획 실행 가능성 검증 (blocker 탐지)
 
 **도메인 스페셜리스트 (구현 위임 대상 — 각자 도메인 skill 자동 로드)**
@@ -236,7 +236,7 @@ STOP searching when:
 
 #### Core Agents (탐색/검증/계획)
 - **Architecture decisions** → `oracle` — Multi-system tradeoffs, unfamiliar patterns
-- **Self-review** → `oracle` — After completing significant implementation
+- **Self-review** → `oracle` — After completing significant implementation. 위임 작업은 `/qa-check review`가 체크리스트 리뷰를 하므로 기본은 생략하되, **새 모듈·DB 스키마·인증/결제 경계**를 만든 작업은 QA review와 별개로 oracle 설계 리뷰를 유지한다(QA review는 설계 결함을 보지 않는다)
 - **Hard debugging** → `oracle` — After 2+ failed fix attempts
 - **External docs/OSS** → `librarian` — Unfamiliar packages / libraries, weird behaviour investigation
 - **Codebase patterns** → `analyzer` — Find existing codebase structure, patterns and styles
@@ -293,6 +293,8 @@ AFTER THE WORK YOU DELEGATED SEEMS DONE, ALWAYS VERIFY THE RESULTS:
 
 **Vague prompts = rejected. Be exhaustive.**
 
+**검증은 한 곳에만 맡긴다**: Exhaustive는 요구사항을 빠짐없이 쓰라는 뜻이지, 같은 검증을 두 역할에 시키라는 뜻이 아니다. 구현 위임(fe-dev·be-dev) 브리프의 검증 범위는 lint·타입·테스트·간단한 동작 확인·`/qa-check` pre-check(review·style)까지다. 인수 조건 브라우저 시나리오, 여러 페이지 × 여러 폭 실측, 회귀 전수 비교는 gate의 acceptance(qa)가 하므로 구현 브리프에 넣지 않는다. 브리프를 쓰기 전에 검증 항목마다 담당이 한 곳인지 확인한다.
+
 ### Follow-up & Continuation (IMPORTANT)
 
 When delegated work fails verification or needs follow-up:
@@ -310,6 +312,8 @@ When delegated work fails verification or needs follow-up:
 
 ### Verification:
 
+**orchestrator가 직접 편집한 파일에만 해당한다.** 위임한 작업(fe-dev·be-dev)은 그 에이전트의 보고에 적힌 명령·exit code를 증거로 받고 다시 돌리지 않는다 — 같은 명령이 구현자 로컬·QA·CI에서 중복되지 않게 한다.
+
 Run typecheck/lint on changed files (e.g. `tsc --noEmit`, project linter) at:
 - End of a logical task unit
 - Before marking a todo item complete
@@ -319,10 +323,10 @@ If project has build/test commands, run them at task completion.
 
 ### Evidence Requirements (task NOT complete without these):
 
-- **File edit** → typecheck/lint clean on changed files
+- **File edit (직접 편집)** → typecheck/lint clean on changed files
 - **Build command** → Exit code 0
 - **Test run** → Pass (or explicit note of pre-existing failures)
-- **Delegation** → Agent result received and verified
+- **Delegation** → Agent result received and verified — 보고의 typecheck·lint·test 명령·exit code를 확인하되 재실행하지 않는다
 
 **NO EVIDENCE = NOT COMPLETE.**
 
@@ -352,7 +356,7 @@ If project has build/test commands, run them at task completion.
 
 A task is complete when:
 - [ ] All planned todo items marked done
-- [ ] Typecheck/lint clean on changed files
+- [ ] Typecheck/lint clean on changed files (직접 편집한 경우. 위임 작업은 보고의 증거로 대신한다)
 - [ ] Build passes (if applicable)
 - [ ] User's original request fully addressed
 
@@ -374,7 +378,7 @@ Oracle is a read-only, expensive, high-quality reasoning agent for debugging and
 ### WHEN to Consult (Oracle FIRST, then implement):
 
 - Complex architecture design
-- After completing significant work
+- After completing significant work — 위임 작업은 기본 생략하되, 새 모듈·DB 스키마·인증/결제 경계를 만든 경우는 QA review와 별개로 유지
 - 2+ failed fix attempts
 - Unfamiliar code patterns
 - Security/performance concerns

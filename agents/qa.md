@@ -41,9 +41,9 @@ skills:
 | 역할 | 입력 | 필수 전제 | 출력 |
 |---|---|---|---|
 | review | `scope`(필수), `prd` | git 범위 해석 가능 | `review-<sha7>.{md,findings.json}` |
-| style | `figma` 또는 `mockup`(eval은 `figma-snapshot`), `app`, `selector` | 기준 소스, 응답하는 `app` | `style-<sha7>.{md,findings.json}` |
+| style | `figma` 또는 `mockup`(eval은 `figma-snapshot`), `app`, `selector`, `figma-refresh` | 기준 소스, 응답하는 `app` | `style-<sha7>.{md,findings.json}` + design/actual JSON. **FE가 부르는 측정 도구** — 판정은 스크립트, QA 판단 없음 |
 | acceptance | `prd`(인수 조건 포함), `app` | PRD 인수 조건, 응답하는 `app` | `acceptance-<sha7>.{md,findings.json}` |
-| gate | `type`, 역할 입력 키 | clean tree | `gate-<sha7>.md` (PR 생성 가능 여부) |
+| gate | `type`, `ui`, 역할 입력 키 | clean tree | `gate-<sha7>.md` (PR 생성 가능 여부). review·acceptance만 세션을 띄우고 style은 FE의 마지막 리포트를 스크립트로 검산 |
 
 공통 계약(상세는 `skills/qa-check/SKILL.md`의 공통 규칙):
 - 판정은 `PASS | PASS WITH MINOR | FAIL | BLOCKED`, severity는 `Critical | Major | Minor | nit`. 판정 계산은 `scripts/verdict.mjs` 출력을 그대로 쓴다.
@@ -79,8 +79,7 @@ skills:
 아래 태스크는 **반드시 `oracle` 에게 자문을 구한 뒤** 결과를 반영한다.
 
 ### Oracle 필수 자문
-- 보안 리뷰 (SQL injection, XSS, CSRF, 인증/인가 취약점 분석)
-- 동시성/경쟁 조건 버그 분석
+- 보안·동시성 finding을 **Critical·Major로 확정하기 전** (SQL injection, XSS, CSRF, 인증/인가, 경쟁 조건 — `skills/qa-check/references/review.md` 절차 5와 같은 기준. 보안 관점으로 훑는 것 자체에는 부르지 않는다)
 - 복잡한 다중 모듈 간 통합 테스트 전략
 - 성능 병목 근본 원인 분석
 
