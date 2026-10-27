@@ -14,12 +14,12 @@
 |---|---|---|
 | `get_variable_defs` | 토큰 이름 → 값 맵. **1차 소스** | 색·글꼴 토큰은 여기서 확정 |
 | `get_design_context` | **코드 문자열**(기본 React + Tailwind)과 자산 URL을 돌려준다 | 필드 단위 구조화 값은 없다. 프롬프트로 plain CSS 출력을 요청해 `padding`·`gap`·`radius`·타이포를 파싱한다 |
-| `get_screenshot` | 증거용 이미지 | 토큰 수가 크다 |
+| `get_screenshot` | 쓰지 않는다 | 판정에 안 쓰고 토큰이 크다. 시안은 Figma 링크로 본다 |
 
 - `get_design_context`는 코드 문자열을 준다: https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ . Tailwind 클래스는 프로젝트 테마에 따라 값이 달라지므로 그대로 읽지 않는다. 요청 형식이 plain CSS인 것은 **값을 숫자로 확정하기 위한 추출 형식**이며 구현 스택과 무관하다.
 - 노드는 **컴포넌트 단위**로 좁힌다. 섹션·페이지 노드는 출력이 수백 KB다(2026-10-23 실측 491KB).
 - 읽기 도구에는 레이트 리밋이 있다: View·Collab 시트는 **월 20회**, Dev·Full 시트는 Professional 플랜 기준 **200회/일 + 10회/분**(Organization 200/일·15/분, Enterprise 600/일·20/분). https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/
-  - 같은 노드를 두 번 읽지 않는다. 추출값은 리포트 옆 `figma-values-<node>.json`에 저장해 재사용한다.
+  - 같은 노드를 두 번 읽지 않는다. 추출값은 리포트 옆 `figma-values-<node>.json`에 저장하고, **다음 호출(재검수·다른 세션)에서 이 파일이 있으면 Figma를 읽지 않는다.** 시안이 바뀌었으면 호출자가 `figma-refresh=1`로 다시 읽게 한다. gate는 Figma를 읽지 않고 저장된 design/actual JSON으로 스크립트를 재계산한다.
   - `figma-snapshot=`이 주어지면(eval 전용) Figma MCP를 호출하지 않는다.
 - Figma 토큰값과 라이브 computed CSS를 자동으로 대조하는 오픈소스는 확인하지 못했다. 가까운 도구는 시각 비교(Applitools Figma plugin), 수동 비교(Storybook Connect), 라이브 DOM이 아닌 토큰 점검(PatternFly pf-figma-token-check)이다. 그래서 이 비교 단계는 직접 구현한다.
   - https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin
@@ -98,6 +98,6 @@
 - [ ] 폰트 로딩이 끝난 뒤 추출했다(`document.fonts.ready`). 애니메이션·transition은 꺼서 중간값을 읽지 않았다.
 - [ ] 같은 Figma 노드를 두 번 읽지 않았고 추출값을 `figma-values-<node>.json`에 저장했다.
 - [ ] 판정은 `compare-styles.mjs` 출력과 `verdict.mjs` 출력 그대로다. 손으로 다시 계산하지 않았다.
-- [ ] 스크린샷 2장(디자인·구현)을 증거로 붙였다.
+- [ ] 스크린샷은 FAIL인 target의 구현 쪽만 붙였다(PASS·BLOCKED는 0장, 디자인 스크린샷 없음).
 - [ ] 디자인 토큰 변수명과 CSS 변수명의 매핑(Code Connect 등)이 있으면 함께 보고했다.
 - [ ] `figma`도 `mockup`도 없으면 지어내지 않고 Figma 노드 URL을 요청했다.

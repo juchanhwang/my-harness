@@ -149,16 +149,17 @@
         "--playwright-artifact"
       ],
       "prompt": "/qa-check gate type=fe scope=app/ figma-snapshot=figma-snapshot.json app=http://localhost:4791/app/ selector=.btn",
-      "expected_output": "시드 리포트(전부 HEAD·clean) 중 inputs가 일치하는 review만 재사용한다. BLOCKED였던 style과 inputs가 달라진(prd 없음) acceptance는 새 세션으로 다시 돌린다. 무시되지 않은 .playwright-mcp/는 tree를 dirty로 만들지 않는다. acceptance는 PRD가 없어 BLOCKED가 되고 gate는 BLOCKED다",
+      "expected_output": "시드 리포트(전부 HEAD·clean) 중 inputs가 일치하는 review만 재사용한다. BLOCKED였던 style은 세션을 띄우지 않고 BLOCKED로 두며 필요한 것에 fe-dev의 style 재실행을 적는다. inputs가 달라진(prd 없음) acceptance는 새 세션으로 다시 돌린다. 무시되지 않은 .playwright-mcp/는 tree를 dirty로 만들지 않는다. acceptance는 PRD가 없어 BLOCKED가 되고 gate는 BLOCKED다",
       "expectations": [
         "`.orchestrator/qa/gate-<sha7>.md`가 존재한다",
         "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: BLOCKED \\.orchestrator/qa/gate-[0-9a-f]{7}\\.md$` 형식이다",
         "gate가 tree dirty를 이유로 중단하지 않는다(무시되지 않은 `.playwright-mcp/`는 tree 판정에서 제외된다) — qa 역할 세션(Agent 호출)이 1회 이상 뜬다",
         "review는 시드 FAIL 리포트를 재사용한다(inputs `scope=app/` 일치) — review 역할로 띄운 qa Agent 호출이 0회다",
-        "style은 시드 BLOCKED 리포트를 재사용하지 않고 새 세션을 띄운다 — style 역할로 띄운 qa Agent 호출이 1회 이상이다",
+        "style은 시드 BLOCKED 리포트를 재사용하지 않지만 새 세션도 띄우지 않는다 — style 역할로 띄운 qa Agent 호출이 0회이고, gate 리포트의 style 행이 BLOCKED이며 필요한 것에 fe-dev가 현재 커밋에서 `/qa-check style`을 다시 실행해야 한다고 적혀 있다",
         "acceptance는 inputs가 달라(prd 없음) 시드 PASS 리포트를 재사용하지 않고 새 세션을 띄운다 — acceptance 역할로 띄운 qa Agent 호출이 1회 이상이고 그 리포트는 PRD가 없어 BLOCKED다",
         "gate verdict가 BLOCKED이다(FAIL보다 우선한다)",
-        "gate 리포트의 필요한 것에 PRD가 포함돼 있다"
+        "gate 리포트의 필요한 것에 PRD가 포함돼 있다",
+        "Figma MCP와 Playwright MCP 호출이 0회다(gate는 측정하지 않는다)"
       ],
       "runs": 1,
       "arm": "with_skill"

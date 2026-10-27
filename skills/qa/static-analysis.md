@@ -2,12 +2,9 @@
 
 > 📎 QA는 린터·포매터·훅·품질 게이트를 설정하지 않는다. 설정 기준은 `~/.claude/skills/fe/ci-cd.md` §1(CI 실행 순서)·§2(pre-commit/pre-push), `~/.claude/skills/fe/architecture.md` §4.3(ESLint 경계 규칙), `~/.claude/skills/fe/typescript.md` §6(tsconfig), `~/.claude/skills/fe/accessibility.md` 「Testing」(`jsx-a11y`)이다.
 
-## 실행과 첨부
+## 결과 읽기 (실행하지 않는다)
 
-프로젝트의 lint·typecheck·test를 실행하고 결과를 리포트에 붙인다(절차는 `references/review.md` 4단계). 순서는 lint → typecheck → test다(빠른 것 먼저, `fe/ci-cd.md` §1).
-
-* [ ] `test`가 watch 모드(`vitest`)면 한 번 실행하는 스크립트(`test:run`, 없으면 `vitest run`)를 쓴다. watch 모드는 끝나지 않는다 (`~/.claude/skills/fe/testing-vitest-setup.md` 「스크립트 설정」)
-* [ ] scripts에 `--fix`·`--write`·`-u`(스냅샷 갱신)가 들어 있으면 그대로 실행하지 않는다. 소스를 고치면 공통 규칙 5(쓰기 범위)를 어긴다. 쓰기 없는 형태로 실행하거나 `Not checked`에 이유를 쓴다
+QA는 lint·typecheck·test를 **실행하지 않는다**. 같은 트리에서 구현자(fe-dev·be-dev DoD)가 이미 돌렸고 CI(PR 4단계)가 다시 돈다. `/qa-check review` 포크 세션은 구현자 보고를 볼 수 없으므로 정적 검사 결과를 판정에 쓰지 않고 `Not checked`에 "정적 검사: 구현자 보고·CI 몫"으로 적는다. 구현자 보고의 명령·exit code는 호출자(orchestrator)가 확인한다. 아래 「실패 분류」는 리드 모드에서 CI 결과나 실패 로그를 받아 트리아지할 때 쓴다.
 
 ## 실패 분류
 
@@ -17,7 +14,7 @@
 |---|---|---|
 | 코드 문제 | 오류 위치가 diff 안이거나 diff가 바꾼 심볼의 호출부다. `TS####`, lint 규칙 id, 테스트 `expected`/`received` 불일치. `Cannot find module`이 diff가 추가한 상대 경로(`./foo`)를 가리킨다 | finding. `where`는 오류가 가리키는 `path:line` |
 | 환경 문제 | 코드에 닿기 전에 죽는다. `command not found`, `Cannot find module`이 패키지 이름이다(의존성 미설치), `ENOTFOUND`·`ETIMEDOUT`(네트워크), `ECONNREFUSED`(DB·서비스 미기동), `EADDRINUSE`, 필수 환경변수 없음, 권한·메모리·타임아웃 종료 | `Not checked`에 명령·종료 코드·원인 한 줄 |
-| 판단 불가 | diff와 무관한 파일에서 실패하거나, 재실행하면 결과가 바뀐다(플레이키) | 한 번 더 실행한다. 그래도 diff와 이어지지 않으면 `Not checked`에 "diff 밖 실패"와 실패 내용을 쓴다 |
+| 판단 불가 | diff와 무관한 파일에서 실패하거나, 보고가 플레이키라고 적었다 | `Not checked`에 "diff 밖 실패"와 실패 내용을 쓴다. 재실행하지 않는다 |
 
 ## diff에서 볼 항목
 

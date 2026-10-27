@@ -31,6 +31,7 @@ user-invocable: true
 | `prd=` | PRD 파일 경로 | acceptance(필수), gate(FE/BE) |
 | `figma=` | Figma 노드 URL(`node-id` 포함) | style(1순위), gate(FE) |
 | `figma-snapshot=` | 사전 추출한 Figma 값 JSON 경로. 지정하면 Figma MCP를 호출하지 않는다(**eval·fixture 전용**, 운용에서는 쓰지 않는다). 리포트에 `source: snapshot` | style |
+| `figma-refresh=` | `1`이면 `figma-values-<node>.json` 캐시를 무시하고 Figma를 다시 읽는다(시안이 바뀌었을 때) | style |
 | `mockup=` | `docs/mockup.html` 경로(figma가 없을 때) | style, gate(FE) |
 | `mockup-selector=` | mockup 안의 비교 대상 셀렉터(기본 `selector=`와 같음) | style |
 | `targets=` | 다중 대상 매니페스트 JSON `[{figma, selector, viewport?, mockup-selector?}]`. 지정하면 `figma=`·`selector=`는 무시 | style, gate(FE) |
@@ -39,16 +40,19 @@ user-invocable: true
 | `auth=` | 로그인 방법·계정 메모 또는 파일 경로 | style, acceptance |
 | `waivers=` | designer가 승인한 차이 목록 JSON(기본 `<report-dir>/style-waivers.json`, 없으면 waiver 0건). **읽기만 한다** | style, gate(FE) |
 | `type=` | `fe` / `be` / `config` | gate(필수) |
+| `ui=` | `none`이면 UI 변경 없음 선언. gate가 style 산출물을 찾지 않고 `n/a`로 기록한다 | gate(FE) |
+| `prd=none` | PRD 인수 조건 없음 선언(소규모·개인 작업). gate가 acceptance를 띄우지 않고 `n/a`로 기록한다 | gate(FE/BE) |
 | `mode=` | `pre-check`(기본, fe·be가 호출, 승인 권한 없음) / `gate`(gate가 역할 세션을 띄울 때) | 전체 |
+| `rerun-of=` | 직전 review 리포트(`.md`) 경로. 수정 후 재검증에서 바뀐 파일만 다시 읽는다 | review |
 | `report-dir=` | 리포트 저장 디렉터리(기본 `.orchestrator/qa/`) | 전체 |
 
 ## 공통 규칙
 
 1. **BLOCKED**: 필수 입력 누락이나 환경 차단(앱 다운, PRD 없음, Figma 소스 없음 등)으로 검증을 시작하거나 끝낼 수 없으면 BLOCKED다. 코드 결함이 아니다. 리포트에 `## Blocked by`와 `- 필요한 것: …` 목록을 쓰고 추측으로 진행하지 않는다. 다른 finding보다 우선한다.
-2. **리포트**: `<report-dir>/<role>-<sha7>.md`와 `<role>-<sha7>.findings.json`을 쓴다(`sha7` = `git rev-parse --short=7 HEAD`). 형식은 `<SKILL_DIR>/assets/report-template.md`. 제목의 일시는 `date +%Y-%m-%dT%H:%M:%S%z` 출력을 쓰고 짐작해서 적지 않는다. 헤더 `verdict` `commit`(전체 SHA) `tree`(세션 시작 직후, 리포트를 쓰기 전에 `git status --porcelain -- . ':(exclude)<report-dir>' ':(exclude).playwright-mcp'`가 비어 있으면 `clean`, `<report-dir>`은 저장소 기준 상대 경로, `.playwright-mcp/`는 Playwright MCP가 cwd에 만드는 산출물이라 뺀다) `type`(gate만) `inputs`(받은 `key=value` 인자를 그대로 적고 공백이 든 값은 큰따옴표로 묶는다. gate가 재사용 판정에 이 줄을 비교한다) `source`(style만) `mode`를 채운다. `findings.json`은 `{role, blocked[], findings[], notChecked[]}`이고 finding은 `{id, severity, status, title, where, expected?, actual?, note?}`다. severity는 `Critical|Major|Minor|nit`, status는 `open|waived`다.
+2. **리포트**: `<report-dir>/<role>-<sha7>.md`와 `<role>-<sha7>.findings.json`을 쓴다(`sha7` = `git rev-parse --short=7 HEAD`). tree가 dirty면 이름 끝에 `-w<tree7>`(`tree-sha` 앞 7자)을 붙인다 — 같은 커밋 위의 다른 작업 리포트끼리 덮어쓰지 않게. 형식은 `<SKILL_DIR>/assets/report-template.md`. 제목의 일시는 `date +%Y-%m-%dT%H:%M:%S%z` 출력을 쓰고 짐작해서 적지 않는다. 헤더 `verdict` `commit`(전체 SHA) `tree`(세션 시작 직후, 리포트를 쓰기 전에 `git status --porcelain -- . ':(exclude)<report-dir>' ':(exclude).playwright-mcp'`가 비어 있으면 `clean`, `<report-dir>`은 저장소 기준 상대 경로, `.playwright-mcp/`는 Playwright MCP가 cwd에 만드는 산출물이라 뺀다) `tree-sha`(파일 내용 지문. `tree`와 같은 시점에 계산한다. clean이면 `git rev-parse HEAD^{tree}`, dirty면 실제 인덱스를 건드리지 않게 임시 인덱스로 `IDX=$(mktemp -u); GIT_INDEX_FILE=$IDX git read-tree HEAD && GIT_INDEX_FILE=$IDX git add -A && GIT_INDEX_FILE=$IDX git write-tree; rm -f "$IDX"`의 출력. 이 내용 그대로 커밋하면 그 커밋의 `HEAD^{tree}`와 같아지므로 gate가 재사용 판정에 쓴다) `type`(gate만) `inputs`(받은 `key=value` 인자를 그대로 적고 공백이 든 값은 큰따옴표로 묶는다. gate가 재사용 판정에 이 줄을 비교한다) `source`(style만) `mode`를 채운다. `findings.json`은 `{role, blocked[], findings[], notChecked[]}`이고 finding은 `{id, severity, status, title, where, expected?, actual?, note?}`다. severity는 `Critical|Major|Minor|nit`, status는 `open|waived`다.
 3. **판정**: 직접 계산하지 않는다. `node <SKILL_DIR>/scripts/verdict.mjs <findings.json>`의 출력(`PASS`, `PASS WITH MINOR`, `FAIL`, `BLOCKED`)을 그대로 쓴다. 리포트의 `verdict`와 첫 줄은 이 출력과 같아야 한다.
 4. **마커**: 마지막 **텍스트 메시지의 첫 줄**을 `QA: <verdict> <report-path>`로 시작한다(훅이 이 줄을 본다). `<report-path>`는 **저장소 루트 기준 상대 경로**다(기본값이면 `.orchestrator/qa/<role>-<sha7>.md`, 예: `QA: FAIL .orchestrator/qa/acceptance-dbca4ce.md`). 절대 경로를 쓰지 않는다. 보고용 도구로 결과를 넘기더라도 마지막 텍스트 메시지의 첫 줄은 이 줄이다. 그 아래에 요약과 finding 목록(severity·where)을 쓴다.
-5. **쓰기 범위**: `report-dir` 안에만 쓴다. 소스·테스트 파일을 만들거나 고치지 않는다(수정 제안은 리포트의 `fix:`에 쓴다). 예외는 `.playwright-mcp/`다. Playwright MCP가 cwd에 만드는 산출물이라 지우지 않는다.
+5. **쓰기 범위**: `report-dir` 안에만 쓴다. 소스 트리의 소스·테스트 파일을 만들거나 고치지 않는다(수정 제안은 리포트의 `fix:`에 쓴다). acceptance 배치 모드의 spec·config는 `report-dir` 안의 검증 산출물이라 허용된다. 예외는 `.playwright-mcp/`다. Playwright MCP가 cwd에 만드는 산출물이라 지우지 않는다.
 6. **`.gitignore`**: 수정하지 않는다. `.orchestrator/`나 `.playwright-mcp/`가 무시되지 않으면 `## Checked / Not checked`에 경고를 쓴다.
 7. **모르는 키**는 무시하고 `Not checked`에 기록한다. 확인하지 못한 항목도 지어내지 말고 이유와 함께 `Not checked`에 쓴다.
 8. **근거**: finding의 `where`는 실제로 존재하는 `path:line`·셀렉터·시나리오 id여야 하고, 쓰기 전에 다시 열어 확인한다.
