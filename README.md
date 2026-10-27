@@ -13,6 +13,7 @@ my-harness/
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (5개)
 ├── bin/             # CLI 커맨드 (1개)
+├── tools/           # 보조 도구 (acceptance 배치 모드용 Playwright 러너)
 ├── CLAUDE.md        # 글로벌 지침
 ├── settings.json    # Claude Code 설정
 └── keybindings.json # 키 바인딩
@@ -561,7 +562,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 
 | 스킬 | 역할 |
 |---|---|
-| `qa-check` | `/qa-check <review\|style\|acceptance\|gate> key=value…` — `qa` 에이전트를 역할별 포크 세션으로 띄운다. `references/`에 역할 문서, `scripts/`에 판정·스타일 비교 스크립트(Node 내장 모듈), `evals/`에 fixture 앱과 eval |
+| `qa-check` | `/qa-check <review\|style\|acceptance\|gate> key=value…` — `qa` 에이전트를 역할별 포크 세션으로 띄운다. `references/`에 역할 문서, `scripts/`에 판정·스타일 비교 스크립트(Node 내장 모듈), `assets/`에 리포트 템플릿과 acceptance 배치 모드용 spec·config 템플릿, `evals/`에 fixture 앱과 eval |
 
 ### 워크스페이스 (3)
 
@@ -589,7 +590,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 | `playwright` | Playwright 브라우저 자동화 테스트 |
 | `github` | GitHub MCP 서버 (이슈·PR·레포 관리) |
 | `vercel` | Vercel 플랫폼 연동 (배포, 로그, 환경 변수) |
-| `figma` | Figma MCP 서버 (시안 변수·디자인 컨텍스트·스크린샷 조회, `/qa-check style`이 사용) |
+| `figma` | Figma MCP 서버 (시안 변수·디자인 컨텍스트 조회, `/qa-check style`이 사용) |
 
 ## 커맨드 (2)
 
@@ -648,6 +649,22 @@ claude-team prod
 ```bash
 ln -sf ~/Documents/FE/my-harness/bin/claude-team ~/bin/claude-team
 ```
+
+## 도구 (tools/)
+
+### playwright-runner
+
+`/qa-check acceptance`의 배치 모드가 쓰는 Playwright 러너. 프로젝트에 아무것도 설치하지 않고, 리포트 폴더(`.orchestrator/qa/`)에 쓴 임시 spec을 한 번에 실행한다. 러너가 없으면 acceptance는 단계 모드(Playwright MCP)로 돈다.
+
+`~/.claude/tools/playwright-runner/`에 이 디렉터리를 두고(복사 또는 심링크) 설치한다.
+
+```bash
+cd ~/.claude/tools/playwright-runner
+npm install
+npx playwright install chromium
+```
+
+브라우저는 Playwright 기본 캐시(macOS는 `~/Library/Caches/ms-playwright/`)를 쓰고, 같은 리비전이 이미 있으면 다시 받지 않는다. spec·config 템플릿은 `skills/qa-check/assets/`에 있다.
 
 ## 사용법
 
