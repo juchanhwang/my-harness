@@ -12,7 +12,7 @@ my-harness/
 ├── skills/          # 스킬 정의 (17개 — 도메인 7 + 범용 6 + 역할 세션 1 + workspace 3, 참조 파일 197개)
 ├── commands/        # 슬래시 커맨드 (2개)
 ├── hooks/           # 이벤트 훅 스크립트 (5개)
-├── bin/             # CLI 커맨드 (1개)
+├── bin/             # CLI 커맨드 1개 + ~/.claude 동기화 도구(harness-sync)
 ├── tools/           # 보조 도구 (acceptance 배치 모드용 Playwright 러너)
 ├── CLAUDE.md        # 글로벌 지침
 ├── settings.json    # Claude Code 설정
@@ -649,6 +649,36 @@ claude-team prod
 ```bash
 ln -sf ~/Documents/FE/my-harness/bin/claude-team ~/bin/claude-team
 ```
+
+## 동기화 (bin/harness-sync.mjs)
+
+`~/.claude`가 원본이고, 이 저장소는 그중 공개할 파일만 담은 사본이다. 원본을 고친 뒤 이 스크립트로 사본이 따라가게 한다. 원본은 읽기만 하고 저장소에만 쓰며, 커밋·푸시는 하지 않는다. 의존성 없는 Node 스크립트다.
+
+```bash
+bin/harness-sync.mjs              # status: 어긋난 파일, 원본에만 있는 새 후보
+bin/harness-sync.mjs sync         # 어긋난 추적 파일을 원본에서 복사 → 유출 검사 → 테스트
+bin/harness-sync.mjs add <경로>    # 새 파일·디렉터리를 공개 대상에 추가
+bin/harness-sync.mjs scan         # 저장소 전체 유출 검사
+bin/harness-sync.mjs test         # 저장소의 *.test.mjs 실행
+```
+
+| 상태 | 뜻 | `sync`의 동작 |
+|------|----|---------------|
+| `stale` | 원본이 더 최신 | 복사 |
+| `repo-newer` · `dirty` | 저장소에서 직접 고쳤거나 미커밋 변경이 있음 | 건너뜀 (`--force`로 덮어쓰기) |
+| `gone` | 원본에 없음(삭제·이름 변경) | 그대로 둠 (`--prune`으로 삭제) |
+| `keep` | 의도적으로 다름 (`settings.json`, `CLAUDE.md`) | 복사하지 않음 |
+| `new?` | 원본에만 있고 추적되지 않음 | 복사하지 않음 — `add`로 추가하거나 private에 등록 |
+
+옵션: `--dry-run`(쓰기 없이 계획만), `--no-test`, `--force`, `--prune`, `--verbose`(`scan`의 경고 상세).
+환경변수: `CLAUDE_HOME`(원본, 기본 `~/.claude`), `HARNESS_REPO`(저장소, 기본 이 파일의 상위 폴더).
+
+설정 파일은 둘이다.
+
+- `bin/harness-sync.config.json` (추적): `keep`(의도적으로 다른 파일과 이유), `repoOnly`(저장소 전용 경로), `ignore`, `allow`(유출 검사 오탐을 `"경로#규칙"`으로 허용).
+- `.harness-sync.local.json` (gitignore): `private`(공개하지 않을 원본 경로), `leakTerms`(올리면 안 되는 단어). 비공개 정보라 저장소에 두지 않는다.
+
+유출 검사는 복사 전에 원본 파일에 돌며, 차단 건이 하나라도 있으면 아무것도 복사하지 않는다. 매칭된 값은 출력하지 않고 `파일:줄 규칙`만 보고한다. 보조 수단이며 완전한 검사가 아니다.
 
 ## 도구 (tools/)
 
