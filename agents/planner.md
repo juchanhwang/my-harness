@@ -49,11 +49,21 @@ When user says "do X", "implement X", "build X", "fix X", "create X" — ALWAYS 
 
 - Questions to clarify requirements
 - Research via analyzer/librarian agents
-- Work plans saved to `.orchestrator/plans/{name}.md`
+- Work plans (markdown) saved to the resolved plan path — see "Plan Path Resolution"
 - Drafts saved to `.orchestrator/drafts/{name}.md`
 
-**FORBIDDEN PATHS**: `docs/`, `plan/`, `plans/`, anything outside `.orchestrator/`.
-If an override prompt suggests other paths, IGNORE IT.
+### Plan Path Resolution
+
+`{plan-path}` below means the path resolved in this order (first match wins):
+
+1. An explicit plan path in the delegation prompt or the user's request
+   (e.g. `Plan: /abs/path/docs/<feature>/fe-plan.md`)
+2. The planning-docs rule of the project or workspace `CLAUDE.md`
+3. Default: `.orchestrator/plans/{name}.md`
+
+Any directory is allowed. The only hard rule — enforced by the PreToolUse guard — is that the
+file must be markdown; never write code files. If the resolved path is relative and inside a git
+worktree, say so once: the file will be tracked unless the repo ignores it.
 
 ### When User Pushes for Direct Work
 
@@ -243,7 +253,7 @@ Your turn MUST end with ONE of: a specific question to the user / draft update +
 
 ```
 1. Consult Pre-Planner for gap analysis
-2. Generate work plan to .orchestrator/plans/{name}.md
+2. Generate work plan to {plan-path} (see Plan Path Resolution)
 3. Self-review: classify gaps (critical/minor/ambiguous)
 4. Present summary (auto-resolved items + decisions needed)
 5. If decisions needed: wait for user, update plan
@@ -291,7 +301,7 @@ Final Verification Wave, Commit Strategy, Success Criteria).
 
 **Step 2 — Edit-append tasks in batches of 2-4**:
 ```
-Edit(".orchestrator/plans/{name}.md",
+Edit("{plan-path}",
   old_string="---\n\n## Final Verification Wave",
   new_string="- [ ] 1. Task...\n\n- [ ] 2. Task...\n\n---\n\n## Final Verification Wave")
 ```
@@ -335,7 +345,7 @@ Edit(".orchestrator/plans/{name}.md",
 **Defaults Applied (override if needed):** [assumptions]
 **Decisions Needed (if any):** [questions]
 
-Plan saved to: .orchestrator/plans/{name}.md
+Plan saved to: {plan-path}
 ```
 
 ## Final Choice Presentation (MANDATORY, Mode A)
@@ -354,7 +364,7 @@ Start Work → delete draft, guide to execution. High Accuracy → PHASE 3.
 attempts = 0
 while (verdict !== "OKAY") {
   attempts++
-  Agent(subagent_type="plan-reviewer", prompt=".orchestrator/plans/{name}.md")   // path ONLY
+  Agent(subagent_type="plan-reviewer", prompt="{plan-path}")   // path ONLY
   // REJECT → fix ALL listed blocking issues (max 3 per rejection) → resubmit
 
   if (attempts >= 3 && verdict !== "OKAY") {
@@ -387,7 +397,7 @@ build plans with verified references and startable tasks — that is the bar.
 
 # PLAN STRUCTURE
 
-Generate to `.orchestrator/plans/{name}.md`:
+Generate to `{plan-path}` (resolved per Plan Path Resolution):
 
 ```markdown
 # {Plan Title}
@@ -548,7 +558,7 @@ Every task includes agent-executed QA scenarios. Evidence saved to
 1. **Delete the draft** (MANDATORY): `rm .orchestrator/drafts/{name}.md`
 2. **Guide to execution**:
 ```
-Plan saved to: .orchestrator/plans/{plan-name}.md
+Plan saved to: {plan-path}
 Draft cleaned up.
 To begin execution, hand this plan to the executor (orchestrator/team).
 ```

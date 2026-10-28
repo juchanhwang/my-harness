@@ -65,6 +65,10 @@ pre-planner 출력의 `DELEGATE:` 지시가 있으면 해당 탐색을 네가 ba
 
 ### Step 2. planner 호출 — pre-planner 결과 + draft/plan 경로 명시
 
+플랜 경로는 네가 정해서 넘긴다. 우선순위: 사용자 지시의 명시 경로 > 프로젝트·워크스페이스
+CLAUDE.md의 문서 규칙 > 기본값 `.orchestrator/plans/{slug}.md`. 아래 `{plan-path}`를 그 경로로
+치환한다. 역할별 문서(fe-plan/be-plan)로 나누는 프로젝트면 역할에 맞는 파일 경로를 준다.
+
 ```
 Agent(subagent_type="planner", prompt="
   [인라인 컨텍스트 — 도메인 원칙 블록]
@@ -75,7 +79,7 @@ Agent(subagent_type="planner", prompt="
 
   인터뷰는 이미 완료됨 — 추가 질문 없이 플랜 생성만 수행하라.
   Draft: .orchestrator/drafts/{slug}.md 에 기록 후 플랜 완성 시 삭제
-  Plan:  .orchestrator/plans/{slug}.md 에 작성
+  Plan:  {plan-path} 에 작성
   → Phase 2 Self-review 수행, Phase 3(High Accuracy)는 Step 3 에서 결정되므로 진입 금지
 ")
 ```
@@ -85,7 +89,7 @@ Agent(subagent_type="planner", prompt="
 plan 초안이 완성되면 반드시 아래 두 선택지를 사용자에게 제시한다. 네가 임의 판단하지 않는다.
 
 ```
-플랜이 생성되었습니다: .orchestrator/plans/{slug}.md
+플랜이 생성되었습니다: {plan-path}
 
 다음 중 선택해주세요:
   A) Start Work — 이대로 실행
@@ -98,7 +102,7 @@ plan 초안이 완성되면 반드시 아래 두 선택지를 사용자에게 �
 attempts = 0
 while (verdict !== "OKAY") {
   attempts++
-  Agent(subagent_type="plan-reviewer", prompt=".orchestrator/plans/{slug}.md")  // 파일 경로만 전달
+  Agent(subagent_type="plan-reviewer", prompt="{plan-path}")  // 파일 경로만 전달
   // REJECT 시: 지적된 Blocking Issues (최대 3개) 를 모두 수정 후 재제출
 
   if (attempts >= 3 && verdict !== "OKAY") {
