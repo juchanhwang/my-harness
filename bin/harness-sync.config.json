@@ -1,0 +1,15 @@
+{
+  "keep": {
+    "settings.json": "라이브에는 비공개 훅·권한이 더 있어 공개본과 다르다. 공개 가능한 변경만 손으로 옮긴다",
+    "CLAUDE.md": "라이브에만 있는 비공개 섹션이 있다. 공개 가능한 변경만 손으로 옮긴다"
+  },
+  "repoOnly": [
+    "README.md",
+    ".gitignore",
+    "docs/**",
+    "bin/**",
+    "hooks/test/**"
+  ],
+  "ignore": ["**/__pycache__/**", "**/*.log"],
+  "allow": []
+}

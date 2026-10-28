@@ -13,3 +13,6 @@ skills/data-analyst/*
 # qa-check eval 산출물(트랜스크립트·리포트 — 공개 저장소에 올리지 않는다)
 skills/qa-check-workspace/
 skills/qa-workspace/
+
+# harness-sync 로컬 설정(비공개 경로·식별어) — 공개 저장소에 올리지 않는다
+.harness-sync.local.json
