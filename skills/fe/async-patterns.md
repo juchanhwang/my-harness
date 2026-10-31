@@ -131,7 +131,7 @@ export function useOrders() {
 
 > **⚠️ 먼저 선택지를 확인하라.** 아래 클래스 구현은 **Next.js App Router 외부**(순수 React SPA, 섹션 단위 미세 제어) 또는 학습용 참고를 위한 것이다. 실무에서는 다음을 우선 사용한다:
 >
-> 1. **Next.js App Router** → `app/error.tsx` / `app/global-error.tsx` 파일 컨벤션. 라우트 세그먼트 자동 경계, `reset()` 기본 제공. (→ `vercel:nextjs` 자동 주입 스킬 참조)
+> 1. **Next.js App Router** → `app/error.tsx` / `app/global-error.tsx` 파일 컨벤션. 라우트 세그먼트 자동 경계, `reset()` 기본 제공. (→ [`error-handling.md`](vendor/vercel/nextjs/references/error-handling.md) 참조)
 > 2. **세그먼트 내부 섹션 경계가 필요한 경우** → [`react-error-boundary`](https://github.com/bvaughn/react-error-boundary) 라이브러리. `<ErrorBoundary>` + `useErrorBoundary()` 훅 제공, `fallbackRender`/`onReset`/`resetKeys` 등 기본 내장.
 > 3. **위 두 가지로 해결 안 되는 특수 요구**(예: 커스텀 에러 타입 분기, 외부 로거 강제 주입) → 아래 클래스 구현 참고.
 

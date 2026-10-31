@@ -136,7 +136,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 
 ## 5. 서버 액션 연동
 
-> Next.js Server Actions 기본 동작/디렉티브/revalidate 규칙은 `vercel:nextjs` 스킬이 자동 주입한다. 이 절은 **FE 팀 컨벤션**(`ActionResult<T>` 판별 유니온·권한 검증·클라이언트 바인딩)에 집중한다.
+> Next.js Server Actions 기본 동작/디렉티브/revalidate 규칙은 [`directives.md`](vendor/vercel/nextjs/references/directives.md)·[`data-patterns.md`](vendor/vercel/nextjs/references/data-patterns.md)를 필요할 때 Read한다. 이 절은 **FE 팀 컨벤션**(`ActionResult<T>` 판별 유니온·권한 검증·클라이언트 바인딩)에 집중한다.
 
 ### 5.1 `ActionResult<T>` — 판별 유니온으로 반환
 
@@ -267,4 +267,4 @@ export async function deleteUser(id: string): Promise<ActionResult<void>> {
 
 ***
 
-> 📎 관련: [error-handling.md](error-handling.md) · [state-management.md](state-management.md) §Server Actions 패턴 · `vercel:nextjs` (Next.js Server Actions 기본 동작)
+> 📎 관련: [error-handling.md](error-handling.md) · [state-management.md](state-management.md) §Server Actions 패턴 · [`directives.md`](vendor/vercel/nextjs/references/directives.md)·[`data-patterns.md`](vendor/vercel/nextjs/references/data-patterns.md) (Next.js Server Actions 기본 동작)

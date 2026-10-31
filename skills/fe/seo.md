@@ -1,8 +1,8 @@
 # SEO
 
-> 핵심 메시지: **"Metadata API 기본은 `vercel:nextjs`가 담당한다. 이 문서는 FE 팀 판단 기준과 Next.js 16 특화 함정만 다룬다."**
+> 핵심 메시지: **"Metadata API 기본은 [`metadata.md`](vendor/vercel/nextjs/references/metadata.md)가 담당한다. 이 문서는 FE 팀 판단 기준과 Next.js 16 특화 함정만 다룬다."**
 
-Metadata API 사용법(`export const metadata`, `generateMetadata`, 상속/병합 규칙), sitemap/robots 파일 컨벤션, 동적 OG 이미지 기본 사용법은 `vercel:nextjs` 자동 주입 스킬이 담당한다. 이 문서는 **그 위에서의 판단과 함정**에만 집중한다.
+Metadata API 사용법(`export const metadata`, `generateMetadata`, 상속/병합 규칙), sitemap/robots 파일 컨벤션, 동적 OG 이미지 기본 사용법은 [`metadata.md`](vendor/vercel/nextjs/references/metadata.md)가 담당한다. 이 문서는 **그 위에서의 판단과 함정**에만 집중한다.
 
 ***
 
@@ -284,4 +284,4 @@ export default function Page() { /* metadata 안 먹음 */ }
 
 ***
 
-> 📎 관련: [accessibility.md](accessibility.md) (라우트 공지와 title의 관계) · [i18n.md](i18n.md) · [monitoring.md](monitoring.md) (Core Web Vitals) · `vercel:nextjs` (Metadata API 기본 사용법·동적 OG·sitemap API)
+> 📎 관련: [accessibility.md](accessibility.md) (라우트 공지와 title의 관계) · [i18n.md](i18n.md) · [monitoring.md](monitoring.md) (Core Web Vitals) · [`metadata.md`](vendor/vercel/nextjs/references/metadata.md) (Metadata API 기본 사용법·동적 OG·sitemap API)

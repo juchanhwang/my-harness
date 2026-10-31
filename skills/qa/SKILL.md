@@ -21,15 +21,14 @@ description: >
 
 **기본 경로**: `~/.claude/skills/qa/` — 아래 테이블의 파일명 앞에 이 경로를 붙여서 Read한다.
 
-> 📎 **일부 주제는 vercel 플러그인 스킬과 겹친다.** 아래 주제에 해당하는 작업은 qa 파일과 함께 `vercel:*` 스킬도 참고하라. qa 파일은 **테스트 전략·품질 판단·리뷰 관점**을 다루고, vercel 스킬은 **구현 디테일·공식 API·Vercel 플랫폼 고유 동작**을 다룬다. 중복 로드를 피하려면 역할 분담을 따른다.
+> 📎 **일부 주제는 qa 밖의 문서와 겹친다.** 아래 주제에 해당하는 작업은 qa 파일과 함께 아래 문서도 참고하라. qa 파일은 **테스트 전략·품질 판단·리뷰 관점**을 다루고, 아래 문서는 **구현 디테일·공식 API·Vercel 플랫폼 고유 동작**을 다룬다. 중복 로드를 피하려면 역할 분담을 따른다.
 >
-> | 주제 | 참조할 vercel 스킬 |
+> | 주제 | 참조할 문서 |
 > |---|---|
-> | Vercel 배포 CI/CD, GitHub Actions 워크플로우, `vercel deploy --prebuilt`, 배포 전 품질 게이트 | `vercel:deployments-cicd` |
-> | Next.js 풀스택 동작 검증 (dev server → API → DB → 응답), "왜 안 돌아가는지" 디버깅 | `vercel:verification` |
-> | React/Next.js 컴포넌트 품질 리뷰 체크리스트 (hooks 사용, 접근성, 성능, TypeScript) | `vercel:react-best-practices` |
-> | Next.js 버전 업그레이드 검증, 마이그레이션 codemods | `vercel:next-upgrade` |
-> | Vercel Sandbox에서 테스트 코드 격리 실행 | `vercel:vercel-sandbox` |
+> | Vercel 배포 CI/CD, GitHub Actions 워크플로우, `vercel deploy --prebuilt`, 배포 전 품질 게이트 | context7으로 Vercel 배포 공식 문서 조회 |
+> | Next.js 풀스택 동작 검증 (dev server → API → DB → 응답), "왜 안 돌아가는지" 디버깅 | `integration-testing.md` + `e2e-testing.md` + `../fe/debugging.md` |
+> | React/Next.js 컴포넌트 품질 리뷰 체크리스트 (hooks 사용, 접근성, 성능, TypeScript) | `../fe/performance-react-rendering.md` + `../fe/react-effects.md` |
+> | Next.js 버전 업그레이드 검증, 마이그레이션 codemods | context7(`/vercel/next.js`)으로 Next.js 업그레이드 가이드 조회 |
 
 ## 핵심 원칙
 
@@ -70,7 +69,7 @@ description: >
 - **레거시 코드 리팩토링 안전망 구축** → test-strategy.md + regression-strategy.md + test-automation-architecture.md + integration-testing.md
   - *리팩토링 전에 통합 테스트로 현재 동작을 고정하고, 회귀 전략으로 안전망을 구축한다.*
 - **성능 회귀 방지 파이프라인** → performance-testing.md + ci-cd-testing.md + qa-metrics.md
-  - *CI에 성능 budget 게이트 추가, Core Web Vitals 추이 모니터링. 실제 배포는 `vercel:deployments-cicd`도 함께 참조.*
+  - *CI에 성능 budget 게이트 추가, Core Web Vitals 추이 모니터링. 실제 배포는 context7으로 Vercel 배포 공식 문서 조회.*
 - **신규 API endpoint 품질 게이트** → api-testing.md + integration-testing.md + security-testing.md + code-review.md
   - *contract test + DB 통합 test + OWASP API Top 10 검증 + PR 리뷰.*
 - **모바일 출시 전 품질 검증** → mobile-testing.md + accessibility-testing.md + e2e-testing.md + performance-testing.md
@@ -82,4 +81,4 @@ description: >
 - **보안 감사 대응 (PCI-DSS, SOC2 등)** → security-testing.md + qa-metrics.md + ci-cd-testing.md + test-environments.md
   - *OWASP 증빙 + 감사 메트릭 + 보안 파이프라인 + 격리 환경.*
 - **Flaky E2E 테스트 안정화** → e2e-testing.md + test-automation-architecture.md + qa-metrics.md
-  - *플레이키 원인 분석 → 격리 전략 → pass rate 메트릭 추적. Next.js 관련 검증은 `vercel:verification` 참조.*
+  - *플레이키 원인 분석 → 격리 전략 → pass rate 메트릭 추적. Next.js 관련 검증은 `../fe/testing-nextjs.md` 참조.*

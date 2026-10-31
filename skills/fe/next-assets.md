@@ -4,7 +4,7 @@
 
 이 문서는 **Next.js 16 기준** `next/image`와 `next/font` 최적화 가이드다. 런타임 SSR 전략은 [performance-ssr.md](performance-ssr.md), Core Web Vitals 측정은 [monitoring.md](monitoring.md) 참조.
 
-> 📎 **vercel 플러그인의 `nextjs` 스킬**이 `app/**` 경로에서 자동 로드되며 remote image config / Blur placeholder 세부 / Tailwind CSS 통합 / local font 멀티 파일 구성을 **보완**한다. 이 문서는 그 스킬이 빠뜨린 Next.js 16 변경사항 (`preload` prop, `adjustFontFallback` 원리)과 FE 팀 관점의 의사결정 기준에 집중한다.
+> 📎 **[`image.md`](vendor/vercel/nextjs/references/image.md)·[`font.md`](vendor/vercel/nextjs/references/font.md)**가 remote image config / Blur placeholder 세부 / Tailwind CSS 통합 / local font 멀티 파일 구성을 **보완**한다. 이 문서는 그 문서가 빠뜨린 Next.js 16 변경사항 (`preload` prop, `adjustFontFallback` 원리)과 FE 팀 관점의 의사결정 기준에 집중한다.
 
 ***
 
@@ -131,7 +131,7 @@ module.exports = {
 - [ ] **`priority` prop 사용 금지** (Next.js 16에서 deprecated)
 - [ ] **LCP 이미지에 `loading='lazy'` 금지**
 
-> 📎 Remote images `remotePatterns` 설정, Blur placeholder 세부(blurDataURL 생성), Static export `unoptimized` 처리 등은 vercel:nextjs 스킬의 `image.md` 참조.
+> 📎 Remote images `remotePatterns` 설정, Blur placeholder 세부(blurDataURL 생성), Static export `unoptimized` 처리 등은 [`image.md`](vendor/vercel/nextjs/references/image.md) 참조.
 
 ***
 
@@ -245,7 +245,7 @@ export default function RootLayout({ children }) {
 - [ ] **Root layout 또는 `lib/fonts.ts`** 에서 한 번만 정의
 - [ ] **`display: 'swap'`** 사용 (기본값이지만 명시 권장)
 
-> 📎 Local fonts 멀티 파일 구성, Tailwind CSS `fontFamily` 통합, display 전략별 차이 등은 vercel:nextjs 스킬의 `font.md` 참조.
+> 📎 Local fonts 멀티 파일 구성, Tailwind CSS `fontFamily` 통합, display 전략별 차이 등은 [`font.md`](vendor/vercel/nextjs/references/font.md) 참조.
 
 ***
 
@@ -269,4 +269,4 @@ export default function RootLayout({ children }) {
 
 ***
 
-> 📎 관련: [performance-ssr.md](performance-ssr.md) (Next.js SSR 런타임 성능) · [monitoring.md](monitoring.md) (LCP/CLS 측정) · [build-optimization.md](build-optimization.md) (번들 크기) · vercel:nextjs 스킬 (remote config, Tailwind 통합, local font 멀티 파일)
+> 📎 관련: [performance-ssr.md](performance-ssr.md) (Next.js SSR 런타임 성능) · [monitoring.md](monitoring.md) (LCP/CLS 측정) · [build-optimization.md](build-optimization.md) (번들 크기) · [`image.md`](vendor/vercel/nextjs/references/image.md)·[`font.md`](vendor/vercel/nextjs/references/font.md) (remote config, Tailwind 통합, local font 멀티 파일)

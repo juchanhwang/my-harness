@@ -9,7 +9,7 @@
 - **CI/CD 병렬 빌드 + Turborepo Remote Cache** → [ci-cd.md](ci-cd.md)
 - **Core Web Vitals 측정 + Speed Insights + RUM** → [monitoring.md](monitoring.md)
 - **Image/Font 최적화** (`next/image`, `next/font`) → [next-assets.md](next-assets.md)
-- **Cache Components** (`'use cache'`, `cacheLife`, PPR) → vercel:next-cache-components 스킬 (자동 로드)
+- **Cache Components** (`'use cache'`, `cacheLife`, PPR) → [`vendor/vercel/next-cache-components/index.md`](vendor/vercel/next-cache-components/index.md)
 
 ***
 
@@ -35,13 +35,13 @@
 | **FCP 개선** — 정적 렌더 가능 영역이 넓어짐 |
 | **Streaming 활용도 증가** — §3의 static shell이 커짐 |
 
-> 📎 RSC 기본 사용법 (async 컴포넌트, data fetching 예시), `'use client'` 안에 async 금지 / non-serializable props (Date/Map/Function) 금지 등 **경계 위반 detection**은 vercel:nextjs 스킬의 `rsc-boundaries.md` 참조. 이 문서에서는 성능 관점만 다룬다.
+> 📎 RSC 기본 사용법 (async 컴포넌트, data fetching 예시), `'use client'` 안에 async 금지 / non-serializable props (Date/Map/Function) 금지 등 **경계 위반 detection**은 [`rsc-boundaries.md`](vendor/vercel/nextjs/references/rsc-boundaries.md) 참조. 이 문서에서는 성능 관점만 다룬다.
 
 ***
 
-## 2. Caching — vercel 플러그인 스킬로 위임
+## 2. Caching — vendor 문서로 위임
 
-Next.js 16의 Cache Components (`'use cache'`, `cacheLife`, `cacheTag`, PPR, `updateTag` vs `revalidateTag`)는 **vercel 플러그인의 `next-cache-components` 스킬이 전담**한다. 해당 스킬은 `app/**` 경로 + `next/cache` import + 관련 프롬프트 시그널에서 **자동 로드**되므로 이 문서에서는 중복 작성하지 않는다. `unstable_cache` 사용 시 자동 migration 권고도 해당 스킬이 제공한다.
+Next.js 16의 Cache Components (`'use cache'`, `cacheLife`, `cacheTag`, PPR, `updateTag` vs `revalidateTag`)는 **[`vendor/vercel/next-cache-components/index.md`](vendor/vercel/next-cache-components/index.md)가 전담**한다. 필요할 때 Read하고, 이 문서에서는 중복 작성하지 않는다. `unstable_cache` 마이그레이션 가이드도 해당 문서에 있다.
 
 **이 문서에서 기억해야 할 SSR 관점 핵심 3가지만 정리한다:**
 
@@ -49,7 +49,7 @@ Next.js 16의 Cache Components (`'use cache'`, `cacheLife`, `cacheTag`, PPR, `up
 2. **Request-time API는 cache scope 밖에서 읽는다** — `'use cache'` 안에서 `cookies()`/`headers()`/`searchParams`를 직접 호출할 수 없다. 바깥에서 읽어 **인자로 넘겨** cache key에 자동 포함시킨다. `'use cache: private'`는 컴플라이언스 예외 상황에서만 사용.
 3. **무효화는 두 종류** — `updateTag`는 Server Actions 전용으로 **같은 요청 안에서 즉시 만료** (read-your-own-writes), `revalidateTag`는 **stale-while-revalidate** (백그라운드 갱신). 용도가 다르다.
 
-> 📎 상세 가이드 (`'use cache'` 3가지 위치, `cacheLife` 6 프리셋, `cacheTag` 키 생성 규칙, `unstable_cache` 마이그레이션 등)는 vercel:next-cache-components 스킬을 참조. 이 파일에서 재작성하면 outdated 리스크만 생긴다.
+> 📎 상세 가이드 (`'use cache'` 3가지 위치, `cacheLife` 6 프리셋, `cacheTag` 키 생성 규칙, `unstable_cache` 마이그레이션 등)는 [`vendor/vercel/next-cache-components/index.md`](vendor/vercel/next-cache-components/index.md) 참조. 이 파일에서 재작성하면 outdated 리스크만 생긴다.
 
 ***
 
@@ -59,7 +59,7 @@ Next.js 16의 Cache Components (`'use cache'`, `cacheLife`, `cacheTag`, PPR, `up
 >
 > — [Next.js Docs · Streaming](https://nextjs.org/docs/app/guides/streaming)
 
-> 📎 `useSearchParams`/`usePathname` 사용 시 Suspense 누락으로 페이지 전체가 CSR로 bailout되는 문제는 vercel:nextjs 스킬의 `suspense-boundaries.md`가 자동 검출·가이드한다. 이 문서는 streaming 개념과 Web Vitals 영향에 집중.
+> 📎 `useSearchParams`/`usePathname` 사용 시 Suspense 누락으로 페이지 전체가 CSR로 bailout되는 문제는 [`suspense-boundaries.md`](vendor/vercel/nextjs/references/suspense-boundaries.md)가 가이드한다. 이 문서는 streaming 개념과 Web Vitals 영향에 집중.
 
 ### "Push dynamic access down" — 핵심 패턴
 
@@ -117,7 +117,7 @@ export default function Layout({ children }) {
 `next/image`, `next/font` 세부 가이드는 [next-assets.md](next-assets.md)로 분리되어 있다. 분리 이유:
 - **Next.js 16 `preload` prop** (구 `priority` deprecated) 등 버전 민감 정보의 별도 관리
 - **CLS/LCP 방어 메커니즘** (`adjustFontFallback`, `width`/`height` 강제)이 자체 컨셉을 이룬다
-- vercel 플러그인의 `nextjs` 스킬은 `app/**`에서 자동 로드되며 remote config / Tailwind 통합 / local font 세부를 보완한다
+- [`image.md`](vendor/vercel/nextjs/references/image.md)·[`font.md`](vendor/vercel/nextjs/references/font.md)가 remote config / Tailwind 통합 / local font 세부를 보완한다
 
 **이 문서에서 기억할 SSR 런타임 관점 3가지**:
 
@@ -136,8 +136,8 @@ export default function Layout({ children }) {
 - **dynamic API를 layout 상단에서 `await`** — static shell이 사라지고 전체 트리가 dynamic. `<Suspense>` 안으로 push down한다.
 - **LCP 이미지에 lazy loading** — `loading='lazy'`나 `<Suspense>` 안에 두면 LCP가 망가진다. LCP 요소는 static shell에 둔다.
 - **`priority` prop 사용** (Next.js 16+) — deprecated. `loading='eager'` + `fetchPriority='high'`(기본, `fetchPriority`만 주면 lazy가 남는다) 또는 `preload`로 마이그레이션한다. 상세는 [next-assets.md](next-assets.md).
-- **`'use cache'` 안에서 `cookies()`/`headers()` 호출** — request-time API는 cache scope 밖에서 읽고 인자로 전달해 cache key에 포함시킨다. 상세는 vercel:next-cache-components 스킬.
+- **`'use cache'` 안에서 `cookies()`/`headers()` 호출** — request-time API는 cache scope 밖에서 읽고 인자로 전달해 cache key에 포함시킨다. 상세는 [`vendor/vercel/next-cache-components/index.md`](vendor/vercel/next-cache-components/index.md).
 
 ***
 
-> 📎 관련: [performance-react-rendering.md](performance-react-rendering.md) (React 렌더링 성능 최적화) · [next-assets.md](next-assets.md) (Image/Font) · [build-optimization.md](build-optimization.md) (번들 크기) · [monitoring.md](monitoring.md) (Core Web Vitals 측정) · vercel:next-cache-components 스킬 (Cache Components 전담)
+> 📎 관련: [performance-react-rendering.md](performance-react-rendering.md) (React 렌더링 성능 최적화) · [next-assets.md](next-assets.md) (Image/Font) · [build-optimization.md](build-optimization.md) (번들 크기) · [monitoring.md](monitoring.md) (Core Web Vitals 측정) · [`vendor/vercel/next-cache-components/index.md`](vendor/vercel/next-cache-components/index.md) (Cache Components 전담)

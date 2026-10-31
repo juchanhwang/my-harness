@@ -1,17 +1,17 @@
 # Next.js App Router Testing Patterns
 
-> **이 파일의 스코프**: `vercel:nextjs` 자동 주입 스킬이 App Router · Server Actions ·
-> middleware(`proxy.ts`) · Cache Components의 **기본 동작과 API**를 이미 설명한다.
+> **이 파일의 스코프**: `vendor/vercel/nextjs/`·`vendor/vercel/next-cache-components/` 문서가 App Router · Server Actions ·
+> Cache Components의 **기본 동작과 API**를 설명한다. middleware(`proxy.ts`)는 로컬 문서가 없어 context7(`/vercel/next.js`)로 조회한다.
 > 이 파일은 그 위에서 **테스트 방법**에 한정한다.
 >
 > - ✅ 다룬다: 테스트 전략 매트릭스(RSC는 E2E, Client는 RTL), `vi.mocked(useRouter)`
 >   오버라이드 패턴, Server Actions의 순수 함수 검증, `createMockRequest` 헬퍼,
 >   Route Handler의 `Request`/`NextResponse` 직접 생성, Playwright POM.
-> - ❌ 다루지 않는다(= `vercel:nextjs`/`vercel:next-cache-components` 등에서 이미 제공):
+> - ❌ 다루지 않는다(= `vendor/vercel/` 문서 또는 context7 공식 문서에서 제공):
 >   Server Component · Server Actions · middleware의 *기본 동작과 API*,
 >   `'use cache'` · `cacheLife` · `cacheTag` · `updateTag`,
 >   `useActionState` · `useOptimistic`의 시맨틱.
-> - 주제가 겹쳐 보이면 "어떻게 동작하는가"는 vercel 스킬, **"어떻게 검증하는가"는 이 파일**로
+> - 주제가 겹쳐 보이면 "어떻게 동작하는가"는 vendor 문서·공식 문서, **"어떻게 검증하는가"는 이 파일**로
 >   판단한다.
 
 Next.js App Router 환경 특화 테스트 전략과 패턴.

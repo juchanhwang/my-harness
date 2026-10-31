@@ -34,8 +34,8 @@ description: >
 |---|---|---|
 | 프로젝트 킥오프 | 신규 프로젝트 시작·스코프 정의 | `project-planning.md` + `client-communication.md` |
 | 스프린트 기획 | 스프린트 목표·태스크 분배 | `agile-methodology.md` + `resource-allocation.md` |
-| 릴리즈/배포 조율 | 릴리즈 범위·배포 순서·롤백 계획 | `project-planning.md` + `risk-management.md` (+ `vercel:deployments-cicd` 스킬) |
-| CI/CD 파이프라인 | 파이프라인 구성·품질 게이트·자동화 | `automation-tools.md` + `process-optimization.md` (+ `vercel:deployments-cicd` 스킬) |
+| 릴리즈/배포 조율 | 릴리즈 범위·배포 순서·롤백 계획 | `project-planning.md` + `risk-management.md` (+ context7으로 Vercel 배포 공식 문서 조회) |
+| CI/CD 파이프라인 | 파이프라인 구성·품질 게이트·자동화 | `automation-tools.md` + `process-optimization.md` (+ context7으로 Vercel 배포 공식 문서 조회) |
 | 모니터링/알림 기준 | 지표·알림 임계값·대시보드 설계 | `kpi-dashboards.md` + `sla-management.md` |
 | 장애 대응/RCA | 심각도 분류·즉시 완화·원인 분석·재발 방지 | `escalation-handling.md` + `risk-management.md` (+ 에이전트 본문의 장애 대응 프로토콜) |
 | 회고 운영 | 스프린트/릴리즈/장애 회고·개선 도출 | `process-optimization.md` + `meeting-facilitation.md` |
@@ -65,5 +65,5 @@ description: >
 **복합 태스크**: 여러 유형에 해당하면 관련 행의 파일을 합집합으로 읽는다.
 - 새 클라이언트 프로젝트 → project-planning.md + client-onboarding.md + client-communication.md + resource-allocation.md + risk-management.md
 - 분기 성과 보고 → performance-reporting.md + executive-summaries.md + kpi-dashboards.md + content-performance.md
-- 프로덕션 릴리즈 → project-planning.md + risk-management.md + escalation-handling.md (+ vercel:deployments-cicd 스킬)
+- 프로덕션 릴리즈 → project-planning.md + risk-management.md + escalation-handling.md (+ context7으로 Vercel 배포 공식 문서 조회)
 - 장애 사후 처리 → escalation-handling.md + risk-management.md + process-optimization.md + documentation-standards.md

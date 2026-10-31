@@ -18,7 +18,7 @@
 
 ## 읽을 지식 파일
 
-`<SKILL_DIR>/../qa/`의 `code-review.md`, `type-safety.md`, `static-analysis.md`, `security-testing.md`. React/Next.js 변경이 있으면 `vercel:react-best-practices` 스킬도 본다.
+`<SKILL_DIR>/../qa/`의 `code-review.md`, `type-safety.md`, `static-analysis.md`, `security-testing.md`. React/Next.js 변경이 있으면 `<SKILL_DIR>/../fe/performance-react-rendering.md`·`react-effects.md`도 본다.
 도구는 Read, Grep, Glob, Bash(`git diff`·`git rev-parse` 같은 git 읽기)만 쓴다. typecheck·lint·test는 **실행하지 않는다** — 같은 트리에서 구현자가 이미 돌렸고 CI가 다시 돈다. 브라우저와 Figma 도구는 쓰지 않는다.
 
 ## 절차
@@ -59,5 +59,5 @@ severity 기준(공통 기준을 이 역할 예시로 구체화):
 - [ ] typecheck·lint·test를 실행하지 않았고, 테스트 적절성은 읽어서 판단했다
 - [ ] 재검증 모드(`rerun-of=`)면 직전 finding마다 `where`를 다시 열어 해소/미해소를 판정했고, 바뀐 파일·새 scope 파일은 전부 Read했으며, 이월한 확인 항목을 구분해 적었다
 - [ ] 보안·동시성 Critical·Major는 `oracle` 자문 흔적이 있다
-- [ ] `code-review.md`·`type-safety.md`·`security-testing.md`·`static-analysis.md` 기준을 훑었다(React/Next면 `vercel:react-best-practices`도)
+- [ ] `code-review.md`·`type-safety.md`·`security-testing.md`·`static-analysis.md` 기준을 훑었다(React/Next면 `<SKILL_DIR>/../fe/performance-react-rendering.md`·`react-effects.md`도)
 - [ ] `verdict.mjs` 출력 = 리포트 `verdict` = 마커 첫 줄
