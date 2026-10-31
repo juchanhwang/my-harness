@@ -151,7 +151,7 @@ export default async function AdminPage() {
 
 ### proxy.ts 런타임
 
-`proxy.ts`는 **Node.js 런타임**에서 실행된다 (Next.js 15까지의 `middleware.ts`는 Edge Runtime이었다). Node.js API를 자유롭게 쓸 수 있지만, 기존에 Edge Runtime 전제로 작성된 auth 라이브러리 코드가 있다면 호환성 확인이 필요하다.
+`proxy.ts`는 **Node.js 런타임**에서 실행된다 (`middleware.ts`는 Edge가 기본이었고, Node.js 런타임은 15.2 실험 지원 → 15.5 정식 지원 → 16에서 기본값이 됐다 — [proxy.mdx 버전 이력](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/03-api-reference/03-file-conventions/proxy.mdx)). Node.js API를 자유롭게 쓸 수 있지만, 기존에 Edge Runtime 전제로 작성된 auth 라이브러리 코드가 있다면 호환성 확인이 필요하다.
 
 **matcher를 지정하지 않으면 Proxy는 정적 파일·이미지 최적화·`public/` 자산까지 모든 요청에서 실행된다.** 정적 자산·prefetch처럼 Proxy가 필요 없는 요청은 matcher로 제외해 실행 범위를 좁힌다. 공식 예시는 `api`도 제외하므로, Proxy에서 API 경로 세션을 확인한다면 `api`는 빼지 않는다.
 

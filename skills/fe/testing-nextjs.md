@@ -1,7 +1,7 @@
 # Next.js App Router Testing Patterns
 
 > **이 파일의 스코프**: `vendor/vercel/nextjs/`·`vendor/vercel/next-cache-components/` 문서가 App Router · Server Actions ·
-> Cache Components의 **기본 동작과 API**를 설명한다. middleware(`proxy.ts`)는 로컬 문서가 없어 context7(`/vercel/next.js`)로 조회한다.
+> Cache Components의 **기본 동작과 API**를 설명한다. middleware(`proxy.ts`)는 `architecture.md` §3.3·`security.md` §proxy.ts 런타임에 요약이 있고, 그 밖은 context7(`/vercel/next.js`)로 조회한다.
 > 이 파일은 그 위에서 **테스트 방법**에 한정한다.
 >
 > - ✅ 다룬다: 테스트 전략 매트릭스(RSC는 E2E, Client는 RTL), `vi.mocked(useRouter)`
@@ -204,12 +204,14 @@ describe('createPost', () => {
 
 ## Middleware 테스트
 
+> 📎 Next.js 16에서 파일·export 이름이 `middleware` → `proxy`로 바뀌었다 — [Next.js 16 업그레이드](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/02-guides/upgrading/version-16.mdx)
+
 ```tsx
-// middleware.ts
+// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('auth-token');
 
   if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
@@ -221,8 +223,8 @@ export function middleware(request: NextRequest) {
 ```
 
 ```tsx
-// middleware.test.ts
-import { middleware } from './middleware';
+// proxy.test.ts
+import { proxy } from './proxy';
 import { NextRequest } from 'next/server';
 
 function createMockRequest(path: string, cookies?: Record<string, string>) {
@@ -236,10 +238,10 @@ function createMockRequest(path: string, cookies?: Record<string, string>) {
   return request;
 }
 
-describe('middleware', () => {
+describe('proxy', () => {
   it('인증 토큰 없이 /dashboard 접근 시 /login으로 리다이렉트한다', () => {
     const request = createMockRequest('/dashboard');
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response.status).toBe(307);
     expect(new URL(response.headers.get('location')!).pathname).toBe('/login');
@@ -247,14 +249,14 @@ describe('middleware', () => {
 
   it('인증 토큰이 있으면 통과한다', () => {
     const request = createMockRequest('/dashboard', { 'auth-token': 'valid' });
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response.status).toBe(200);
   });
 
   it('공개 경로는 토큰 없이도 통과한다', () => {
     const request = createMockRequest('/about');
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response.status).toBe(200);
   });
