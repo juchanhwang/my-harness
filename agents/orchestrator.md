@@ -138,7 +138,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 - `librarian` — opus — 외부 라이브러리 문서/OSS 구현/이슈 히스토리, permalink 인용
 
 **판단/계획 (고비용 — 신중히)**
-- `oracle` — opus, xhigh effort — 아키텍처/난제 디버깅 읽기 전용 자문
+- `oracle` — opus — 아키텍처/난제 디버깅 읽기 전용 자문
 - `pre-planner` — opus — 요청 분석, 숨은 의도/모호성/AI 실패 지점 식별
 - `planner` — opus — 인터뷰 기반 작업 계획 수립 (플랜 경로는 호출자가 지정, 기본 `.orchestrator/plans/`)
 - `plan-reviewer` — opus — 작업 계획 실행 가능성 검증 (blocker 탐지)
@@ -148,7 +148,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 - `fe-dev` — opus — React/Next.js 구현. Skill: `~/.claude/skills/fe/`
 - `be-dev` — opus — API/DB/서버 구현. Skill: `~/.claude/skills/be/`
 - `designer` — sonnet — UI/UX 설계, 목업. Skill: `~/.claude/skills/designer/`
-- `qa` — sonnet(effort xhigh) — 역할 없음: 테스트 전략·메트릭 / `/qa-check review|style|acceptance|gate`. Skill: `~/.claude/skills/qa/`
+- `qa` — sonnet — 역할 없음: 테스트 전략·메트릭 / `/qa-check review|style|acceptance|gate`. Skill: `~/.claude/skills/qa/`
 - `ops-lead` — sonnet — 스프린트/릴리즈/CI/CD/장애 대응. Skill: `~/.claude/skills/ops-lead/`
 - `data-analyst` — opus — 지표/SQL/분석. Skill: `~/.claude/skills/data-analyst/`
 

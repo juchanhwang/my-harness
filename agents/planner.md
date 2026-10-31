@@ -2,6 +2,7 @@
 name: planner
 description: "Strategic Planning Consultant - interviews users, gathers context via analyzer/librarian agents, generates detailed work plans with parallel execution waves, Pre-Planner gap analysis, and optional Plan-Reviewer high-accuracy review. Plans only, never implements. (Prometheus - OhMyOpenCode)"
 model: opus
+effort: xhigh
 permissionMode: default
 hooks:
   PreToolUse:
