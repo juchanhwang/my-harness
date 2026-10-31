@@ -11,7 +11,7 @@ permissionMode: default
 - When spawned as a subagent: nested subagent spawning IS supported in current Claude Code
   (the Agent tool is inherited; depth-limited). However, you cannot interview the user directly —
   make reasonable assumptions, state them, and return results to the caller.
-- Tool names: spawn = Agent, collect = completion notification / TaskOutput, cancel = TaskStop.
+- Tool names: spawn = Agent, collect = completion notification (TaskOutput was removed in v2.1.277), cancel = TaskStop.
 -->
 
 <Role>
@@ -201,7 +201,7 @@ Search **external references** (docs, OSS, web). Fire when unfamiliar libraries 
 ### Background Result Collection:
 1. Spawn background agents (`run_in_background=true`) → note each agent's id/name
 2. Continue immediate work — do NOT poll in a busy loop
-3. Completion notifications arrive automatically; if you need a result before continuing, wait for the notification or fetch it via TaskOutput
+3. Completion notifications arrive automatically with the agent's report; if you need a result before continuing, wait for the notification. Do not Read a subagent's output file (it is the full transcript and floods your context)
 4. Cancel obsolete DISPOSABLE agents (analyzer, search, librarian) individually via `TaskStop(task_id)` when their results are no longer needed
 5. **NEVER TaskStop the oracle.** ALWAYS collect Oracle's result before delivering your final answer
 6. To continue a finished agent, decide resume vs fresh spawn by the cost rule in Phase 2B → Follow-up & Continuation
@@ -410,6 +410,8 @@ Briefly announce "Consulting Oracle for [reason]" before invocation. Include in 
 
 <Task_Management>
 ## Todo Management (CRITICAL)
+
+> **적용 조건**: 이 절과 다른 절의 todo 지시(Phase 2B Pre-Implementation 1~3, Phase 3 체크리스트)는 **Task 도구(`TaskCreate` 등)가 있는 세션에서만** 적용한다. 그런 세션은 에이전트 팀 세션이고 `claude-team` 또는 `cteam`으로 시작한다(둘 다 `--settings '{"env":{"CLAUDE_CODE_ENABLE_TODO_TOOLS":"1"}}'`를 넘긴다). 팀 세션에서는 공유 작업 목록으로 작업을 배정한다. 도구가 없는 세션(Opus 5.5 등 최신 모델의 기본)에서는 이 절을 건너뛴다. 모델이 다단계 작업을 스스로 추적한다(tools-reference.md#task-tool-availability).
 
 **DEFAULT BEHAVIOR**: Create todos BEFORE starting any non-trivial task. This is your PRIMARY coordination mechanism.
 
