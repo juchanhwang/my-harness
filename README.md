@@ -28,11 +28,11 @@ my-harness/
 | 파일 | 모델 | 설명 |
 |---|---|---|
 | `orchestrator.md` | opus | 메인 진입점. 탐색→위임→검증 루프 조율 |
-| `planner.md` | opus | 전략적 작업 계획 수립 (구현 없음) |
+| `planner.md` | opus | 전략적 작업 계획 수립 (구현 없음 — effort xhigh) |
 | `pre-planner.md` | opus | 사전 요구사항 분석, 모호성 식별 |
 | `plan-reviewer.md` | opus | 계획 검토 및 검증 |
-| `oracle.md` | opus | 아키텍처 설계, 고난이도 디버깅 컨설팅 |
-| `analyzer.md` | sonnet | 코드베이스 분석 (read-only) |
+| `oracle.md` | opus | 아키텍처 설계, 고난이도 디버깅 컨설팅 (effort xhigh) |
+| `analyzer.md` | sonnet | 코드베이스 분석 (read-only — effort high) |
 | `librarian.md` | opus | 외부 문서/OSS 검색, 공식 문서 참조 |
 | `search.md` | haiku | 빠른 팩트 조회, 파일/경로 검색 |
 | `media-reader.md` | sonnet | PDF, 이미지 등 미디어 파일 해석 |
@@ -41,8 +41,8 @@ my-harness/
 
 | 파일 | 모델 | 설명 |
 |---|---|---|
-| `fe-dev.md` | opus | 시니어 프론트엔드 엔지니어 (React/Next.js, TypeScript) |
-| `be-dev.md` | opus | 시니어 백엔드 엔지니어 (Node.js, PostgreSQL, API 설계) |
+| `fe-dev.md` | opus | 시니어 프론트엔드 엔지니어 (React/Next.js, TypeScript — 캐시 1h) |
+| `be-dev.md` | opus | 시니어 백엔드 엔지니어 (Node.js, PostgreSQL, API 설계 — 캐시 1h) |
 | `designer.md` | sonnet | 시니어 프로덕트 디자이너 (UI/UX, 디자인 시스템) |
 | `po.md` | sonnet | 시니어 프로덕트 오너 (제품 전략, PRD, 로드맵) |
 | `qa.md` | sonnet | 시니어 QA 엔지니어 (테스트 전략, 자동화, 보안, `/qa-check` 역할 세션 — effort xhigh) |
@@ -221,6 +221,14 @@ my-harness/
 | `seo.md` | 메타태그·OG·구조화 데이터 |
 | `i18n.md` | 다국어·번역 키·로케일 |
 | `debugging.md` | 에러 메시지 분류·재현·근본 원인 수정·재발 방지, FE 빈출 버그 패턴 |
+
+**Vendor (`vendor/vercel/`)** — vercel 플러그인 0.50.0에서 옮긴 Next.js 레퍼런스. 스킬로 등록되지 않고(`SKILL.md` 대신 `index.md`) 필요할 때 Read한다. 어긋나 보이면 context7(`/vercel/next.js`)로 최신 문서를 확인한다.
+
+| 파일 | 역할 |
+|---|---|
+| `nextjs/index.md` + `references/` (19) | App Router 파일 컨벤션·RSC 경계·Server Actions·Metadata·Image/Font |
+| `next-cache-components/index.md` | `'use cache'`·`cacheLife`·`cacheTag`·PPR |
+| `SOURCE.md`·`LICENSE` | 출처·변경 고지·Apache-2.0 |
 
 </details>
 
@@ -574,7 +582,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 | `fe-performance-workspace/` | `fe` (performance) | `evals/`, `iteration-1/` (eval-0~2: ssr-boundary, react-compiler-memo, code-splitting) |
 | `po-workspace/` | `po` | `iteration-1/` (eval-0~2: prd-writing, prioritization-rice, implicit-feature-decision), `skill-snapshot/` |
 
-## 플러그인 (11)
+## 플러그인 (10 + 비활성 1)
 
 `settings.json`의 `enabledPlugins`에 선언. Claude Code가 자동으로 설치/업데이트한다.
 
@@ -589,7 +597,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 | `typescript-lsp` | TypeScript LSP 연동 (타입 진단, 자동 완성) |
 | `playwright` | Playwright 브라우저 자동화 테스트 |
 | `github` | GitHub MCP 서버 (이슈·PR·레포 관리) |
-| `vercel` | Vercel 플랫폼 연동 (배포, 로그, 환경 변수) |
+| `vercel` | **비활성**(`false`) — 토큰 절감. 필요한 Next.js 문서 2개는 `skills/fe/vendor/vercel/`로 이전 |
 | `figma` | Figma MCP 서버 (시안 변수·디자인 컨텍스트 조회, `/qa-check style`이 사용) |
 
 ## 커맨드 (2)
@@ -624,7 +632,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 
 ### claude-team
 
-에이전트 팀을 즉시 생성하는 래퍼 스크립트. `--append-system-prompt`로 팀 생성을 강제한다.
+에이전트 팀을 즉시 생성하는 래퍼 스크립트. `--append-system-prompt`로 팀 생성을 강제하고, `--settings`로 `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`을 넘겨 공유 작업 목록(Task 도구)을 켠다(Opus 5.5 등은 기본 꺼짐).
 
 ```bash
 claude-team [team-type] ["작업 설명"]
