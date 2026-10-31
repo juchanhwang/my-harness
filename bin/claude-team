@@ -248,7 +248,11 @@ echo ""
 # ─────────────────────────────────────────────────────────────
 # Claude Code 실행
 # ─────────────────────────────────────────────────────────────
+# Task 도구(공유 작업 목록)는 Opus 5.5 등 최신 모델에서 기본 꺼짐.
+# 셸 export는 split-pane 팀원에게 전달되지 않으므로 --settings env로 넘긴다.
+# https://code.claude.com/docs/en/tools-reference.md#task-tool-availability
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude \
+    --settings '{"env":{"CLAUDE_CODE_ENABLE_TODO_TOOLS":"1"}}' \
     --name "Orchestrator" \
     --append-system-prompt "$SYSTEM_PROMPT" \
     "$PROMPT"
