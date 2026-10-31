@@ -25,8 +25,8 @@ description: >
 > | App Router 기본, 라우팅/레이아웃, `loading.tsx`/`error.tsx`/`not-found.tsx`, 네비게이션(`useRouter`, `Link`, `redirect`), Metadata API | `vendor/vercel/nextjs/index.md` + `references/file-conventions.md`·`functions.md`·`error-handling.md`·`metadata.md` |
 > | Server Actions 기본 동작, `'use server'`, `useActionState`, `useOptimistic`, `revalidatePath`/`revalidateTag` | `vendor/vercel/nextjs/index.md` + `references/directives.md`·`data-patterns.md` |
 > | Cache Components, `'use cache'`, `cacheLife`, `cacheTag`, `updateTag`, PPR, `unstable_cache` 마이그레이션 | `vendor/vercel/next-cache-components/index.md` |
-> | 미들웨어/`proxy.ts`(Next.js 16 rename), 요청 가로채기 | 현재 로컬 문서 없음 — context7(`/vercel/next.js`)로 조회. 보완 검토 중 |
-> | Turbopack 설정/디버깅 | 현재 로컬 문서 없음 — context7(`/vercel/next.js`)로 조회. 보완 검토 중 |
+> | 미들웨어/`proxy.ts`(Next.js 16 rename), 요청 가로채기 | `architecture.md` §3.3 `proxy.ts` 항목 + `security.md` §proxy.ts 런타임. 그 밖은 context7(`/vercel/next.js`)로 조회 |
+> | Turbopack 설정/디버깅 | `build-optimization.md` §3.4 (설정) · §3.1 (번들 분석). 그 밖은 context7(`/vercel/next.js`)로 조회 |
 > | shadcn/ui CLI, 컴포넌트 설치/테마 | context7으로 shadcn/ui 공식 문서 조회 |
 > | React 성능 규칙(64 rules, waterfall/bundle/rerender) | `performance-react-rendering.md` + `react-effects.md` |
 >

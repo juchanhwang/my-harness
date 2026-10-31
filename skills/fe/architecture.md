@@ -188,6 +188,10 @@ app/
 * **`(folder)`** — route group. 괄호로 감싸면 URL에 영향 없이 폴더를 그룹핑할 수 있다
 * **`src/`** — 선택. `app/`과 루트 설정 파일을 분리하고 싶으면 사용
 * **`proxy.ts`** (Next.js 16+) — 이전 `middleware.ts`의 새 이름. 기존 코드 마이그레이션 필요
+  * export 함수 이름도 `middleware` → `proxy`. `npx @next/codemod@latest middleware-to-proxy .`가 파일·export·관련 config 이름을 함께 바꾼다
+  * `middleware.ts`는 deprecated지만 16에서도 동작한다. `proxy`는 Node.js 런타임 전용(`runtime` 설정 시 에러)이라 Edge가 필요하면 `middleware`를 유지한다
+
+> 📎 출처: [Next.js 16 업그레이드 · middleware to proxy](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/02-guides/upgrading/version-16.mdx) · [Codemods · middleware-to-proxy](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/02-guides/upgrading/codemods.mdx) · [proxy.mdx · Runtime](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/03-api-reference/03-file-conventions/proxy.mdx)
 
 ### 3.4 ❌ 금지 — Type-Based Flat
 

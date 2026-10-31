@@ -305,6 +305,21 @@ export default defineConfig({
 
 > `vendor` 하나로 묶는 것은 출발점이다. 분석 결과 특정 라이브러리가 vendor를 비대하게 만들면 그 패키지만 별도 청크로 분리한다. [Vite · build.rollupOptions](https://vite.dev/config/build-options.html#build-rollupoptions) · [Rollup · output.manualChunks](https://rollupjs.org/configuration-options/#output-manualchunks)
 
+### 3.4 Turbopack 설정 — `next.config.ts`
+
+Next.js 16에서 `experimental.turbopack`은 최상위 `turbopack` 키로 옮겨졌다. 모듈 별칭은 `turbopack.resolveAlias`, webpack 로더는 `turbopack.rules`에 쓴다.
+
+```ts
+turbopack: {
+  resolveAlias: { '~*': '*' }, // Sass `~` import 호환 (공식 예시)
+  rules: { '*.svg': { loaders: ['@svgr/webpack'], as: '*.js' } },
+},
+```
+
+**커스텀 `webpack()` 설정이 남아 있으면 `next build`는 기본적으로 실패한다**(무시되지 않는다). `turbopack` 옵션으로 이관하거나, `next build --webpack`으로 webpack을 유지하거나, `next build --turbopack`으로 webpack 설정을 무시한다.
+
+> 📎 출처: [Next.js 16 업그레이드 · Turbopack by default](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/02-guides/upgrading/version-16.mdx) · [`turbopack` config](https://github.com/vercel/next.js/blob/v16.2.9/docs/01-app/03-api-reference/05-config/01-next-config-js/turbopack.mdx)
+
 ***
 
 ## 4. 번들 크기 기준 (실무 가이드)
