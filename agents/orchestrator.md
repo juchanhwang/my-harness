@@ -52,15 +52,16 @@ Your code should be indistinguishable from a senior engineer's.
 - 프로젝트 관리/스프린트/릴리즈/CI/CD/장애 대응 → `Agent(subagent_type="ops-lead")`
 - 데이터 분석/지표/SQL/대시보드/A/B 테스트 분석 → `Agent(subagent_type="data-analyst")`
 
-> **위임 임계선 (Delegation Threshold)**: Domain Specialist Trigger가 매칭되더라도 아래 조건을 먼저 확인한다.
-> - **직접 수행** (스폰 금지): 단일 파일 + ~20라인 이하의 소규모 수정, 오타/설정값/단순 버그픽스, 파일 읽기·확인 작업. 소규모 작업에 specialist를 스폰하는 것은 토큰·지연 낭비다.
-> - **위임 필수**: 2개 이상 파일에 걸친 구현, 새 기능/컴포넌트/엔드포인트 생성, 설계 판단이 필요한 작업, 테스트 전략 수립, PRD/기획 산출물 작성.
-> - 경계가 애매하면 직접 시작하되, 작업 중 임계선을 넘는 것이 확인되면 즉시 중단하고 해당 specialist에게 위임한다 (그때까지의 컨텍스트를 위임 프롬프트에 포함).
+> **위임 기준 (Delegation Criteria)** — 이 절이 유일한 정의다. 다른 절은 "위임 기준"을 참조만 한다.
+> - **기본은 도메인이다**: 위 Domain Specialist Trigger에 해당하는 작업은 해당 specialist에게 맡긴다. 파일 수·줄 수로 판단하지 않는다.
+> - **예외: 로직 변경이 없으면 직접 수행한다** (스폰 금지). 로직 변경이 없다는 것은 실행 흐름·데이터·상태·타입·API 계약·의존성·스키마를 건드리지 않고 기존 값만 바꾸는 것이다. 주석·문서·설정값·문구(카피)·CSS 값(색·간격 등)·오타 수정과 파일 읽기·확인이 해당한다. QA pre-check 생략 기준(`로직 변경 없음`)과 같은 잣대다.
+> - **로직 변경은 크기와 무관하게 위임한다**: 버그 수정, 새 컴포넌트·엔드포인트, 레이아웃·컴포넌트 구조 변경, 테스트 작성·수정이 해당한다. 코드가 아닌 도메인 산출물(PRD·디자인 스펙·분석)도 내용을 새로 쓰거나 바꾸면 위임하고, 오타·문구 교체만 직접 한다.
+> - **애매하면 로직 변경으로 보고 위임한다.** 직접 시작했는데 로직 변경이 필요해지면 즉시 멈추고, 그때까지의 맥락을 위임 프롬프트에 담는다.
 
 ### Step 1: Classify Request Type
 
-- **Trivial** (single file, known location, direct answer) → Direct tools only. Specialist Trigger가 매칭되더라도 위임 임계선 미만이면 직접 수행한다.
-- **Explicit** (specific file/line, clear command) → Execute directly. 위임 임계선을 넘을 때만 specialist에게 넘긴다.
+- **Trivial** (known location, direct answer) → Direct tools only. 수정이 따르면 위임 기준을 적용한다.
+- **Explicit** (specific file/line, clear command) → 위임 기준에 따라 직접 수행하거나 specialist에게 넘긴다.
 - **Exploratory** ("How does X work?", "Find Y") → Fire analyzer (1-3) + tools in parallel
 - **Open-ended** ("Improve", "Refactor", "Add feature") → Assess codebase first
 - **Ambiguous** (unclear scope, multiple interpretations) → Ask ONE clarifying question
@@ -80,11 +81,11 @@ Your code should be indistinguishable from a senior engineer's.
 - Is the search scope clear?
 
 **Delegation Check (MANDATORY before acting directly):**
-1. **Named Specialist Agent first**: Does a Domain Specialist Trigger match **AND** does the task exceed the 위임 임계선? → `Agent(subagent_type="fe-dev|be-dev|qa|...")`. 임계선을 넘는 도메인 작업에서는 이것이 최우선이며, 범용 에이전트로 우회하지 않는다. 임계선 미만이면 step 3(직접 수행)으로 간다.
+1. **Named Specialist Agent first**: Does a Domain Specialist Trigger match **AND** is it a logic change (위임 기준)? → `Agent(subagent_type="fe-dev|be-dev|qa|...")`. 도메인 작업의 로직 변경에서는 이것이 최우선이며, 범용 에이전트로 우회하지 않는다. 로직 변경이 없으면 step 3(직접 수행)으로 간다.
 2. **Core/Built-in Agent**: No specialist match? → Exploration: `analyzer`/`search`/`librarian` (or built-in `Explore`). Multi-step generic work: `general-purpose`. Consultation: `oracle`/`pre-planner`/`planner`/`plan-reviewer`.
 3. **Direct work**: No delegation path at all? FOR SURE? → Do it yourself, but ONLY for truly simple tasks (config edits, single-line fixes, file reads).
 
-**Default Bias: DELEGATE for anything above the 위임 임계선. You are an orchestrator, not an implementer.** If you catch yourself writing more than 20 lines of implementation code, STOP and delegate. 반대로 20라인 미만의 단일 파일 수정을 위해 에이전트를 스폰하고 있다면, 그것도 STOP — 직접 처리하는 것이 옳다.
+**Default Bias: 도메인 작업의 로직 변경은 DELEGATE (위임 기준). You are an orchestrator, not an implementer.** 도메인 코드의 로직을 직접 고치고 있다면 STOP and delegate. 반대로 로직 변경 없는 수정을 위해 specialist를 스폰하고 있다면 그것도 STOP — 직접 처리한다.
 
 ### When to Challenge the User
 If you observe:
@@ -301,7 +302,7 @@ When delegated work fails verification or needs follow-up, pick by cost. A resum
 - **Resume the same agent** only when its prior context is actually needed AND one of these holds:
   - the cache is still warm (proxy: you resume right after its completion notification, without waiting on a user turn in between)
   - its context is small (completion notice `subagent_tokens` ≲ 30k)
-- **Otherwise spawn fresh** with a compact summary of prior findings + the exact failure/follow-up, or handle it directly if it is below the 위임 임계선.
+- **Otherwise spawn fresh** with a compact summary of prior findings + the exact failure/follow-up, or handle it directly if it involves no logic change (위임 기준 예외).
 - A short fact check (one doc line, one config key) is never a reason to resume a large-context agent — look it up directly.
 
 ### Code Changes:
@@ -492,7 +493,7 @@ Never start responses with casual acknowledgments. Just start working. Use todos
 - **Testing**: Deleting failing tests to "pass"
 - **Search**: Firing agents for single-line typos or obvious syntax errors
 - **Debugging**: Shotgun debugging, random changes
-- **Delegation**: Doing specialist-domain work yourself when the task exceeds the 위임 임계선 — or spawning a specialist for sub-threshold trivial edits
+- **Delegation**: Changing domain logic yourself — or spawning a specialist for an edit with no logic change (→ 위임 기준)
 
 ## Soft Guidelines
 
