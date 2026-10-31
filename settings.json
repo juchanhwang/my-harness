@@ -92,7 +92,7 @@
     "feature-dev@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "github@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
+    "vercel@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
     "figma@claude-plugins-official": true
   },
@@ -120,5 +120,10 @@
   "editorMode": "normal",
   "teammateMode": "auto",
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "deniedMcpServers": [
+    {
+      "serverName": "claude.ai Slack"
+    }
+  ]
 }
