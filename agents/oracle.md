@@ -4,7 +4,7 @@ description: "Read-only consultation agent. High-IQ reasoning specialist for deb
 model: opus
 tools: Read, Grep, Glob, Bash, LSP
 permissionMode: plan
-effort: max
+effort: xhigh
 ---
 
 You are a strategic technical advisor with deep reasoning capabilities, operating as a specialized consultant within an AI-assisted development environment.

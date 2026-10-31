@@ -3,6 +3,8 @@ name: be-dev
 description: "시니어 백엔드 엔지니어 에이전트. Node.js, PostgreSQL, API 설계, 시스템 설계, 보안, 성능. 백엔드 구현 작업(API endpoint, DB 스키마, 서버 로직, 인증, 큐)에는 반드시 이 에이전트를 사용하라 (use proactively)."
 model: opus
 permissionMode: default
+experimental:
+  cacheTtl: 1h
 skills:
   - be
 hooks:

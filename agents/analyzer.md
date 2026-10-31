@@ -2,6 +2,7 @@
 name: analyzer
 description: "Deep codebase analysis agent. Understands code flows, module relationships, and architectural patterns. Use when the question requires understanding and explanation, not just finding files. For simple lookups use search. (Explore - OhMyOpenCode)"
 model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash, LSP
 permissionMode: plan
 ---

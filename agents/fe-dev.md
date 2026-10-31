@@ -3,6 +3,8 @@ name: fe-dev
 description: "시니어 프론트엔드 엔지니어 에이전트. React/Next.js, TypeScript, 컴포넌트 설계, 상태 관리, 성능 최적화. 프론트엔드 구현 작업(.tsx/.jsx, React/Next.js, 컴포넌트, 스타일링)에는 반드시 이 에이전트를 사용하라 (use proactively)."
 model: opus
 permissionMode: default
+experimental:
+  cacheTtl: 1h
 skills:
   - fe
 hooks:

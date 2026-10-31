@@ -138,7 +138,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 - `librarian` — opus — 외부 라이브러리 문서/OSS 구현/이슈 히스토리, permalink 인용
 
 **판단/계획 (고비용 — 신중히)**
-- `oracle` — opus, max effort — 아키텍처/난제 디버깅 읽기 전용 자문
+- `oracle` — opus, xhigh effort — 아키텍처/난제 디버깅 읽기 전용 자문
 - `pre-planner` — opus — 요청 분석, 숨은 의도/모호성/AI 실패 지점 식별
 - `planner` — opus — 인터뷰 기반 작업 계획 수립 (플랜 경로는 호출자가 지정, 기본 `.orchestrator/plans/`)
 - `plan-reviewer` — opus — 작업 계획 실행 가능성 검증 (blocker 탐지)
@@ -204,7 +204,7 @@ Search **external references** (docs, OSS, web). Fire when unfamiliar libraries 
 3. Completion notifications arrive automatically; if you need a result before continuing, wait for the notification or fetch it via TaskOutput
 4. Cancel obsolete DISPOSABLE agents (analyzer, search, librarian) individually via `TaskStop(task_id)` when their results are no longer needed
 5. **NEVER TaskStop the oracle.** ALWAYS collect Oracle's result before delivering your final answer
-6. To continue a finished agent with its context intact, resume it (SendMessage / resume) instead of re-spawning and re-explaining
+6. To continue a finished agent, decide resume vs fresh spawn by the cost rule in Phase 2B → Follow-up & Continuation
 
 ### Search Stop Conditions
 
@@ -297,10 +297,12 @@ AFTER THE WORK YOU DELEGATED SEEMS DONE, ALWAYS VERIFY THE RESULTS:
 
 ### Follow-up & Continuation (IMPORTANT)
 
-When delegated work fails verification or needs follow-up:
-- **Resume the same agent** (context preserved — no repeated exploration): send the specific error/follow-up to the existing agent instead of spawning fresh
-- Spawning fresh for a follow-up wastes tokens re-reading files the previous agent already knows
-- If resume is unavailable, include a compact summary of prior findings + exact failure in the new spawn prompt
+When delegated work fails verification or needs follow-up, pick by cost. A resumed agent carries its **entire** prior history (every file read and tool result). That history is cheap to re-read only while the subagent's prompt cache is alive (default 5m; an agent's frontmatter `experimental.cacheTtl: 1h` extends it). After expiry the whole history is re-processed at full price.
+- **Resume the same agent** only when its prior context is actually needed AND one of these holds:
+  - the cache is still warm (proxy: you resume right after its completion notification, without waiting on a user turn in between)
+  - its context is small (completion notice `subagent_tokens` ≲ 30k)
+- **Otherwise spawn fresh** with a compact summary of prior findings + the exact failure/follow-up, or handle it directly if it is below the 위임 임계선.
+- A short fact check (one doc line, one config key) is never a reason to resume a large-context agent — look it up directly.
 
 ### Code Changes:
 - Match existing patterns (if codebase is disciplined)
@@ -373,7 +375,7 @@ If verification fails:
 <Oracle_Usage>
 ## Oracle — Read-Only High-IQ Consultant
 
-Oracle is a read-only, expensive, high-quality reasoning agent for debugging and architecture. Consultation only. Its definition sets maximum reasoning effort — you do NOT need special keywords in the prompt; provide complete EVIDENCE and ATTEMPTED context instead.
+Oracle is a read-only, expensive, high-quality reasoning agent for debugging and architecture. Consultation only. Its definition sets xhigh reasoning effort — you do NOT need special keywords in the prompt; provide complete EVIDENCE and ATTEMPTED context instead.
 
 ### WHEN to Consult (Oracle FIRST, then implement):
 
@@ -403,7 +405,6 @@ Briefly announce "Consulting Oracle for [reason]" before invocation. Include in 
 
 - Oracle may take several minutes. This is normal and expected.
 - When Oracle is running and you finish your own exploration, your next action is collecting Oracle's result — NOT delivering a final answer.
-- Oracle catches blind spots you cannot see — its value is HIGHEST when you think you don't need it.
 - **NEVER** cancel Oracle via TaskStop. Cancel disposable agents (analyzer, search, librarian) instead.
 </Oracle_Usage>
 
