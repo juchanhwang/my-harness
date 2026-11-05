@@ -11,7 +11,7 @@ my-harness/
 ├── agents/          # 서브 에이전트 정의 (16개)
 ├── skills/          # 스킬 정의 (17개 — 도메인 7 + 범용 6 + 역할 세션 1 + workspace 3, 참조 파일 197개)
 ├── commands/        # 슬래시 커맨드 (2개)
-├── hooks/           # 이벤트 훅 스크립트 (5개)
+├── hooks/           # 이벤트 훅 스크립트 (6개)
 ├── bin/             # CLI 커맨드 1개 + ~/.claude 동기화 도구(harness-sync)
 ├── tools/           # 보조 도구 (acceptance 배치 모드용 Playwright 러너)
 ├── CLAUDE.md        # 글로벌 지침
@@ -29,8 +29,8 @@ my-harness/
 |---|---|---|
 | `orchestrator.md` | opus | 메인 진입점. 탐색→위임→검증 루프 조율 |
 | `planner.md` | opus | 전략적 작업 계획 수립 (구현 없음 — effort xhigh) |
-| `pre-planner.md` | opus | 사전 요구사항 분석, 모호성 식별 |
-| `plan-reviewer.md` | opus | 계획 검토 및 검증 |
+| `pre-planner.md` | opus | 사전 요구사항 분석, 모호성 식별 (effort xhigh) |
+| `plan-reviewer.md` | sonnet | 계획 검토 및 검증 (effort high) |
 | `oracle.md` | opus | 아키텍처 설계, 고난이도 디버깅 컨설팅 (effort xhigh) |
 | `analyzer.md` | sonnet | 코드베이스 분석 (read-only — effort high) |
 | `librarian.md` | opus | 외부 문서/OSS 검색, 공식 문서 참조 |
@@ -560,7 +560,7 @@ my-harness/
 | `commit-convention` | Conventional Commits + Tim Pope + Chris Beams 기반 Git 커밋 컨벤션 |
 | `find-skills` | `npx skills` CLI로 오픈 스킬 생태계 검색 및 설치 지원 |
 | `planning-workflow` | 도메인 스페셜리스트의 "플랜 모드" 트리거 시 표준 계획 수립 5단계 워크플로우 |
-| `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node) |
+| `mcp-builder` | MCP(Model Context Protocol) 서버 설계 및 구축 가이드 (Python/Node — TypeScript는 SDK v2 기본, v1은 기존 프로젝트용) |
 | `remotion-best-practices` | Remotion(React 비디오) 개발 베스트 프랙티스 (30개+ 규칙) |
 | `web-design-guidelines` | Vercel Web Interface Guidelines 기반 UI 접근성·UX 가이드 |
 
@@ -570,7 +570,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 
 | 스킬 | 역할 |
 |---|---|
-| `qa-check` | `/qa-check <review\|style\|acceptance\|gate> key=value…` — `qa` 에이전트를 역할별 포크 세션으로 띄운다. `references/`에 역할 문서, `scripts/`에 판정·스타일 비교 스크립트(Node 내장 모듈), `assets/`에 리포트 템플릿과 acceptance 배치 모드용 spec·config 템플릿, `evals/`에 fixture 앱과 eval |
+| `qa-check` | `/qa-check <review\|style\|acceptance\|gate> key=value…` — `qa` 에이전트를 역할별 포크 세션으로 띄운다. gate는 다른 역할 세션을 띄우지 않고, 재사용할 리포트가 없으면 BLOCKED와 함께 실행 명령을 돌려준다(팀 리드가 acceptance를 background로 먼저 돌린다 — `agents/orchestrator.md` 「QA gate 절차」). 수정 뒤 재검증은 `rerun-of=<직전 리포트>`로 직전 결과를 이어 쓴다(review는 바뀐 파일만, acceptance는 직전 시나리오·spec을 복사해 전체 재실행). `references/`에 역할 문서, `scripts/`에 판정·스타일 비교 스크립트(Node 내장 모듈), `assets/`에 리포트 템플릿과 acceptance 배치 모드용 spec·config 템플릿, `evals/`에 fixture 앱과 eval |
 
 ### 워크스페이스 (3)
 
@@ -613,6 +613,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 
 | 훅 | 이벤트 | 역할 |
 |---|---|---|
+| `ask-before-delete.py` | `PreToolUse`(matcher `Bash`) | 명령을 shlex로 나눠 실제로 실행되는 삭제만 판정한다. 프로젝트의 코드 파일·AI 산출물(`.orchestrator/`, 세션 scratchpad)·빌드 산출물 폴더(`dist`·`.next`·`node_modules` 등) 삭제는 통과, 그 밖의 재귀 삭제는 차단(폴더는 `mv`로 `~/.Trash`에), 나머지 삭제는 사용자에게 묻는다. 파이프·리다이렉트·`cd`가 낀 명령은 판정을 믿을 수 없어 묻는다. `permissions.ask`의 삭제성 규칙(`Bash(rm *)` 등)은 훅이 판정하지 못할 때의 대비다 |
 | `claude-remote-notification.sh` | `Notification` | 원격 알림 전송 |
 | 인라인 `osascript` | `Notification` | macOS 로컬 알림 |
 | `claude-remote-session-start.sh` | `SessionStart` | 세션 시작 알림 |
@@ -624,7 +625,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 |---|---|---|---|
 | `qa-gate-subagent-stop.sh` | `SubagentStop`(frontmatter `Stop`), `PreToolUse`(matcher `SubagentHandback`) | `agents/fe-dev.md`, `agents/be-dev.md` | 첫 줄에 `QA:` 라인 없이 끝나는 fe·be 서브에이전트를 한 번 막는다. 텍스트로 끝나면 `SubagentStop`에서 차단하고(`stop_hook_active`면 통과), 보고를 `SubagentHandback`으로 넘기면 `PreToolUse`에서 보고 본문 첫 줄을 검사해 에이전트당 한 번 거부한다. `agent_type`이 `fe-dev`·`be-dev`가 아니거나(팀원 등) 입력이 깨졌으면 통과한다 |
 
-> `hooks/` 디렉터리에는 위 3개 스크립트 외에 `notify.sh`가 남아 있지만, 현재 `settings.json`에 등록돼 있지 않다. macOS 로컬 알림은 `notify.sh`가 아니라 `Notification` 훅에 인라인으로 선언된 `osascript`가 처리한다.
+> `hooks/` 디렉터리에는 위 스크립트 외에 `notify.sh`가 남아 있지만, 현재 `settings.json`에 등록돼 있지 않다. macOS 로컬 알림은 `notify.sh`가 아니라 `Notification` 훅에 인라인으로 선언된 `osascript`가 처리한다.
 
 ## CLI (bin/)
 
