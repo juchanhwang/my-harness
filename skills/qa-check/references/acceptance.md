@@ -33,7 +33,7 @@ Bash에 삭제 명령(`rm`·`unlink` 등)을 쓰지 않는다. 삭제 확인 훅
    - **배치 모드(기본)** — 하네스 러너 `~/.claude/tools/playwright-runner/`(`node_modules/.bin/playwright`가 있어야 한다)로 실행한다. 프로젝트의 Playwright는 쓰지 않는다(버전·config 간섭, 프로젝트에 흔적 금지). 브라우저 시나리오 수와 무관하게 이 모드다. 먼저 단계 모드로 시나리오 **1개**를 실행해 셀렉터·로그인·초기 상태를 확인한다(안 보고 쓴 spec은 셀렉터 오류로 가짜 FAIL이 난다). 그다음 `<SKILL_DIR>/assets/playwright.acceptance.config.template.mjs`와 `acceptance.spec.template.mjs`를 `<report-dir>/<base>.config.mjs`·`<report-dir>/<base>.spec.mjs`로 복사해 `__RUNNER__`(러너 절대 경로)·`__REPORT_DIR_ABS__`·`__APP__`·`__BASE__`를 채우고, 시나리오 전부를 그 spec **하나**에 쓴다(`test()` 하나 = 시나리오 하나, 제목은 시나리오 id, 셀렉터·대기 규칙은 `e2e-testing.md`). `~/.claude/tools/playwright-runner/node_modules/.bin/playwright test --config <report-dir>/<base>.config.mjs`를 **1회** 실행하고 stdout을 `<report-dir>/<base>.results.txt`에 저장한다. config는 이번 spec만 실행하고(`testMatch`) 증거를 `<base>-results/`에 남기므로(`outputDir`), 이전 spec을 지우거나 config를 고칠 필요가 없다. Playwright는 `test()`마다 새 브라우저 컨텍스트를 쓰므로 시나리오 독립성은 자동이다. 로그인이 필요하면 `auth=`로 한 번 로그인한 `storageState`를 `<report-dir>/auth-state.json`에 저장해 config에서 재사용한다. 이 spec·config는 **검증 산출물**이다 — 소스 트리에 두거나 커밋하지 않고, 굳힐 가치가 있으면 `## E2E candidates`에 제안한다.
    - **단계 모드(대체)** — 배치 모드를 쓸 수 없을 때(Playwright 러너 없음)만. Playwright MCP로 한 단계씩 조작한다. 판정은 `browser_evaluate`로 참/거짓·값을 물어서 하고, `browser_snapshot`은 요소를 찾을 때와 FAIL 증거를 남길 때만 쓴다(페이지 전체 트리라 무겁다). 시나리오마다 새로 로드하고 필요하면 저장소(localStorage 등)를 비운다.
 3. **기록**: 시나리오마다 PASS / FAIL / BLOCKED(환경)와 재현 단계, 실패 시 증거(스크린샷·응답 본문) 경로를 쓴다. 배치 모드면 `<base>.results.txt`와 `<base>-results/`의 실패 스크린샷 경로가 증거다.
-4. **원인 확인**: 실패 원인을 알아야 할 때만, 시나리오를 확정·기록한 뒤에 소스를 Read한다.
+4. **원인 확인**: 실패 원인을 알아야 할 때만, 시나리오를 확정·기록한 뒤에 소스를 Read한다. 원인이 앱이 아니라 spec이면(PRD에 없는 조건을 단정했거나 셀렉터·대기·코드 실수) 그 `test()`만 고치고 그 시나리오만 다시 실행한다 — `--grep "<시나리오 id> "`(뒤 공백은 `AC-1`이 `AC-10`에 걸리지 않게), `--output <report-dir>/<base>-rerun-results`, stdout은 `<base>.rerun.txt`. 같은 outputDir로 돌리면 Playwright가 전체 실행의 실패 증거를 지운다. 판정 기준(PRD 문구)은 바꾸지 않고, 고친 내용을 `## Checked`에 적는다. 앱 원인이면 finding이다.
 5. **E2E candidates**: 테스트 코드로 굳힐 만한 시나리오를 `## E2E candidates`에 이유(회귀 위험·빈도)와 함께 **제안**만 한다. 작성은 fe-dev·be-dev의 몫이다.
 6. **finding**: id `A-1`, `A-2`…. `where`는 시나리오 id(예: `AC-1`), `expected`는 PRD 문구, `actual`은 관찰 결과, `repro`는 재현 단계다. 기능을 쓸 수 없으면 Critical, 인수 조건이 부분적으로만 실패하면 Major, 표시·엣지 문제는 Minor. 이어서 `findings.json` → `verdict.mjs` → 리포트 → 마커(공통 규칙 2–4).
 
@@ -49,7 +49,7 @@ Bash에 삭제 명령(`rm`·`unlink` 등)을 쓰지 않는다. 삭제 확인 훅
 - (b) **시나리오 표**: 직전 리포트의 `## 시나리오` 표를 결과 열만 비워 새 리포트에 **가장 먼저** Write한다. 시나리오를 추가·삭제·수정하지 않는다. 직전 리포트의 finding을 보고 빠진 경로가 떠오르면 `## E2E candidates`에 적는다 — 기준을 실행마다 바꾸면 직전 결과와 비교할 수 없다. 이 Write 전에는 소스를 읽지 않는다(절차 1과 같은 이유)
 - (c) **spec·config**: 직전 `.spec.mjs`를 `<report-dir>/<base>.spec.mjs`로 `cp`한다. config는 복사하지 않고 템플릿에서 절차 2와 같이 새로 만든다. `app` 주소나 `report-dir` 위치가 직전 실행과 달라졌을 수 있고, 템플릿은 자리만 채우면 되므로 비용이 거의 없다. spec 본문은 고치지 않는다. 예외는 두 가지다. 하나는 spec에 직전 app 주소나 절대 경로가 직접 적혀 있을 때 그 값만 이번 값으로 바꾸는 것이고, 다른 하나는 (e)다. 셀렉터·로그인은 직전 실행에서 이미 확인했으므로 단계 모드 사전 확인은 하지 않는다
 - (d) **실행**: 절차 2의 배치 모드 명령을 **1회** 실행하고 stdout을 `<base>.results.txt`에 저장한다
-- (e) **결과 대조**: 직전 PASS였는데 이번에 FAIL인 시나리오는 회귀 후보다. 수정이 마크업을 바꿔 spec 셀렉터가 맞지 않게 된 것인지 단계 모드로 **그 시나리오만** 확인한다. spec 결함이면 그 `test()`만 고치고 `--grep "<시나리오 id>"`로 그 시나리오만 다시 실행한 뒤 고친 내용을 `## Checked`에 적는다(이것만 1회 실행 규칙의 예외다). 앱 결함이면 finding이다
+- (e) **결과 대조**: 직전 PASS였는데 이번에 FAIL인 시나리오는 회귀 후보다. 수정이 마크업을 바꿔 spec 셀렉터가 맞지 않게 된 것인지 단계 모드로 **그 시나리오만** 확인한다. spec 결함이면 절차 4의 방법으로 그 `test()`만 고쳐 그 시나리오만 다시 실행한다. 앱 결함이면 finding이다
 - (f) **finding**: 직전 `.findings.json`의 finding을 시나리오 결과로 하나씩 판정한다. 그 시나리오가 PASS면 해소다 — 새 `findings.json`에서 빼고 `## Resolved from <직전 리포트 경로>`에 id와 한 줄 근거를 적는다. 아직 FAIL이면 같은 id로 남긴다. 새 finding은 직전 최대 번호 다음부터 매긴다
 - (g) 헤더 `inputs:`에 `rerun-of=`도 그대로 적는다(gate의 재사용 비교 키는 `prd`뿐이라 영향 없다). `## Checked`에 "재검증 모드(직전 `<경로>`의 시나리오·spec 재사용)"라고 적는다
 
@@ -65,7 +65,7 @@ Bash에 삭제 명령(`rm`·`unlink` 등)을 쓰지 않는다. 삭제 확인 훅
 
 - [ ] 시나리오 표가 소스 Read보다 먼저 리포트에 기록됐다
 - [ ] 인수 조건마다 시나리오 1개(반대 경로를 적은 인수 조건만 2개)이고, 결과(PASS/FAIL/BLOCKED/style 소관)가 있으며, FAIL마다 재현 단계와 증거가 있다
-- [ ] 실행 모드(배치/단계)를 `Checked`에 적었고, 단계 모드였다면 배치 모드를 못 쓴 이유(러너 없음)를 적었다. 배치 모드면 `<base>.spec.mjs`·`<base>.config.mjs`·`<base>.results.txt`·`<base>-results/`가 모두 `report-dir` 안에 있고 `playwright test`는 1회 실행했다(재검증 모드 (e)의 `--grep` 재실행 제외). 단계 모드면 판정을 `browser_evaluate`로 했고 snapshot은 탐색·증거용으로만 썼다
+- [ ] 실행 모드(배치/단계)를 `Checked`에 적었고, 단계 모드였다면 배치 모드를 못 쓴 이유(러너 없음)를 적었다. 배치 모드면 `<base>.spec.mjs`·`<base>.config.mjs`·`<base>.results.txt`·`<base>-results/`가 모두 `report-dir` 안에 있고 전체 실행은 1회였다(spec 결함을 고친 `--grep` 재실행은 `<base>-rerun-results/`·`<base>.rerun.txt`에 따로 남겼다). 단계 모드면 판정을 `browser_evaluate`로 했고 snapshot은 탐색·증거용으로만 썼다
 - [ ] 헤더에 `prd-sha:`가 있다
 - [ ] 재검증 모드면 직전 시나리오 표를 바꾸지 않고 옮겼고, spec을 새로 쓰지 않고 복사했으며, 직전 finding마다 해소/미해소를 판정했다. 전량 모드로 돌아갔으면 걸린 조건을 `Checked`에 적었다
 - [ ] `## E2E candidates` 절이 있다
