@@ -22,6 +22,7 @@ PRD의 인수 조건 중 **사용자가 하는 행동과 그 결과**를 시나�
 
 `<SKILL_DIR>/../qa/`의 `test-design.md`, `e2e-testing.md`, `test-planning.md`(범위 템플릿). BE(API 계약)면 `api-testing.md`도 읽는다. 재검증 모드에서는 시나리오와 spec을 새로 만들지 않으므로 `e2e-testing.md`만 읽는다.
 도구는 Read, Playwright(배치 모드: 하네스 러너 `~/.claude/tools/playwright-runner`로 Bash 1회 / 단계 모드: Playwright MCP), Bash(`curl`, `cp`, `git hash-object`)를 쓴다. **프로젝트가 자체로 가진 E2E 테스트**(개발자가 커밋해 둔 것. 배치 모드의 임시 spec과는 다르다)는 CI(`.github/workflows/` 등)가 있으면 실행하지 않는다 — PR이 열리면 CI가 돌린다. **CI가 없고 자체 E2E가 있으면** 아무도 안 돌리므로 acceptance가 1회 실행해 결과를 `Checked`에 첨부한다. 자체 E2E가 없는 프로젝트는 해당 없음. 쓰기는 `report-dir` 안만(리포트·스크린샷·배치 모드의 spec·임시 config·결과 출력). 예외는 Playwright MCP가 만드는 `.playwright-mcp/`다.
+Bash에 삭제 명령(`rm`·`unlink` 등)을 쓰지 않는다. 삭제 확인 훅(`~/.claude/hooks/ask-before-delete.py`)은 `rm`이 `>`·`|`와 한 명령에 섞이면 `report-dir` 안의 파일이어도 사용자 확인을 기다리고, 그동안 세션이 멈춘다(2026-11-05 W2b 실행에서 약 23분). 다시 만들 파일은 덮어쓰고(`>`), 실행 전에 비울 기록 파일은 `: > <파일>`로 비우며, 임시 파일은 `/tmp`가 아니라 `report-dir`에 쓴다.
 
 ## 절차 (순서 강제)
 
@@ -68,6 +69,7 @@ PRD의 인수 조건 중 **사용자가 하는 행동과 그 결과**를 시나�
 - [ ] 헤더에 `prd-sha:`가 있다
 - [ ] 재검증 모드면 직전 시나리오 표를 바꾸지 않고 옮겼고, spec을 새로 쓰지 않고 복사했으며, 직전 finding마다 해소/미해소를 판정했다. 전량 모드로 돌아갔으면 걸린 조건을 `Checked`에 적었다
 - [ ] `## E2E candidates` 절이 있다
+- [ ] Bash 명령에 삭제 명령(`rm`·`unlink` 등)이 없다
 - [ ] `report-dir` 밖에 새 파일이 없고 소스 트리에 테스트 파일을 만들지 않았다(공통 규칙 2의 명령, 즉 `report-dir`과 `.playwright-mcp/`를 뺀 `git status --porcelain`이 비어 있다)
 - [ ] 시나리오 표에 범위·완료 기준이 보인다(`test-planning.md`의 범위 템플릿)
 - [ ] `verdict.mjs` 출력 = 리포트 `verdict` = 마커 첫 줄
