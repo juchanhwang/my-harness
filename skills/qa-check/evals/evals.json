@@ -108,7 +108,10 @@
         "리포트에 `## E2E candidates` 절이 있다",
         "트랜스크립트에서 app/ 아래 소스 파일을 Read하는 호출이 첫 번째 리포트 Write보다 앞서지 않는다",
         "outputs/dirty.txt가 비어 있고 report-dir 밖에 새로 만든 파일이 없다",
-        "verdict가 FAIL이다"
+        "배치 모드 산출물이 리포트와 같은 이름(`acceptance-<sha7>.spec.mjs`·`.config.mjs`·`.results.txt`·`-results/`)으로 있고 config의 testMatch가 그 spec 하나다",
+        "헤더에 `prd-sha:`가 있고 값이 `git hash-object prd.md` 출력과 같다",
+        "verdict가 FAIL이다",
+        "transcript의 Bash 명령에 삭제 명령(rm·unlink)이 없다 — 비울 파일은 `: >`, 임시 파일은 report-dir"
       ],
       "runs": 1,
       "arm": "with_skill"
@@ -149,17 +152,76 @@
         "--playwright-artifact"
       ],
       "prompt": "/qa-check gate type=fe scope=app/ figma-snapshot=figma-snapshot.json app=http://localhost:4791/app/ selector=.btn",
-      "expected_output": "시드 리포트(전부 HEAD·clean) 중 inputs가 일치하는 review만 재사용한다. BLOCKED였던 style은 세션을 띄우지 않고 BLOCKED로 두며 필요한 것에 fe-dev의 style 재실행을 적는다. inputs가 달라진(prd 없음) acceptance는 새 세션으로 다시 돌린다. 무시되지 않은 .playwright-mcp/는 tree를 dirty로 만들지 않는다. acceptance는 PRD가 없어 BLOCKED가 되고 gate는 BLOCKED다",
+      "expected_output": "시드 리포트(전부 HEAD·clean) 중 inputs가 일치하는 review만 재사용한다. BLOCKED였던 style은 BLOCKED로 두고 필요한 것에 fe-dev의 style 재실행을 적는다. prd도 prd=none도 없으므로 acceptance는 시드 PASS(prd=prd.md)를 재사용하지 않고 PRD를 요구하는 BLOCKED다. 어떤 역할 세션도 띄우지 않는다. 무시되지 않은 .playwright-mcp/는 tree를 dirty로 만들지 않는다. gate는 BLOCKED다",
       "expectations": [
         "`.orchestrator/qa/gate-<sha7>.md`가 존재한다",
         "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: BLOCKED \\.orchestrator/qa/gate-[0-9a-f]{7}\\.md$` 형식이다",
-        "gate가 tree dirty를 이유로 중단하지 않는다(무시되지 않은 `.playwright-mcp/`는 tree 판정에서 제외된다) — qa 역할 세션(Agent 호출)이 1회 이상 뜬다",
-        "review는 시드 FAIL 리포트를 재사용한다(inputs `scope=app/` 일치) — review 역할로 띄운 qa Agent 호출이 0회다",
-        "style은 시드 BLOCKED 리포트를 재사용하지 않지만 새 세션도 띄우지 않는다 — style 역할로 띄운 qa Agent 호출이 0회이고, gate 리포트의 style 행이 BLOCKED이며 필요한 것에 fe-dev가 현재 커밋에서 `/qa-check style`을 다시 실행해야 한다고 적혀 있다",
-        "acceptance는 inputs가 달라(prd 없음) 시드 PASS 리포트를 재사용하지 않고 새 세션을 띄운다 — acceptance 역할로 띄운 qa Agent 호출이 1회 이상이고 그 리포트는 PRD가 없어 BLOCKED다",
+        "gate가 tree dirty를 이유로 중단하지 않는다(무시되지 않은 `.playwright-mcp/`는 tree 판정에서 제외된다) — gate 리포트에 역할별 표가 있고 BLOCKED 사유에 커밋·stash 요구가 없다",
+        "gate 세션(qa 포크) 안에서 Agent·Skill 도구 호출이 0회다",
+        "review는 시드 FAIL 리포트를 재사용한다(inputs `scope=app/` 일치) — gate 리포트의 review 행이 FAIL이고 재사용으로 적혀 있다",
+        "style은 시드 BLOCKED 리포트를 재사용하지 않는다 — gate 리포트의 style 행이 BLOCKED이며 필요한 것에 fe-dev가 현재 커밋에서 `/qa-check style`을 다시 실행해야 한다고 적혀 있다",
+        "acceptance는 시드 PASS 리포트를 재사용하지 않고 BLOCKED다 — 필요한 것에 PRD(`prd=` 경로 또는 `prd=none` 선언)가 있다",
         "gate verdict가 BLOCKED이다(FAIL보다 우선한다)",
-        "gate 리포트의 필요한 것에 PRD가 포함돼 있다",
+        "최종 메시지에 재사용한 review의 FAIL finding(M-1)이 함께 적혀 있다",
         "Figma MCP와 Playwright MCP 호출이 0회다(gate는 측정하지 않는다)"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 14,
+      "name": "E14 gate-run-commands",
+      "setup": [
+        "--overlay",
+        "--reports",
+        "review=PASS,acceptance=FAIL",
+        "--report-inputs",
+        "review:scope=app/",
+        "--report-inputs",
+        "acceptance:prd=prd.md",
+        "--seed-spec",
+        "--advance-head"
+      ],
+      "prompt": "/qa-check gate type=fe ui=none scope=app/ prd=prd.md app=http://localhost:4791/app/",
+      "expected_output": "시드 리포트가 직전 커밋의 것이라 review·acceptance 모두 재사용하지 못한다. 세션을 띄우지 않고 BLOCKED로 끝내며, 받은 값 그대로의 review·acceptance 실행 명령을 돌려준다. acceptance 명령에는 같은 prd의 직전 리포트(spec 있음)를 rerun-of로 붙인다",
+      "expectations": [
+        "`.orchestrator/qa/gate-<sha7>.md`가 존재하고 sha7이 현재 HEAD(advance-head 커밋)다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: BLOCKED \\.orchestrator/qa/gate-[0-9a-f]{7}\\.md$` 형식이다",
+        "gate 세션(qa 포크) 안에서 Agent·Skill 도구 호출이 0회다",
+        "gate 리포트의 필요한 것에 `/qa-check review scope=app/ mode=gate`가 있다",
+        "gate 리포트의 필요한 것에 `/qa-check acceptance prd=prd.md app=http://localhost:4791/app/ mode=gate`와 `rerun-of=.orchestrator/qa/acceptance-<시드 sha7>.md`가 한 명령으로 있다",
+        "재사용하지 못한 이유로 commit 불일치((a))가 적혀 있다",
+        "style은 `n/a (ui=none)`이다",
+        "최종 메시지에 실행할 명령이 한 줄에 하나씩 나열돼 있다",
+        "Figma MCP와 Playwright MCP 호출이 0회다"
+      ],
+      "runs": 1,
+      "arm": "with_skill"
+    },
+    {
+      "id": 10,
+      "name": "E10 acceptance-rerun",
+      "setup": [
+        "--overlay",
+        "(수동) E8을 먼저 실행한 sandbox를 복사한다 — 직전 FAIL 리포트·spec이 .orchestrator/qa/에 있다",
+        "(수동) app/app.js의 빈 입력 검사를 `text.trim() === ''`로 고쳐 A1만 해결하고 커밋한다"
+      ],
+      "prompt": "/qa-check acceptance prd=prd.md app=http://localhost:<port>/app/ rerun-of=.orchestrator/qa/acceptance-<E8 sha7>.md",
+      "expected_output": "직전 시나리오 표와 spec을 그대로 재사용해 전체를 다시 실행한다. A1(AC-1)은 해소, A2·A4는 같은 id로 남고, 새 시나리오나 새 spec 본문을 쓰지 않는다",
+      "expectations": [
+        "`.orchestrator/qa/acceptance-<새 sha7>.md`·`.findings.json`·`.spec.mjs`·`.config.mjs`·`.results.txt`가 모두 존재한다",
+        "최종 텍스트 메시지의 첫 줄이 정규식 `^QA: (PASS|PASS WITH MINOR|FAIL|BLOCKED) \\.orchestrator/qa/acceptance-[0-9a-f]{7}\\.md$` 형식이다",
+        "리포트의 verdict가 findings.json에 `scripts/verdict.mjs`를 돌린 출력과 같다",
+        "새 spec이 직전 spec과 내용이 같다(cp) — 환경값(app 주소·절대 경로) 치환 외 diff가 없다",
+        "새 리포트의 시나리오 id 집합이 직전 리포트와 같다",
+        "`## Resolved from`에 AC-1 finding이 해소로 적혀 있다",
+        "AC-2·AC-4 finding이 직전과 같은 id로 남아 있다",
+        "트랜스크립트에 Write로 spec 본문을 새로 쓴 호출이 없다",
+        "`playwright test` 실행이 1회다(spec 결함 확인용 --grep 재실행 제외)",
+        "직전 실행의 `-results/` 증거 디렉터리와 `.spec.mjs`가 지워지지 않고 남아 있다",
+        "헤더에 `prd-sha:`가 있고 `inputs:`에 `rerun-of=`가 있다",
+        "verdict가 FAIL이다",
+        "transcript의 Bash 명령에 삭제 명령(rm·unlink)이 없다 — 비울 파일은 `: >`, 임시 파일은 report-dir"
       ],
       "runs": 1,
       "arm": "with_skill"

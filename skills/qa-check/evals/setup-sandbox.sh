@@ -6,6 +6,10 @@
 #                     예: --report-inputs review:scope=app/   기본값은 "seeded by setup-sandbox.sh"
 #   --playwright-artifact  .playwright-mcp/x 를 미리 만들고 .git/info/exclude 로 가리지 않는다
 #                     (Playwright MCP 산출물이 무시되지 않는 사용자 저장소를 흉내 낸다 — tree 판정에서 제외돼야 한다)
+#   --seed-spec       시드 acceptance 리포트 옆에 acceptance-<sha7>.spec.mjs 자리표시 파일을 만든다
+#                     (gate가 acceptance 실행 명령에 rerun-of= 를 붙이는지 보는 eval 용)
+#   --advance-head    시드 리포트를 만든 뒤 app/app.js 에 주석 한 줄을 더해 커밋한다 — 시드가 직전 커밋의 리포트가 된다
+#                     (계획의 --stale 을 실제 커밋 차이로 대신한다)
 # 구현 범위는 위 옵션까지다. --overlay-into / --stale / --dirty / --waivers 는 지원하지 않는다(진행 기록의 Ruling).
 #   dest 는 git 저장소 밖 신뢰된 경로(~/.qa-check-sandboxes/…)에 만든다. 이미 있으면 exit 1.
 set -euo pipefail
@@ -16,7 +20,7 @@ REPO=$(dirname "$(dirname "$SKILL")")
 FILES=$HERE/files
 
 usage() {
-  echo "usage: setup-sandbox.sh <dest> [--overlay] [--overlay-agents a,b] [--reports role=VERDICT,...] [--report-inputs role:inputs]... [--playwright-artifact]" >&2
+  echo "usage: setup-sandbox.sh <dest> [--overlay] [--overlay-agents a,b] [--reports role=VERDICT,...] [--report-inputs role:inputs]... [--playwright-artifact] [--seed-spec] [--advance-head]" >&2
   exit 2
 }
 
@@ -29,6 +33,8 @@ overlay=0
 overlay_agents=""
 reports=""
 playwright_artifact=0
+seed_spec=0
+advance_head=0
 # bash 3.2(macOS 기본)에는 연관 배열이 없어 역할마다 변수를 둔다.
 inputs_review=""
 inputs_style=""
@@ -50,6 +56,8 @@ while [ $# -gt 0 ]; do
       esac
       shift 2 ;;
     --playwright-artifact) playwright_artifact=1; shift ;;
+    --seed-spec) seed_spec=1; shift ;;
+    --advance-head) advance_head=1; shift ;;
     *) echo "unsupported option: $1" >&2; exit 2 ;;
   esac
 done
@@ -156,7 +164,18 @@ $findings_section
 ## Decision rule applied
 $decision
 REPORT
+    if [ "$role" = acceptance ] && [ "$seed_spec" = 1 ]; then
+      printf "// seeded by setup-sandbox.sh --seed-spec (자리표시, 실행용 아님)\n" > "$base.spec.mjs"
+    fi
   done
+fi
+
+if [ "$advance_head" = 1 ]; then
+  printf '\n// advance-head: 시드 리포트를 직전 커밋의 것으로 만든다\n' >> "$dest/app/app.js"
+  git -C "$dest" add app/app.js
+  git -C "$dest" -c user.name=qa-eval -c user.email=qa-eval@example.invalid -c commit.gpgsign=false \
+    commit -q --no-verify -m "chore: advance head"
+  sha=$(git -C "$dest" rev-parse HEAD)
 fi
 
 echo "SANDBOX=$dest"
