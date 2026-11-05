@@ -5,6 +5,7 @@ tree: clean | dirty               # D22 개정 — dirty 리포트는 tree-sha�
 tree-sha: <tree hash>             # 파일 내용 지문 — 공통 규칙 2
 type: fe | be | config            # gate만
 inputs: scope=… prd=… figma=… app=…   # 받은 key=value 인자 그대로 — gate가 재사용 판정에 비교
+prd-sha: <git hash-object <prd> 출력>  # acceptance만 — rerun-of가 PRD 내용이 바뀌었는지 판정
 source: live | cache | snapshot   # style만 — cache는 figma-values-<node>.json 재사용, snapshot은 eval 전용
 design-values: <style-design 파일 경로>   # style만 — gate가 이 두 파일로 compare-styles.mjs를 다시 돌려 검산
 actual-values: <style-actual 파일 경로>
@@ -26,8 +27,8 @@ mode: pre-check | gate
 ### [n-1] nit — …
 ### [W-1] WAIVED (원 severity Major) — …   # style만, D24. waiver의 reason/by/date 병기. 집계 제외
 
-## Resolved from <직전 리포트 경로>   # review 재검증(rerun-of)만. 해소된 직전 finding id와 한 줄 근거
-- R-n — <근거>
+## Resolved from <직전 리포트 경로>   # review·acceptance 재검증(rerun-of)만. 해소된 직전 finding id와 한 줄 근거
+- <finding id> — <근거>          # review는 R-n, acceptance는 A-n. 해소된 id만 적는다
 
 ## E2E candidates                  # acceptance만, D25. 제안이며 QA가 작성하지 않음
 - <시나리오 id> — 이유(회귀 위험·빈도)

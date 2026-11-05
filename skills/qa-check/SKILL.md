@@ -43,7 +43,7 @@ user-invocable: true
 | `ui=` | `none`이면 UI 변경 없음 선언. gate가 style 산출물을 찾지 않고 `n/a`로 기록한다 | gate(FE) |
 | `prd=none` | PRD 인수 조건 없음 선언(소규모·개인 작업). gate가 acceptance를 띄우지 않고 `n/a`로 기록한다 | gate(FE/BE) |
 | `mode=` | `pre-check`(기본, fe·be가 호출, 승인 권한 없음) / `gate`(gate가 역할 세션을 띄울 때) | 전체 |
-| `rerun-of=` | 직전 review 리포트(`.md`) 경로. 수정 후 재검증에서 바뀐 파일만 다시 읽는다 | review |
+| `rerun-of=` | 같은 역할의 직전 리포트(`.md`) 경로. review: 바뀐 파일만 다시 읽는다. acceptance: 시나리오 표와 spec을 다시 만들지 않고 복사해 전체를 다시 실행한다 | review, acceptance |
 | `report-dir=` | 리포트 저장 디렉터리(기본 `.orchestrator/qa/`) | 전체 |
 
 ## 공통 규칙
