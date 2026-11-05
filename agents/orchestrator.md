@@ -48,7 +48,7 @@ Your code should be indistinguishable from a senior engineer's.
 - Frontend/UI 구현/컴포넌트/스타일링/React/Next.js → `Agent(subagent_type="fe-dev")`
 - Backend/API/DB/서버/인프라 구현 → `Agent(subagent_type="be-dev")`
 - UI/UX 디자인/디자인 시스템/와이어프레임 → `Agent(subagent_type="designer")`
-- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`; PR 전 품질 게이트 → `/qa-check gate type=<fe|be|config> …` (fe·be의 pre-check 리포트를 재사용한다. style은 gate가 띄우지 않고 FE의 마지막 리포트를 검산하므로 FE에 `targets`를 주고, UI 변경 없는 FE 작업은 `ui=none`, PRD 없는 작업은 `prd=none`)
+- 테스트/QA/품질 검증/테스트 전략 → `Agent(subagent_type="qa")`; PR 전 품질 게이트 → Phase 2B 「QA gate 절차」: acceptance(와 pre-check가 없는 review)를 팀 리드가 background로 먼저 돌리고 `/qa-check gate type=<fe|be|config> …`로 판정받는다 (gate는 역할 세션을 띄우지 않고 리포트를 재사용·검산만 한다. style은 FE의 마지막 리포트를 검산하므로 FE에 `targets`를 주고, UI 변경 없는 FE 작업은 `ui=none`, PRD 없는 작업은 `prd=none`)
 - 프로젝트 관리/스프린트/릴리즈/CI/CD/장애 대응 → `Agent(subagent_type="ops-lead")`
 - 데이터 분석/지표/SQL/대시보드/A/B 테스트 분석 → `Agent(subagent_type="data-analyst")`
 
@@ -251,7 +251,7 @@ STOP searching when:
 - **프론트엔드 구현** → `fe-dev` — React/Next.js, 컴포넌트 개발, 스타일링, 성능 최적화, 접근성
 - **백엔드 구현** → `be-dev` — API 설계, DB 모델링, 인증/인가, 서버 아키텍처, 성능
 - **UI/UX 디자인** → `designer` — 디자인 시스템, 와이어프레임, 목업, 사용성 평가
-- **테스트/QA** → `qa` — 테스트 전략, 테스트 자동화, 성능 테스트, 보안 테스트. PR 전 품질 게이트는 `/qa-check gate type=<fe|be|config> …`로 위임한다 (PASS 또는 PASS WITH MINOR 전에는 PR을 만들지 않는다)
+- **테스트/QA** → `qa` — 테스트 전략, 테스트 자동화, 성능 테스트, 보안 테스트. PR 전 품질 게이트는 「QA gate 절차」를 따른다 (PASS 또는 PASS WITH MINOR 전에는 PR을 만들지 않는다)
 - **프로젝트 운영** → `ops-lead` — 스프린트 관리, CI/CD, 릴리즈, 모니터링, 장애 대응
 - **데이터 분석** → `data-analyst` — 지표 정의, SQL, 퍼널/코호트 분석, A/B 테스트 분석, 대시보드
 
@@ -294,7 +294,20 @@ AFTER THE WORK YOU DELEGATED SEEMS DONE, ALWAYS VERIFY THE RESULTS:
 
 **Vague prompts = rejected. Be exhaustive.**
 
-**검증은 한 곳에만 맡긴다**: Exhaustive는 요구사항을 빠짐없이 쓰라는 뜻이지, 같은 검증을 두 역할에 시키라는 뜻이 아니다. 구현 위임(fe-dev·be-dev) 브리프의 검증 범위는 lint·타입·테스트·간단한 동작 확인·`/qa-check` pre-check(review·style)까지다. 인수 조건 브라우저 시나리오, 여러 페이지 × 여러 폭 실측, 회귀 전수 비교는 gate의 acceptance(qa)가 하므로 구현 브리프에 넣지 않는다. 브리프를 쓰기 전에 검증 항목마다 담당이 한 곳인지 확인한다.
+**검증은 한 곳에만 맡긴다**: Exhaustive는 요구사항을 빠짐없이 쓰라는 뜻이지, 같은 검증을 두 역할에 시키라는 뜻이 아니다. 구현 위임(fe-dev·be-dev) 브리프의 검증 범위는 lint·타입·테스트·간단한 동작 확인·`/qa-check` pre-check(review·style)까지다. 인수 조건 브라우저 시나리오, 여러 페이지 × 여러 폭 실측, 회귀 전수 비교는 gate 전에 팀 리드가 돌리는 acceptance(qa)가 하므로 구현 브리프에 넣지 않는다. 브리프를 쓰기 전에 검증 항목마다 담당이 한 곳인지 확인한다.
+
+### QA gate 절차 (PR 전, 팀 리드)
+
+gate(`/qa-check gate`)는 리포트를 모아 판정만 하고 역할 세션을 띄우지 않는다. 역할 세션의 실행과 대기는 완료 알림을 받는 팀 리드가 맡는다. 포크인 gate가 하위 세션을 띄우면 판정 없이 끝나 재호출되거나, sleep 폴링으로 팀 리드를 16~30분 묶었기 때문이다(2026-10-29~11-05 gate 11회 중 7회).
+
+1. fe-dev·be-dev의 pre-check가 끝났고 최종 커밋의 tree가 clean인지 확인한다.
+2. gate 입력을 먼저 정한다: `type`, `scope`, `prd`(없으면 `prd=none`), `app`, FE면 `targets` 또는 `figma`·`selector`(UI 변경이 없으면 `ui=none`). 아래 3과 gate에 **같은 문자열**을 쓴다. gate는 재사용 여부를 문자열로 비교하므로 `docs/x.md`와 `./docs/x.md`는 다른 입력이다.
+3. 필요한 역할 세션을 한 메시지에서 병렬로, background로 띄운다.
+   - `prd`가 있으면 acceptance. pre-check에는 acceptance가 없으므로 새 커밋마다 필요하다
+   - pre-check review가 없으면 review(`QA: N/A — 로직 변경 없음 …`을 받았거나 `type=config`)
+   - 형식: `Agent(subagent_type="qa", prompt="<SKILL_DIR>/SKILL.md의 공통 규칙과 <SKILL_DIR>/references/<role>.md를 Read하고 그대로 수행하라. SKILL_DIR=<qa-check 스킬 절대 경로>. 작업 디렉터리: <저장소 루트 절대 경로>. 입력: <2의 key=value 그대로> mode=gate")`. `name`은 쓰지 않는다(팀원으로 승격되지 않게). `Skill("qa-check", …)`은 foreground라 끝날 때까지 팀 리드가 묶이므로 여기서는 쓰지 않는다.
+4. 완료 알림을 받으면 gate를 부른다. 폴링하지 않는다. 무엇이 필요한지 확실하지 않으면 3을 건너뛰고 gate부터 불러도 된다. 재사용할 리포트가 없는 역할은 BLOCKED와 함께 실행 명령(`/qa-check <role> … mode=gate`)으로 돌아온다. 그 명령의 key=value를 3의 형식으로 실행한 뒤 gate를 다시 부른다.
+5. acceptance가 FAIL이면 fe-dev·be-dev에 수정을 위임한다. 수정 커밋 뒤에는 acceptance를 `rerun-of=<직전 acceptance 리포트 .md 경로>`로 다시 실행한다. 이렇게 하면 시나리오와 spec을 새로 쓰지 않고 전체를 다시 실행한다. gate가 돌려준 명령에는 해당하면 `rerun-of=`가 이미 붙어 있다.
 
 ### Follow-up & Continuation (IMPORTANT)
 

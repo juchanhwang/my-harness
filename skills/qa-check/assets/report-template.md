@@ -13,6 +13,7 @@ mode: pre-check | gate
 
 ## Blocked by                      # verdict=BLOCKED 일 때만. 코드 결함 아님
 - 필요한 것: <PRD 경로 | Figma 노드 URL | app 기동 | …>
+- 필요한 것: `/qa-check acceptance prd=… app=… mode=gate [rerun-of=…]` 실행   # gate만 — 받은 값 그대로, 어긋난 재사용 조건 병기
 
 ## Findings
 ### [C-1] Critical — <제목>

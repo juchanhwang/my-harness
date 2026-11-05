@@ -41,8 +41,8 @@ user-invocable: true
 | `waivers=` | designer가 승인한 차이 목록 JSON(기본 `<report-dir>/style-waivers.json`, 없으면 waiver 0건). **읽기만 한다** | style, gate(FE) |
 | `type=` | `fe` / `be` / `config` | gate(필수) |
 | `ui=` | `none`이면 UI 변경 없음 선언. gate가 style 산출물을 찾지 않고 `n/a`로 기록한다 | gate(FE) |
-| `prd=none` | PRD 인수 조건 없음 선언(소규모·개인 작업). gate가 acceptance를 띄우지 않고 `n/a`로 기록한다 | gate(FE/BE) |
-| `mode=` | `pre-check`(기본, fe·be가 호출, 승인 권한 없음) / `gate`(gate가 역할 세션을 띄울 때) | 전체 |
+| `prd=none` | PRD 인수 조건 없음 선언(소규모·개인 작업). gate가 acceptance를 요구하지 않고 `n/a`로 기록한다 | gate(FE/BE) |
+| `mode=` | `pre-check`(기본, fe·be가 호출, 승인 권한 없음) / `gate`(gate가 BLOCKED로 돌려준 실행 명령을 호출자가 실행할 때. gate는 세션을 띄우지 않는다) | 전체 |
 | `rerun-of=` | 같은 역할의 직전 리포트(`.md`) 경로. review: 바뀐 파일만 다시 읽는다. acceptance: 시나리오 표와 spec을 다시 만들지 않고 복사해 전체를 다시 실행한다 | review, acceptance |
 | `report-dir=` | 리포트 저장 디렉터리(기본 `.orchestrator/qa/`) | 전체 |
 
