@@ -26,9 +26,6 @@
       "Skill(*)"
     ],
     "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(rm -r:*)",
-      "Bash(rm -fr:*)",
       "Bash(sudo:*)",
       "Bash(dd:*)",
       "Bash(mkfs:*)",
@@ -38,6 +35,17 @@
       "Bash(chmod 777:*)",
       "Bash(chmod -R 777:*)"
     ],
+    "ask": [
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(unlink *)",
+      "Bash(shred *)",
+      "Bash(trash *)",
+      "Bash(find * -delete*)",
+      "Bash(git clean *)",
+      "Bash(mv *.Trash*)",
+      "mcp__*delete*"
+    ],
     "defaultMode": "auto",
     "additionalDirectories": [
       "/Users/JuChan"
@@ -45,6 +53,19 @@
   },
   "model": "opus",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/JuChan/.claude/hooks/ask-before-delete.py",
+            "timeout": 10,
+            "statusMessage": "삭제 명령 확인"
+          }
+        ]
+      }
+    ],
     "Notification": [
       {
         "matcher": "*",
