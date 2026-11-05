@@ -1,10 +1,12 @@
-// acceptance 배치 모드 임시 config — report-dir에 복사해 __로 둘러싼 자리만 채운다. 커밋하지 않는다.
+// acceptance 배치 모드 임시 config — report-dir에 <base>.config.mjs로 복사해 __로 둘러싼 자리만 채운다. 커밋하지 않는다.
 // 러너는 하네스 것(~/.claude/tools/playwright-runner)만 쓴다. 프로젝트의 @playwright/test는 import하지 않는다(인스턴스가 달라 test()가 실패한다).
+// __BASE__ = 리포트 이름에서 .md를 뺀 것(acceptance-<sha7>[-w<tree7>]). report-dir에 이전 실행의 spec이 남아 있어도
+// 이번 spec만 돌고(testMatch), Playwright가 실행 시작 때 비우는 outputDir를 실행마다 나눠 이전 실패 증거가 지워지지 않는다.
 import { defineConfig } from '__RUNNER__/node_modules/@playwright/test/index.mjs';
 export default defineConfig({
   testDir: '__REPORT_DIR_ABS__',          // report-dir 절대 경로
-  testMatch: /acceptance-.*\.spec\.mjs/,
-  outputDir: '__REPORT_DIR_ABS__/test-results',
+  testMatch: '__BASE__.spec.mjs',
+  outputDir: '__REPORT_DIR_ABS__/__BASE__-results',
   reporter: 'list',
   timeout: 30_000,
   use: {

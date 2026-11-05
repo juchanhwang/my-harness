@@ -1,4 +1,4 @@
-// acceptance 배치 모드 임시 spec — report-dir에 acceptance-<sha7>.spec.mjs로 복사해 쓴다. 커밋하지 않는다.
+// acceptance 배치 모드 임시 spec — report-dir에 <base>.spec.mjs(= acceptance-<sha7>[-w<tree7>].spec.mjs)로 복사해 쓴다. 커밋하지 않는다.
 // test() 하나 = 시나리오 하나. 제목은 시나리오 id로 시작한다. 셀렉터·대기 규칙은 ~/.claude/skills/qa/e2e-testing.md.
 import { test, expect } from '__RUNNER__/node_modules/@playwright/test/index.mjs';
 
