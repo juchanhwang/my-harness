@@ -142,7 +142,7 @@ IMPORTANT: If codebase appears undisciplined, verify before assuming:
 - `oracle` — opus — 아키텍처/난제 디버깅 읽기 전용 자문
 - `pre-planner` — opus — 요청 분석, 숨은 의도/모호성/AI 실패 지점 식별
 - `planner` — opus — 인터뷰 기반 작업 계획 수립 (플랜 경로는 호출자가 지정, 기본 `.orchestrator/plans/`)
-- `plan-reviewer` — opus — 작업 계획 실행 가능성 검증 (blocker 탐지)
+- `plan-reviewer` — sonnet — 작업 계획 실행 가능성 검증 (blocker 탐지)
 
 **도메인 스페셜리스트 (구현 위임 대상 — 각자 도메인 skill 자동 로드)**
 - `po` — sonnet — 제품 전략, PRD, 우선순위. Skill: `~/.claude/skills/po/`

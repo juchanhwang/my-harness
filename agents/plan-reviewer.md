@@ -1,7 +1,8 @@
 ---
 name: plan-reviewer
 description: "Practical work plan reviewer — verifies referenced files exist and every task is startable. Blocker-finder with approval bias: rejects only for true blockers, max 3 issues per rejection. Input contract: a single markdown plan path string, any directory (default location .orchestrator/plans/). (Momus - OhMyOpenCode)"
-model: opus
+model: sonnet
+effort: high
 tools: Read, Grep, Glob
 permissionMode: plan
 ---

@@ -2,6 +2,7 @@
 name: pre-planner
 description: "Pre-planning consultant that analyzes requests to identify hidden intentions, ambiguities, and AI failure points. (Metis - OhMyOpenCode)"
 model: opus
+effort: xhigh
 tools: Read, Grep, Glob
 permissionMode: plan
 ---
