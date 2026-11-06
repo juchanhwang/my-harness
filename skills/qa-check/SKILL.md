@@ -34,7 +34,7 @@ user-invocable: true
 | `figma-refresh=` | `1`이면 `figma-values-<node>.json` 캐시를 무시하고 Figma를 다시 읽는다(시안이 바뀌었을 때) | style |
 | `mockup=` | `docs/mockup.html` 경로(figma가 없을 때) | style, gate(FE) |
 | `mockup-selector=` | mockup 안의 비교 대상 셀렉터(기본 `selector=`와 같음) | style |
-| `targets=` | 다중 대상 매니페스트 JSON `[{figma, selector, viewport?, mockup-selector?}]`. 지정하면 `figma=`·`selector=`는 무시 | style, gate(FE) |
+| `targets=` | 다중 대상 매니페스트 JSON `[{figma, selector, viewport?, mockup-selector?}]`. 지정하면 `figma=`·`selector=`는 무시. `viewport`는 측정 뷰포트와 레이아웃 비교 뷰포트를 정한다(없고 시안 루트 폭이 1280·375가 아니면 레이아웃 미검증) | style, gate(FE) |
 | `app=` | 실행 중인 앱 URL(호출자가 서버를 띄운다. QA는 앱 서버를 띄우지 않는다) | style, acceptance(필수), gate |
 | `selector=` | 비교 대상 DOM 셀렉터(단일 대상) | style |
 | `auth=` | 로그인 방법·계정 메모 또는 파일 경로 | style, acceptance |

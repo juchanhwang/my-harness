@@ -7,22 +7,25 @@
 - Figma와 브라우저는 렌더링 엔진이 달라 같은 값도 픽셀이 다르게 나온다. 그래서 픽셀 diff는 허용 오차 임계값이 필요하고, 임계값 안에서는 padding 4px, 색 한 단계(`#6750A4` → `#6750A0`) 같은 실제 편차가 묻힌다.
 - 토큰 비교는 디자이너가 의도한 값(색 hex, padding, radius, 글꼴 속성)을 숫자로 직접 대조한다. 편차가 있으면 얼마나 다른지가 finding에 그대로 남는다.
 - 스크린샷은 **증거 첨부용**이다. 판정은 스크린샷으로 하지 않는다(`visual-testing.md`의 스크린샷 증거 규칙만 참고).
+- 크기·위치는 토큰(선언값)이 아니라 배치 결과라 오차 0으로 비교할 수 없다. 레이아웃은 §9의 박스 비교(±1px)로 따로 본다.
 
 ## 2. 디자인 값 추출 (Figma MCP)
 
 | 도구 | 역할 | 주의 |
 |---|---|---|
 | `get_variable_defs` | 토큰 이름 → 값 맵. **1차 소스** | 색·글꼴 토큰은 여기서 확정 |
-| `get_design_context` | **코드 문자열**(기본 React + Tailwind)과 자산 URL을 돌려준다 | 필드 단위 구조화 값은 없다. 서버 원문(React + Tailwind)을 그대로 파싱해 `padding`·`gap`·`radius`·타이포를 얻는다. 다른 형식으로 변환을 요청하지 않는다. |
+| `get_design_context` | **코드 문자열**(기본 React + Tailwind)과 자산 URL을 돌려준다 | 필드 단위 구조화 값은 없다. 서버 원문(React + Tailwind)을 그대로 파싱해 `padding`·`gap`·`radius`·타이포를 얻는다. 다른 형식으로 변환을 요청하지 않는다. 레이아웃(§9)의 auto layout 그룹·폭 클래스도 여기서 읽는다 |
+| `get_metadata` | 레이어 id·이름·타입·위치·크기의 XML 개요. **레이아웃(§9) 1차 소스** | 위치는 부모 기준이라 루트까지 더해야 한다(2026-11-06 실측). `hidden="true"` 노드도 들어 있다 |
 | `get_screenshot` | 쓰지 않는다 | 판정에 안 쓰고 토큰이 크다. 시안은 Figma 링크로 본다 |
 
 - `get_design_context`는 코드 문자열을 준다: https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ . 서버에는 출력 형식 파라미터가 없고, 다른 프레임워크·형식은 에이전트(LLM)가 이 출력을 옮겨 쓰는 것이다("Your agent can translate it into any framework or code style you ask for", https://developers.figma.com/docs/figma-mcp-server/trigger-specific-tools/ ). LLM이 변환한 값은 오차 0 비교의 기준값이 될 수 없으므로 원문을 파싱한다(2026-11-06 정정, 이전에는 plain CSS 요청).
   - 값은 대괄호 임의값(`px-[24px]`)과 `var(--토큰, 대체값)`에서만 읽는다. `font-medium`·`p-4`처럼 이름만 있는 Tailwind 클래스는 프로젝트 테마에 따라 값이 달라지므로 읽지 않는다. `var()` 대체값은 정규화되지 않은 값이 올 수 있다(`white`, `'Roboto:Medium'`)
   - 출력은 "design context, not production-ready code"다(https://developers.figma.com/docs/figma-mcp-server/server-returning-web-code/ ). 레이아웃 부산물(`relative`, `shrink-0`, `content-stretch`, 래퍼의 `leading-[0]`, `fontVariationSettings` 축 기본값)이 섞인다 — 공식 목록은 없고 eval 스냅샷(M3 버튼 1건)에서 관찰한 것이다. 24개 속성 밖이라 읽지 않는다.
   - 그림자·opacity(읽는 절차는 `style.md` 3단계): 텍스트 레이어의 그림자는 `text-shadow`다("Shadow effects on text layers translate to text-shadow in CSS", https://help.figma.com/hc/en-us/articles/360041488473-Apply-effects-to-layers ). fill의 opacity(`Paint.opacity`, https://developers.figma.com/docs/plugins/api/Paint/ )는 색의 alpha이고, `opacity` 속성은 레이어 opacity(https://developers.figma.com/docs/plugins/api/node-properties/ )만이다. eval 스냅샷에는 그림자·opacity 예가 없어 텍스트 레이어 그림자가 어떤 Tailwind 형식으로 오는지는 확인하지 못했다.
+- `get_metadata`는 "a lightweight XML outline of your selection with basic properties only"이고 "layer IDs, names, types, positions, and sizes"를 담는다(https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ ).
 - 노드는 **컴포넌트 단위**로 좁힌다. 섹션·페이지 노드는 출력이 수백 KB다(2026-10-23 실측 491KB).
 - 읽기 도구에는 레이트 리밋이 있다: View·Collab 시트는 **월 20회**, Dev·Full 시트는 Professional 플랜 기준 **200회/일 + 10회/분**(Organization 200/일·15/분, Enterprise 600/일·20/분). https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/
-  - 같은 노드를 두 번 읽지 않는다. 추출값은 리포트 옆 `figma-values-<node>.json`에 저장하고, **다음 호출(재검수·다른 세션)에서 이 파일이 있으면 Figma를 읽지 않는다.** 시안이 바뀌었으면 호출자가 `figma-refresh=1`로 다시 읽게 한다. gate는 Figma를 읽지 않고 저장된 design/actual JSON으로 스크립트를 재계산한다.
+  - 같은 노드를 두 번 읽지 않는다. 세 도구(`get_variable_defs`·`get_design_context`·`get_metadata`)의 **응답 원문 전체**와 추출값·레이아웃 짝을 리포트 옆 `figma-values-<node>.json`에 저장하고, **다음 호출(재검수·다른 세션)에서 이 파일이 있으면 Figma를 읽지 않는다.** 2026-11-06 전에는 design_context를 150~250자 발췌만 저장해서, 비교 속성을 늘리자 같은 노드를 다시 읽어야 했다. 시안이 바뀌었으면 호출자가 `figma-refresh=1`로 다시 읽게 한다. gate는 Figma를 읽지 않고 저장된 design/actual JSON으로 스크립트를 재계산한다(레이아웃 데이터도 같은 파일에 있어 함께 재계산된다).
   - `figma-snapshot=`이 주어지면(eval 전용) Figma MCP를 호출하지 않는다.
 - Figma 토큰값과 라이브 computed CSS를 자동으로 대조하는 오픈소스는 확인하지 못했다. 가까운 도구는 시각 비교(Applitools Figma plugin), 수동 비교(Storybook Connect), 라이브 DOM이 아닌 토큰 점검(PatternFly pf-figma-token-check)이다. 그래서 이 비교 단계는 직접 구현한다.
   - https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin
@@ -39,6 +42,7 @@
 - computed 그림자는 색을 앞에 쓰고 `inset`을 뒤에 쓴다. Chrome 156 실측(2026-11-06): `0 2px 10px rgba(0,0,0,0.1), inset 0 1px 2px #000` → `rgba(0, 0, 0, 0.1) 0px 2px 10px 0px, rgb(0, 0, 0) 0px 1px 2px 0px inset`, text-shadow `0 1px #fff` → `rgb(255, 255, 255) 0px 1px 0px`, oklch로 쓴 그림자 색은 `oklch(…)` 그대로다. opacity는 `50%` → `0.5`, `1.4` → `1`로 나온다.
 - Playwright `toHaveCSS(name, value)`는 문자열 **완전 일치**(또는 RegExp)만 받는다. 이 비교를 테스트 코드로 굳힐 때는 정규화한 값을 넣는다(작성은 fe-dev). https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-css
 - 상태별 값(hover·focus·disabled)은 `browser_hover` 등으로 상태를 만든 뒤 같은 스니펫을 다시 실행하고, 상태별로 target 이름을 분리한다.
+- 레이아웃 박스는 `skills/qa-check/scripts/layout-boxes.snippet.js`로 읽는다. 자리표시자 두 개(`JSON.stringify(target selector)`, `JSON.stringify({key: 루트 기준 selector})`)를 같은 방식으로 치환하면 각 key의 `getBoundingClientRect()`에서 루트 박스를 뺀 `[x, y, w, h]`(못 찾으면 null)를 돌려준다. computed style과 달리 박스는 요소가 보여야 나오므로, 닫힌 시트·스크롤 전 FAB처럼 숨겨진 상태에서 재면 0×0이다.
 
 ## 4. 정규화 규칙 (이유)
 
@@ -81,7 +85,7 @@
 | 그림자 2 | `box-shadow` `text-shadow` | Minor |
 | opacity 1 | `opacity` | Major |
 
-- **오차 0은 예외가 없다.** 불일치는 전부 finding이다. 디자인에 없는 속성은 비교하지 않는다.
+- **선언값은 오차 0, 레이아웃만 ±1px.** 위 24개 속성의 불일치는 전부 finding이다. 디자인에 없는 속성은 비교하지 않는다. 레이아웃(크기·간격)은 §9.
 - "의도된 차이"를 QA가 판정하지 않는다. designer가 `<report-dir>/style-waivers.json`에 `{selector, property, figma, actual, reason, by, date}`를 남기면, 값이 모두 일치하는 finding만 `WAIVED`로 표시하고 판정 집계에서 뺀다. 값이 하나라도 다르면 미적용이고 "waiver 갱신 필요" 메모를 붙인다. waiver 파일은 읽기만 한다.
 - **요청한 속성을 검증하지 못하면 BLOCKED다**(SKILL.md 공통 규칙 1: 검증을 끝낼 수 없다). 디자인 값을 해석할 수 없거나(알 수 없는 굵기 이름, 지원하지 않는 색 표기, font-size 없는 `line-height: %`, §4 문법에 맞지 않는 그림자), 구현 값이 없거나 해석할 수 없으면 `compare-styles.mjs`가 target·속성·원문 값을 `blocked`에 적고 verdict가 BLOCKED가 된다. 이런 속성을 finding으로 바꾸거나 `Not checked`로 넘겨 PASS로 두지 않는다(그러면 검증하지 않은 속성이 통과로 보인다). 디자인에 없는 속성은 요청이 아니므로 비교하지 않고, 디자인 target이 없는 추출(`no design target`)만 `notChecked`에 남는다.
 
@@ -89,7 +93,7 @@
 
 - 셀렉터가 **0개**와 일치하면 BLOCKED다(셀렉터 이름을 "필요한 것"에 적는다). 코드 결함이 아니다.
 - **2개 이상**과 일치하면 인덱스로 구분해 전부 비교한다. `where`는 `.btn[0]`, `.btn[1]`이다.
-- 뷰포트는 대상마다 데스크톱 1(기본 1280) + 모바일 1(기본 375)이다. `where`는 `.btn @375`, finding id 끝에 `-375`가 붙는다.
+- 뷰포트는 대상마다 데스크톱 1(기본 1280) + 모바일 1(기본 375)이다. `where`는 `.btn @375x812`, finding id 끝에 `-375x812`가 붙는다(actual 항목의 `viewport` 문자열 그대로).
 - 대상 노드가 5개를 넘으면 중단하지 말고 우선순위를 사용자에게 묻는다. 답이 없으면 BLOCKED다.
 
 ## 7. finding 작성 예
@@ -112,3 +116,45 @@
 - [ ] 스크린샷은 FAIL인 target의 구현 쪽만 붙였다(PASS·BLOCKED는 0장, 디자인 스크린샷 없음).
 - [ ] 디자인 토큰 변수명과 CSS 변수명의 매핑(Code Connect 등)이 있으면 함께 보고했다.
 - [ ] `figma`도 `mockup`도 없으면 지어내지 않고 Figma 노드 URL을 요청했다.
+- [ ] 레이아웃 박스는 `layout.viewport`에서 대상이 보이는 상태로 쟀고, 레이아웃을 비교하지 못한 target은 "레이아웃 미검증"으로 눈에 띄게 남겼다.
+
+## 9. 레이아웃 비교 (M2, 허용 오차 ±1px)
+
+선언값 24개와 별개로 노드 크기와 auto layout의 여백·간격을 박스로 비교한다. 규칙의 단일 소스는 `compare-styles.mjs`의 `compareLayout`과 `scripts/test/compare-layout.test.mjs`, 데이터를 만드는 절차는 `skills/qa-check/references/style.md` 3·5단계다.
+
+### 무엇을 비교하나 (M2)
+
+- **노드 크기**: 노드마다 style 역할이 정한 지표(`compare`: `w`·`h` 중 일부)만.
+- **그룹 간격**: auto layout 컨테이너(`parent`)와 자식(`kids`)의 주축(`axis`) 기준으로 `start` = 첫 kid 시작 − parent 시작, `gaps` = 이웃한 kid 사이 거리, `end` = parent 끝 − 마지막 kid 끝. parent가 `root`면 parent 박스는 `[0, 0, root.w, root.h]`다.
+- 루트 기준 위치(x·y) 자체는 비교하지 않는다. 앞의 요소 크기 차이가 뒤의 모든 위치로 번져 오탐이 된다(아래 M1).
+- 판정: `|구현 − 시안| > 1px`(부동소수 노이즈 1e-6 허용)이면 Minor finding이다. **정확히 1.0px은 통과**다. 박스를 못 찾았거나(selector 불일치) 시안에 크기가 있는데 구현 박스가 0×0이면(숨겨진 요소를 고름) finding이 아니라 BLOCKED다.
+- 시안 프레임 폭에 맞는 뷰포트가 없으면(`layout.viewport: null`) 레이아웃 전체가 `notChecked`다. verdict에 반영되지 않으므로 리포트 요약에 "레이아웃 미검증"을 눈에 띄게 쓴다.
+
+### 왜 M2인가 (2026-11-06 실측)
+
+로컬 PHP 앱의 대상 4개(상담 시트·하단 탭바 @375, 헤더 @1440, FAB @375)를 Figma `get_metadata` 박스와 비교했다.
+
+| 방식 | 비교 값 | ±0 | ±0.5 | ±1 | ±2 |
+|---|---|---|---|---|---|
+| M1: 루트 기준 x·y·w·h 그대로 | 140 | 35 | 21 | 17 | **16** |
+| M2: 크기(지표 선택) + 그룹 간격 | 84 | 3 | 2 | **0** | 0 |
+
+- M1은 ±2px에서도 16건이 오탐이었다. 원인은 셋이다.
+  - 텍스트 박스 크기 방식 차이: Figma 텍스트 레이어는 칸 폭(탭 라벨 80.25)인데 DOM 텍스트는 글자 폭(11.83~47.28)이다. → M2는 텍스트 노드의 `w`를 비교하지 않는다.
+  - 글꼴 폭 누적: 헤더 메뉴 글자 폭이 항목마다 1px 안팎 좁아 뒤로 갈수록 위치 차이가 쌓였다(구분선 x에서 최대 4.16px). → M2는 위치 대신 간격을 본다.
+  - 프레임 폭 ≠ 뷰포트: 헤더 시안 프레임 1920을 1440에서 재서 루트 폭 −480, 오른쪽 CTA x −460.67이 났다. → 채우기 폭 노드는 프레임 폭 = 뷰포트일 때만 `w`를 비교하고, `end` 여백으로 오른쪽 정렬을 본다.
+- 재현: `skills/qa-check/scripts/test/fixtures/layout/`(같은 4개 대상, 정상 1벌 + 결함 1벌)과 `compare-layout.test.mjs`. fixture는 FAB 루트 `w`(48 = 48)를 더해 비교 값이 85개다.
+
+### 왜 ±1px인가
+
+- **±0.5px**에서는 회전 레이어(`rotate-`) 오탐 2건이 남는다: 헤더 세로 구분선 앞뒤 간격이 Figma 메타데이터로 41·39, 구현은 40·40이다(회전된 레이어의 메타데이터 좌표가 1px 어긋난다).
+- **±2px**에서는 2px 결함 2개를 놓친다: 결함 5개를 CSS로 주입했을 때(시트 버튼 간격 8→12, 전화 버튼 높이 48→44, 탭바 왼쪽 여백 12→14, 헤더 logo↔nav 간격 40→36, FAB 간격 8→10) ±1px은 9건(직접 5 + 파생 4: 시트 b2↔b3 간격·시트 높이·버튼 영역 높이·FAB 높이)을 잡고, ±2px은 탭바 여백과 FAB 간격을 놓친다.
+- 1/64px 반올림: Chromium은 박스 좌표를 1/64px 단위(`LayoutUnit = FixedPoint<6, int32_t>`, "multiples of 1/64 of a pixel")로 저장한다(https://github.com/chromium/chromium/blob/d5b9b480f8084673de05f7c2f92505b54f8dbb81/third_party/blink/renderer/platform/geometry/layout_unit.h#L66-L67 , #L473). 실측 80.2857 → 80.28125, 13.142856 → 13.140625, 74.2857 → 74.28125(차이는 1/64 ≈ 0.016px 미만. 반올림인지 버림인지는 확인하지 않았다). 구현자가 Figma 소수를 정수로 반올림해 쓰는 차이(≤ 0.5px)와 함께 ±1px 안에 흡수되므로 별도 처리를 하지 않는다.
+
+### 크기를 선언값처럼 오차 0으로 비교하지 않는 이유
+
+`height`·`width`의 computed 값은 선언값이 아니라 배치 값이다. `height: 58.2857px`로 지정해도 computed는 `58.2812px`이고, 같은 요소의 `padding-top: 12.3456px`은 그대로 나온다(Chromium 156, deviceScaleFactor 1·3 동일, 2026-11-06 실측). 그래서 크기를 24개 속성에 넣어 오차 0으로 비교하면 같은 값이 불일치가 된다. 크기는 박스로 재고 ±1px로 판정한다.
+
+### 표본 한계
+
+대상 4개, 비교 값 84개, 주입 결함 5개이고, 대부분 PHP 모바일 화면(375)이며 데스크톱은 헤더 1개다. 회전 레이어 오차(1px)도 구분선 하나에서 본 것이다. 다른 화면·글꼴에서 정상 구현이 ±1px을 넘는 사례가 나오면 허용 오차를 바꾸기 전에 원인(래퍼 레이어 포함, 텍스트 노드의 `w` 비교, 프레임 폭 ≠ 뷰포트 등 `compare`·`checks` 선택)부터 확인한다.

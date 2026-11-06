@@ -1,0 +1,683 @@
+[
+  {
+    "target": "sheet",
+    "source": "fixture",
+    "props": {},
+    "layout": {
+      "viewport": "375x812",
+      "nodes": {
+        "root": {
+          "figmaId": null,
+          "selector": "",
+          "box": [
+            0,
+            0,
+            375,
+            260
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "head": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__head",
+          "box": [
+            0,
+            0,
+            375,
+            64
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "title": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__title",
+          "box": [
+            16,
+            24,
+            68,
+            28
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "close": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__close",
+          "box": [
+            327,
+            24,
+            32,
+            32
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "actions": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__actions",
+          "box": [
+            0,
+            64,
+            375,
+            196
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "b1": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__btn--consult",
+          "box": [
+            16,
+            84,
+            343,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "b2": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__btn--call",
+          "box": [
+            16,
+            140,
+            343,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "b3": {
+          "figmaId": null,
+          "selector": ".consult-method-sheet__btn--kakao",
+          "box": [
+            16,
+            196,
+            343,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        }
+      },
+      "groups": [
+        {
+          "parent": "actions",
+          "kids": [
+            "b1",
+            "b2",
+            "b3"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "head",
+          "kids": [
+            "title"
+          ],
+          "axis": "x",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "head",
+          "kids": [
+            "close"
+          ],
+          "axis": "x",
+          "checks": [
+            "end"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "target": "tabbar",
+    "source": "fixture",
+    "props": {},
+    "layout": {
+      "viewport": "375x812",
+      "nodes": {
+        "root": {
+          "figmaId": null,
+          "selector": "",
+          "box": [
+            0,
+            0,
+            375,
+            74.28571319580078
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "item1": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(1)",
+          "box": [
+            12,
+            13.14285659790039,
+            80.25,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "icon1": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(1) .bottom-tab-bar__icon--active",
+          "box": [
+            40.125,
+            13.14285659790039,
+            24,
+            24
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "label1": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(1) .bottom-tab-bar__label",
+          "box": [
+            12,
+            41.14285659790039,
+            80.25,
+            20
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "item2": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(2)",
+          "box": [
+            102.25,
+            13.14285659790039,
+            80.25,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "icon2": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(2) .bottom-tab-bar__icon",
+          "box": [
+            130.375,
+            13.14285659790039,
+            24,
+            24
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "label2": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(2) .bottom-tab-bar__label",
+          "box": [
+            102.25,
+            41.14285659790039,
+            80.25,
+            20
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "item3": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(3)",
+          "box": [
+            192.5,
+            13.14285659790039,
+            80.25,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "icon3": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(3) .bottom-tab-bar__icon",
+          "box": [
+            220.625,
+            13.14285659790039,
+            24,
+            24
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "label3": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(3) .bottom-tab-bar__label",
+          "box": [
+            192.5,
+            41.14285659790039,
+            80.25,
+            20
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "item4": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(4)",
+          "box": [
+            282.75,
+            13.14285659790039,
+            80.25,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "icon4": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(4) .bottom-tab-bar__icon",
+          "box": [
+            310.875,
+            13.14285659790039,
+            24,
+            24
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "label4": {
+          "figmaId": null,
+          "selector": ".bottom-tab-bar__item:nth-child(4) .bottom-tab-bar__label",
+          "box": [
+            282.75,
+            41.14285659790039,
+            80.25,
+            20
+          ],
+          "compare": [
+            "h"
+          ]
+        }
+      },
+      "groups": [
+        {
+          "parent": "root",
+          "kids": [
+            "item1",
+            "item2",
+            "item3",
+            "item4"
+          ],
+          "axis": "x",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "item1",
+          "kids": [
+            "icon1",
+            "label1"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "item2",
+          "kids": [
+            "icon2",
+            "label2"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "item3",
+          "kids": [
+            "icon3",
+            "label3"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "item4",
+          "kids": [
+            "icon4",
+            "label4"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "target": "header",
+    "source": "fixture",
+    "props": {},
+    "layout": {
+      "viewport": "1440x900",
+      "nodes": {
+        "root": {
+          "figmaId": null,
+          "selector": "",
+          "box": [
+            0,
+            0,
+            1920,
+            62
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "left": {
+          "figmaId": null,
+          "selector": ".ld-header-left",
+          "box": [
+            20,
+            7,
+            513,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "logo": {
+          "figmaId": null,
+          "selector": ".ld-header-logo",
+          "box": [
+            20,
+            17,
+            61,
+            28
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "nav": {
+          "figmaId": null,
+          "selector": ".ld-header-nav",
+          "box": [
+            121,
+            7,
+            412,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "n1": {
+          "figmaId": null,
+          "selector": ".ld-header-nav > a:nth-of-type(1)",
+          "box": [
+            121,
+            7,
+            55,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "n2": {
+          "figmaId": null,
+          "selector": ".ld-header-nav > a:nth-of-type(2)",
+          "box": [
+            216,
+            7,
+            86,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "n3": {
+          "figmaId": null,
+          "selector": ".ld-header-nav > a:nth-of-type(3)",
+          "box": [
+            342,
+            7,
+            55,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "div": {
+          "figmaId": null,
+          "selector": ".ld-header-divider",
+          "box": [
+            438,
+            23,
+            1,
+            16
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "n4": {
+          "figmaId": null,
+          "selector": ".ld-header-nav > a:nth-of-type(4)",
+          "box": [
+            478,
+            7,
+            55,
+            48
+          ],
+          "compare": [
+            "h"
+          ]
+        },
+        "cta": {
+          "figmaId": null,
+          "selector": ".ld-header-cta",
+          "box": [
+            1806,
+            13,
+            94,
+            36
+          ],
+          "compare": [
+            "h"
+          ]
+        }
+      },
+      "groups": [
+        {
+          "parent": "root",
+          "kids": [
+            "left"
+          ],
+          "axis": "x",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "left",
+          "kids": [
+            "logo",
+            "nav"
+          ],
+          "axis": "x",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "nav",
+          "kids": [
+            "n1",
+            "n2",
+            "n3",
+            "div",
+            "n4"
+          ],
+          "axis": "x",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        },
+        {
+          "parent": "root",
+          "kids": [
+            "cta"
+          ],
+          "axis": "x",
+          "checks": [
+            "end"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "target": "fab",
+    "source": "fixture",
+    "props": {},
+    "layout": {
+      "viewport": "375x812",
+      "nodes": {
+        "root": {
+          "figmaId": null,
+          "selector": "",
+          "box": [
+            0,
+            0,
+            48,
+            104
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "top": {
+          "figmaId": null,
+          "selector": ".fab-stack__btn--top",
+          "box": [
+            0,
+            0,
+            48,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "kakao": {
+          "figmaId": null,
+          "selector": ".fab-stack__btn--kakao",
+          "box": [
+            0,
+            56,
+            48,
+            48
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        },
+        "icon": {
+          "figmaId": null,
+          "selector": ".fab-stack__icon",
+          "box": [
+            8,
+            64,
+            32,
+            32
+          ],
+          "compare": [
+            "w",
+            "h"
+          ]
+        }
+      },
+      "groups": [
+        {
+          "parent": "root",
+          "kids": [
+            "top",
+            "kakao"
+          ],
+          "axis": "y",
+          "checks": [
+            "start",
+            "gaps"
+          ]
+        }
+      ]
+    }
+  }
+]

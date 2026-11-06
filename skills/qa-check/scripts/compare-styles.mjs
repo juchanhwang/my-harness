@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// 디자인 값 ↔ 구현 computed style 정규화·비교·waiver (spec D6, D24). 허용 오차 0.
+// 디자인 값 ↔ 구현 computed style 정규화·비교·waiver (spec D6, D24). 선언값 24개는 허용 오차 0.
+// DesignTarget.layout 과 ActualTarget.boxes 가 있으면 레이아웃(크기·간격)도 비교한다. 레이아웃만 허용 오차 ±1px(compareLayout).
 //   node compare-styles.mjs --design <DesignTarget[] 파일> --actual <ActualTarget[] 파일> [--waivers <Waiver[] 파일>]
 //   → stdout FindingsDoc(role:'style'), target 필드로 짝짓는다. 입력 오류 → stderr, exit 2
 import { readFileSync } from 'node:fs';
@@ -425,6 +426,190 @@ export function compareTarget(design, actual) {
   return { findings, notChecked, blocked };
 }
 
+// ---- 레이아웃(M2): 노드 크기 + auto layout 그룹의 시작 여백·이웃 간격·끝 여백, 허용 오차 ±1px ----
+// 선언값은 오차 0을 유지하고 레이아웃만 ±1px 이다(2026-11-06 사용자 승인). 근거·실측은 qa/figma-style-audit.md §9.
+// 박스는 값을 선언한 것이 아니라 배치 결과다. Chromium 은 박스 좌표를 1/64px 단위로 반올림하므로(80.2857 → 80.28125)
+// 선언값처럼 오차 0으로 비교할 수 없다. 이 차이(1/64px 미만)는 ±1px 안이라 따로 다루지 않는다.
+// 무엇을 비교할지(node.compare, group.checks)는 style 역할이 정한다. 이 함수는 그대로 실행만 한다.
+// design.layout = { viewport: 'WxH' | null, nodes: { key: { figmaId, selector, box: [x,y,w,h], compare } }, groups: [{ parent, kids, axis, checks }] }
+//   box 는 대상 루트 기준 좌표, 루트 key 는 'root'(selector '')다. actual.boxes = { key: [x,y,w,h] | null }(같은 key, 루트 기준).
+export const LAYOUT_TOLERANCE_PX = 1;
+const LAYOUT_EPS = 1e-6; // 부동소수 노이즈만 흡수한다. 차이가 정확히 1.0 이면 통과다(실측: 회전 레이어 오차가 1px)
+const LAYOUT_METRICS = Object.freeze({ w: 2, h: 3 });
+const LAYOUT_CHECKS = Object.freeze(['start', 'gaps', 'end']);
+const LAYOUT_AXES = Object.freeze({ x: [0, 2], y: [1, 3] }); // [위치 index, 크기 index]
+const isPlainObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+const isBox = (b) => Array.isArray(b) && b.length === 4 && b.every((n) => typeof n === 'number' && Number.isFinite(n));
+const isListOf = (list, allowed) => Array.isArray(list) && list.every((x) => allowed.includes(x));
+const isZeroSize = (b) => b[2] === 0 && b[3] === 0;
+
+function layoutNodeProblems(key, node) {
+  if (!isPlainObject(node)) return ['not an object'];
+  const problems = [];
+  if (typeof node.selector !== 'string') problems.push(`selector ${show(node.selector)}`);
+  else if (key === 'root' && node.selector !== '') problems.push(`root selector must be '' (got ${show(node.selector)})`);
+  if (!isBox(node.box)) problems.push(`box ${show(node.box)}`);
+  if (!isListOf(node.compare, Object.keys(LAYOUT_METRICS))) problems.push(`compare ${show(node.compare)}`);
+  return problems;
+}
+
+function layoutGroupProblems(group, nodes) {
+  if (!isPlainObject(group)) return ['not an object'];
+  const problems = [];
+  if (!Object.hasOwn(nodes, group.parent)) problems.push(`parent ${show(group.parent)} is not a layout node`);
+  if (!Array.isArray(group.kids) || group.kids.length === 0) problems.push(`kids ${show(group.kids)}`);
+  else {
+    const unknown = group.kids.filter((k) => !Object.hasOwn(nodes, k) || k === group.parent);
+    if (unknown.length) problems.push(`kids ${show(unknown)} are not layout nodes under the parent`);
+  }
+  if (!Object.hasOwn(LAYOUT_AXES, group.axis)) problems.push(`axis ${show(group.axis)}`);
+  if (!isListOf(group.checks, LAYOUT_CHECKS)) problems.push(`checks ${show(group.checks)}`);
+  return problems;
+}
+
+// actuals: 이 target 의 ActualTarget[](모든 뷰포트). layout.viewport 와 문자열이 같은 항목만 쓴다.
+export function compareLayout(design, actuals) {
+  const findings = [];
+  const notChecked = [];
+  const blocked = [];
+  const { target, layout } = design;
+  if (layout === undefined || layout === null) return { findings, notChecked, blocked };
+  const head = `target '${target}' layout`;
+  if (!isPlainObject(layout)) {
+    blocked.push(`${head}: invalid design layout ${show(layout)}`);
+    return { findings, notChecked, blocked };
+  }
+  if (layout.viewport === null) {
+    notChecked.push({ what: `${target} layout`, reason: '시안 폭에 맞는 viewport 없음 — 매니페스트에 viewport를 넣으면 비교' });
+    return { findings, notChecked, blocked };
+  }
+  const { viewport, nodes } = layout;
+  if (typeof viewport !== 'string' || viewport === '') {
+    blocked.push(`${head}: viewport must be a viewport string or null (got ${show(viewport)})`);
+    return { findings, notChecked, blocked };
+  }
+  if (!isPlainObject(nodes) || !Object.hasOwn(nodes, 'root')) {
+    blocked.push(`${head}: nodes.root missing (the target root is key 'root' with selector '' and box [0, 0, w, h])`);
+    return { findings, notChecked, blocked };
+  }
+
+  // 디자인 쪽 검사: 잘못된 노드·그룹만 막고 나머지는 비교한다(속성 비교에서 해석 불가 디자인 값이 그 속성만 막는 것과 같다).
+  const designOk = new Set();
+  for (const [key, node] of Object.entries(nodes)) {
+    const problems = layoutNodeProblems(key, node);
+    if (problems.length) blocked.push(`${head} node '${key}': invalid design ${problems.join(', ')}`);
+    else designOk.add(key);
+  }
+  const groups = [];
+  if (layout.groups !== undefined && !Array.isArray(layout.groups)) blocked.push(`${head}: groups must be an array (got ${show(layout.groups)})`);
+  else {
+    (layout.groups ?? []).forEach((g, i) => {
+      const problems = layoutGroupProblems(g, nodes);
+      if (problems.length) blocked.push(`${head} group ${i}: invalid design ${problems.join(', ')}`);
+      else groups.push(g);
+    });
+  }
+
+  const entries = actuals.filter((a) => a.viewport === viewport);
+  if (entries.length === 0) {
+    blocked.push(`${head} @${viewport}: no actual extraction at this viewport (measure the target at ${viewport})`);
+    return { findings, notChecked, blocked };
+  }
+
+  for (const a of entries) {
+    const at = `${head} @${viewport}`;
+    if (!isPlainObject(a.boxes)) {
+      blocked.push(`${at}: boxes missing — run layout-boxes.snippet.js on selector '${a.selector}' at ${viewport}`);
+      continue;
+    }
+    // 노드 selector 는 루트 기준이다. 리포트·waiver 에는 루트 selector 를 앞에 붙인 문자열을 쓴다(루트 자신은 루트 selector).
+    const fullSelector = (key) => (nodes[key].selector === '' ? a.selector : `${a.selector} ${nodes[key].selector}`);
+    const check = (title, idKey, metric, selectorKey, expected, actual) => {
+      if (Math.abs(actual - expected) <= LAYOUT_TOLERANCE_PX + LAYOUT_EPS) return;
+      const selector = fullSelector(selectorKey);
+      findings.push({
+        id: `L-${target}-${idKey}.${metric}-${viewport}`,
+        severity: 'Minor',
+        status: 'open',
+        title,
+        where: `${selector} @${viewport}`,
+        expected: `${round2(expected)}px`,
+        actual: `${round2(actual)}px`,
+        note: `허용 오차 ±${LAYOUT_TOLERANCE_PX}px`,
+        target,
+        selector,
+        viewport,
+        property: `layout:${metric}`,
+      });
+    };
+
+    // 박스를 읽지 못한 노드(selector 불일치·숨겨진 요소)는 finding 이 아니라 blocked 다. 그 노드가 들어간 비교는 건너뛴다.
+    const actualBox = new Map();
+    for (const key of Object.keys(nodes)) {
+      if (!designOk.has(key)) continue;
+      const box = a.boxes[key];
+      const node = nodes[key];
+      if (box === undefined) {
+        blocked.push(`${at} node '${key}': no box extracted — pass every layout node to layout-boxes.snippet.js (selector '${fullSelector(key)}')`);
+        continue;
+      }
+      if (box === null) {
+        blocked.push(`${at} node '${key}': selector '${fullSelector(key)}' matched no element under the root (selector가 틀림)`);
+        continue;
+      }
+      if (!isBox(box)) {
+        blocked.push(`${at} node '${key}': unparseable actual box ${show(box)} (selector '${fullSelector(key)}')`);
+        continue;
+      }
+      if (isZeroSize(box) && !isZeroSize(node.box)) {
+        blocked.push(`${at} node '${key}': selector '${fullSelector(key)}' is 0×0 — 숨겨진 요소이거나 selector가 틀림`);
+        continue;
+      }
+      actualBox.set(key, box);
+      for (const [metric, i] of Object.entries(LAYOUT_METRICS)) {
+        if (node.compare.includes(metric)) check('레이아웃 크기 불일치', key, metric, key, node.box[i], box[i]);
+      }
+    }
+
+    for (const g of groups) {
+      const [pos, size] = LAYOUT_AXES[g.axis];
+      // parent 가 root 면 parent 박스는 [0, 0, root.w, root.h] 다.
+      const pick = (key, boxOf) => {
+        const b = boxOf(key);
+        return b && key === g.parent && key === 'root' ? [0, 0, b[2], b[3]] : b;
+      };
+      const designBox = (key) => pick(key, (k) => (designOk.has(k) ? nodes[k].box : undefined));
+      const implBox = (key) => pick(key, (k) => actualBox.get(k));
+      const measure = (keys, f) => {
+        const d = keys.map(designBox);
+        const i = keys.map(implBox);
+        return d.every(Boolean) && i.every(Boolean) ? [f(...d), f(...i)] : null;
+      };
+      const first = g.kids[0];
+      const last = g.kids.at(-1);
+      // 지표 이름에 축을 넣는다: 같은 parent 에 x·y 그룹이 함께 있어도 id·waiver 키(selector + property)가 겹치지 않는다.
+      const ax = g.axis;
+      const results = [];
+      if (g.checks.includes('start')) {
+        results.push(['레이아웃 여백 불일치', `start-${ax}(${first})`, measure([g.parent, first], (p, k) => k[pos] - p[pos])]);
+      }
+      if (g.checks.includes('gaps')) {
+        for (let n = 1; n < g.kids.length; n += 1) {
+          const [prev, next] = [g.kids[n - 1], g.kids[n]];
+          results.push(['레이아웃 간격 불일치', `gap-${ax}(${prev}↔${next})`, measure([prev, next], (p, k) => k[pos] - (p[pos] + p[size]))]);
+        }
+      }
+      if (g.checks.includes('end')) {
+        results.push(['레이아웃 여백 불일치', `end-${ax}(${last})`, measure([g.parent, last], (p, k) => p[pos] + p[size] - (k[pos] + k[size]))]);
+      }
+      for (const [title, metric, values] of results) {
+        if (values) check(title, g.parent, metric, g.parent, values[0], values[1]);
+      }
+    }
+  }
+  return { findings, notChecked, blocked };
+}
+
 export function applyWaivers(findings, waivers) {
   const ctx = { rootFontSize: 16 };
   return findings.map((f) => {
@@ -477,6 +662,13 @@ function run(argv) {
     }
     for (const a of matches) {
       const r = compareTarget(d, a);
+      doc.blocked.push(...r.blocked);
+      doc.findings.push(...r.findings);
+      doc.notChecked.push(...r.notChecked);
+    }
+    // layout 이 없는 예전 디자인 JSON 은 여기서 아무것도 더하지 않는다(gate 가 예전 리포트를 재계산해도 출력이 같다).
+    if (d.layout !== undefined && d.layout !== null) {
+      const r = compareLayout(d, matches);
       doc.blocked.push(...r.blocked);
       doc.findings.push(...r.findings);
       doc.notChecked.push(...r.notChecked);
