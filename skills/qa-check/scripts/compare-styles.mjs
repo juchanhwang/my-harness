@@ -9,13 +9,18 @@ const COLOR_PROPS = ['background-color', 'color', 'border-top-color', 'border-ri
 const TYPO_PROPS = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing'];
 const SPACING_PROPS = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'row-gap', 'column-gap'];
 const RADIUS_PROPS = ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'];
+const SHADOW_PROPS = ['box-shadow', 'text-shadow'];
+const OPACITY_PROPS = ['opacity'];
 
-export const PROPS = Object.freeze([...COLOR_PROPS, ...TYPO_PROPS, ...SPACING_PROPS, ...RADIUS_PROPS]);
+// 새 속성은 끝에 붙인다. 기존 21개의 순서(= finding 순서, 스니펫 출력 키 순서)를 바꾸지 않는다.
+export const PROPS = Object.freeze([...COLOR_PROPS, ...TYPO_PROPS, ...SPACING_PROPS, ...RADIUS_PROPS, ...SHADOW_PROPS, ...OPACITY_PROPS]);
 export const SEVERITY_BY_PROP = Object.freeze(Object.fromEntries([
   ...COLOR_PROPS.map((p) => [p, 'Major']),
   ...TYPO_PROPS.map((p) => [p, 'Major']),
   ...SPACING_PROPS.map((p) => [p, 'Minor']),
   ...RADIUS_PROPS.map((p) => [p, 'Minor']),
+  ...SHADOW_PROPS.map((p) => [p, 'Minor']),
+  ...OPACITY_PROPS.map((p) => [p, 'Major']),
 ]));
 
 // 소수 둘째 자리 반올림은 부동소수 표현(0.15000000596046448 등)을 정규화할 뿐 허용 오차가 아니다. -0은 0으로.
@@ -194,20 +199,135 @@ export function normalizeFontWeight(v) {
   return WEIGHT_NAMES.get(s.replace(/[\s_-]+/g, '')) ?? null;
 }
 
+// ---- 색 → { key, display } (색 속성과 그림자 색이 같이 쓴다) ----
+function colorEntry(text) {
+  const c = normalizeColor(text);
+  if (!c) return null;
+  // sRGB 밖의 색은 hex 가 없다. 같은 값끼리만 같고(범위 밖 sRGB 성분을 둘째 자리까지 비교) 원문을 그대로 보여 준다.
+  if (c.hex === null) {
+    return { key: c.alpha === 0 ? 'transparent' : `out-of-srgb:${c.srgb.join(',')}/${c.alpha}`, display: text.trim(), outOfGamut: true };
+  }
+  const rgb = [1, 3, 5].map((i) => parseInt(c.hex.slice(i, i + 2), 16));
+  // alpha 0 은 RGB 와 무관하게 같은 색(완전 투명)이다: #FFFFFF00 ≡ transparent ≡ rgba(0, 0, 0, 0)
+  return { key: c.alpha === 0 ? 'transparent' : `${c.hex}/${c.alpha}`, display: c.alpha === 1 ? c.hex : `rgba(${rgb.join(', ')}, ${c.alpha})` };
+}
+
+// ---- 그림자: box-shadow · text-shadow ----
+// 문법: box-shadow 한 겹 = <color>? && [<length>{2} <length [0,∞]>? <length>?] && inset?
+//   https://www.w3.org/TR/css-backgrounds-3/#box-shadow
+// text-shadow 한 겹 = <color>? && <length>{2,3} (inset·spread 없음) https://www.w3.org/TR/css-text-decor-3/#text-shadow-property
+// && 라서 색·inset 은 길이 묶음의 앞이나 뒤 어디든 올 수 있고 길이는 연속해야 한다. Chrome computed 는 색을 앞에
+// (`rgba(0, 0, 0, 0.08) 0px 0px 2px 0px`), 저작·Figma 는 보통 뒤에 쓴다 — 같은 값이 같은 key 가 된다.
+// 색 생략(currentcolor)은 해석하지 않는다: 디자인 값에는 색이 있고, Chrome computed 도 색을 항상 쓴다.
+
+// 괄호 깊이 0 에서만 sep 으로 나눈다(rgba(0, 0, 0, 0.1) 안의 쉼표·공백은 무시). 괄호가 짝이 안 맞으면 null.
+function splitTopLevel(s, sep) {
+  const parts = [];
+  let depth = 0;
+  let cur = '';
+  for (const ch of s) {
+    if (ch === '(') depth += 1;
+    else if (ch === ')') {
+      depth -= 1;
+      if (depth < 0) return null;
+    }
+    if (depth === 0 && sep.test(ch)) {
+      parts.push(cur);
+      cur = '';
+    } else cur += ch;
+  }
+  if (depth !== 0) return null;
+  parts.push(cur);
+  return parts;
+}
+
+// 그림자 길이는 px·rem·em 과 단위 없는 0 만 받는다(% 와 단위 없는 0 이외 숫자는 CSS 에서 무효).
+function shadowLength(token, ctx) {
+  const m = LENGTH_RE.exec(token.toLowerCase());
+  if (!m || m[2] === '%' || (m[2] === undefined && Number(m[1]) !== 0)) return null;
+  const n = normalizeLength(token, ctx);
+  return typeof n === 'number' && Number.isFinite(n) ? n : null;
+}
+
+function shadowLayer(text, isText, ctx) {
+  const tokens = splitTopLevel(text, /\s/)?.filter(Boolean);
+  if (!tokens?.length) return null;
+  let inset = false;
+  let color = null;
+  const lengths = [];
+  let lengthsClosed = false;
+  for (const token of tokens) {
+    const len = shadowLength(token, ctx);
+    if (len !== null) {
+      if (lengthsClosed) return null; // 길이는 한 묶음으로 이어져야 한다
+      lengths.push(len);
+      continue;
+    }
+    if (lengths.length > 0) lengthsClosed = true;
+    if (token.toLowerCase() === 'inset') {
+      if (isText || inset) return null;
+      inset = true;
+      continue;
+    }
+    const c = colorEntry(token);
+    if (!c || color) return null;
+    color = c;
+  }
+  if (!color || lengths.length < 2 || lengths.length > (isText ? 3 : 4)) return null;
+  const [x, y, blur = 0, spread = 0] = lengths;
+  if (blur < 0) return null; // blur 는 음수가 무효다
+  const nums = isText ? [x, y, blur] : [x, y, blur, spread];
+  const head = inset ? 'inset ' : '';
+  return {
+    key: `${head}${nums.join(' ')} ${color.key}`,
+    display: `${head}${nums.map((n) => `${n}px`).join(' ')} ${color.display}`,
+    outOfGamut: color.outOfGamut === true,
+  };
+}
+
+// prop: 'box-shadow' | 'text-shadow'. none 은 빈 목록(어떤 그림자와도, 투명 그림자와도 다르다). 겹 수·순서가 모두 같아야 같은 key.
+export function normalizeShadow(v, prop, ctx) {
+  if (typeof v !== 'string' || !SHADOW_PROPS.includes(prop)) return null;
+  const s = v.trim();
+  if (s.toLowerCase() === 'none') return { key: 'none', display: 'none' };
+  const parts = splitTopLevel(s, /,/);
+  if (!parts) return null;
+  const layers = [];
+  for (const part of parts) {
+    const layer = shadowLayer(part.trim(), prop === 'text-shadow', ctx);
+    if (!layer) return null;
+    layers.push(layer);
+  }
+  return {
+    key: layers.map((l) => l.key).join(' | '),
+    display: layers.map((l) => l.display).join(', '),
+    ...(layers.some((l) => l.outOfGamut) ? { outOfGamut: true } : {}),
+  };
+}
+
+// ---- opacity: 숫자 · 숫자 문자열 · 퍼센트 → 0..1 ----
+// 범위 밖 값은 무효가 아니라 computed 단계에서 [0, 1] 로 clamp 된다: https://www.w3.org/TR/css-color-4/#transparency
+const OPACITY_RE = new RegExp(`^(${NUMBER})(%)?$`);
+
+export function normalizeOpacity(v) {
+  let n;
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    const m = OPACITY_RE.exec(v.trim().toLowerCase());
+    if (!m) return null;
+    n = m[2] ? Number(m[1]) / 100 : Number(m[1]);
+  } else return null;
+  return Number.isFinite(n) ? round2(clamp(n, 0, 1)) : null;
+}
+
 // ---- 속성별 정규화: { key: 비교용 문자열, display: 리포트용 문자열 } | null ----
 function normalizeValue(prop, raw, ctx) {
   if (raw === undefined || raw === null) return null;
-  if (COLOR_PROPS.includes(prop)) {
-    const text = typeof raw === 'string' ? raw : String(raw);
-    const c = normalizeColor(text);
-    if (!c) return null;
-    // sRGB 밖의 색은 hex 가 없다. 같은 값끼리만 같고(범위 밖 sRGB 성분을 둘째 자리까지 비교) 원문을 그대로 보여 준다.
-    if (c.hex === null) {
-      return { key: c.alpha === 0 ? 'transparent' : `out-of-srgb:${c.srgb.join(',')}/${c.alpha}`, display: text.trim(), outOfGamut: true };
-    }
-    const rgb = [1, 3, 5].map((i) => parseInt(c.hex.slice(i, i + 2), 16));
-    // alpha 0 은 RGB 와 무관하게 같은 색(완전 투명)이다: #FFFFFF00 ≡ transparent ≡ rgba(0, 0, 0, 0)
-    return { key: c.alpha === 0 ? 'transparent' : `${c.hex}/${c.alpha}`, display: c.alpha === 1 ? c.hex : `rgba(${rgb.join(', ')}, ${c.alpha})` };
+  if (COLOR_PROPS.includes(prop)) return colorEntry(typeof raw === 'string' ? raw : String(raw));
+  if (SHADOW_PROPS.includes(prop)) return normalizeShadow(raw, prop, ctx);
+  if (OPACITY_PROPS.includes(prop)) {
+    const o = normalizeOpacity(raw);
+    return o === null ? null : { key: String(o), display: String(o) };
   }
   if (prop === 'font-family') {
     const name = firstFamily(typeof raw === 'string' ? raw : String(raw));

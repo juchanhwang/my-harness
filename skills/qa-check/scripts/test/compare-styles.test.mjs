@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   PROPS, SEVERITY_BY_PROP, applyWaivers, compareTarget,
-  normalizeColor, normalizeFontFamily, normalizeFontWeight, normalizeLength,
+  normalizeColor, normalizeFontFamily, normalizeFontWeight, normalizeLength, normalizeOpacity, normalizeShadow,
 } from '../compare-styles.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -24,11 +24,22 @@ const ok = { 'background-color': 'rgb(103, 80, 164)', color: 'rgb(255, 255, 255)
 const actual = (props, count = 1, viewport) => ({ target: 'btn', selector: '.btn', viewport, count, rootFontSize: 16,
   samples: Array.from({ length: count }, (_, index) => ({ index, props })) });
 
-test('PROPS has 21 entries', () => assert.equal(PROPS.length, 21));
-test('SEVERITY_BY_PROP: color and typography Major, spacing and radius Minor', () => {
+const ORIGINAL_21 = [
+  'background-color', 'color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+  'font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing',
+  'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'row-gap', 'column-gap',
+  'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius',
+];
+test('PROPS has 24 entries: the original 21 in their original order, then box-shadow, text-shadow, opacity', () => {
+  assert.equal(PROPS.length, 24);
+  assert.deepEqual(PROPS.slice(0, 21), ORIGINAL_21);
+  assert.deepEqual(PROPS.slice(21), ['box-shadow', 'text-shadow', 'opacity']);
+});
+test('SEVERITY_BY_PROP: color, typography and opacity Major, spacing, radius and shadows Minor', () => {
   assert.deepEqual(Object.keys(SEVERITY_BY_PROP), [...PROPS]);
-  assert.deepEqual(PROPS.filter((p) => SEVERITY_BY_PROP[p] === 'Major'), PROPS.slice(0, 11));
-  assert.deepEqual(PROPS.filter((p) => SEVERITY_BY_PROP[p] === 'Minor'), PROPS.slice(11));
+  assert.deepEqual(PROPS.filter((p) => SEVERITY_BY_PROP[p] === 'Major'), [...PROPS.slice(0, 11), 'opacity']);
+  assert.deepEqual(PROPS.filter((p) => SEVERITY_BY_PROP[p] === 'Minor'), PROPS.slice(11, 23));
+  assert.deepEqual([SEVERITY_BY_PROP['box-shadow'], SEVERITY_BY_PROP['text-shadow'], SEVERITY_BY_PROP.opacity], ['Minor', 'Minor', 'Major']);
 });
 test('normalizeColor: formats', () => {
   assert.deepEqual(normalizeColor('rgb(103, 80, 164)'), { hex: '#6750A4', alpha: 1 });
@@ -167,6 +178,76 @@ test('normalizeFontWeight', () => {
   assert.equal(normalizeFontWeight(500), 500);
   assert.equal(normalizeFontWeight('constructor'), null);
 });
+// ---- box-shadow · text-shadow · opacity ----
+const px16 = { rootFontSize: 16, fontSize: 16 };
+const box = (v, ctx = px16) => normalizeShadow(v, 'box-shadow', ctx);
+const text = (v, ctx = px16) => normalizeShadow(v, 'text-shadow', ctx);
+test('normalizeShadow: Chrome computed (color first) and authored/Figma (color last) give the same key', () => {
+  const chrome = box('rgba(0, 0, 0, 0.08) 0px 0px 2px 0px, rgba(0, 0, 0, 0.12) 0px 8px 16px 0px');
+  assert.deepEqual(box('0 0 2px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,.12)'), chrome);
+  assert.deepEqual(box('0px 0px 2px 0px rgba(0,0,0,0.08),0px 8px 16px 0px rgba(0,0,0,0.12)'), chrome);
+  assert.deepEqual(text('rgba(0, 0, 0, 0.5) 1px 1px 2px'), text('1px 1px 2px rgba(0,0,0,0.5)'));
+});
+test('normalizeShadow: display is px lengths plus the color display, layers joined by ", "', () => {
+  assert.deepEqual(box('0 2px 10px rgba(0,0,0,0.1)'), { key: '0 2 10 0 #000000/0.1', display: '0px 2px 10px 0px rgba(0, 0, 0, 0.1)' });
+  assert.equal(box('0 1px 2px #000, 0 2px 4px #0000001a').display, '0px 1px 2px 0px #000000, 0px 2px 4px 0px rgba(0, 0, 0, 0.1)');
+  assert.deepEqual(text('1px 2px #FFF'), { key: '1 2 0 #FFFFFF/1', display: '1px 2px 0px #FFFFFF' });
+});
+test('normalizeShadow: none is an empty list and is not a transparent shadow', () => {
+  assert.deepEqual(box('none'), { key: 'none', display: 'none' });
+  assert.deepEqual(box(' NONE '), box('none'));
+  assert.deepEqual(text('none'), { key: 'none', display: 'none' });
+  assert.notEqual(box('0 0 0 0 transparent').key, box('none').key);
+  assert.notEqual(box('0 0 0 0 rgba(0, 0, 0, 0)').key, box('none').key);
+});
+test('normalizeShadow: inset before or after for box-shadow, missing blur and spread are 0', () => {
+  const insetKey = box('rgb(0, 0, 0) 0px 2px 4px 0px inset').key;
+  for (const v of ['inset 0 2px 4px #000', '0 2px 4px inset #000', 'INSET #000 0 2px 4px', '#000 inset 0 2px 4px 0']) assert.equal(box(v).key, insetKey, v);
+  assert.equal(box('inset 0 2px 4px #000').display, 'inset 0px 2px 4px 0px #000000');
+  assert.notEqual(box('0 2px 4px #000').key, insetKey);
+  assert.equal(box('1px 2px #000').key, box('1px 2px 0 0 #000').key);
+  assert.equal(text('1px 2px #000').key, text('1px 2px 0px #000').key);
+});
+test('normalizeShadow: the color may be any notation normalizeColor reads; out-of-sRGB is flagged', () => {
+  assert.equal(box('0 2px oklch(0.5 0.1 270 / 0.5)').key, box(`0 2px ${normalizeColor('oklch(0.5 0.1 270 / 0.5)').hex}80`).key);
+  assert.equal(box('0 2px rgb(0 0 0 / 10%)').key, box('0 2px rgba(0, 0, 0, 0.1)').key);
+  assert.equal(box('0 2px #00000000').key, box('0 2px transparent').key);
+  const p3 = box('0 2px color(display-p3 1 0 0)');
+  assert.deepEqual([p3.outOfGamut, p3.display], [true, '0px 2px 0px 0px color(display-p3 1 0 0)']);
+  assert.equal(box('0 2px #000').outOfGamut, undefined);
+});
+test('normalizeShadow: rem and em use the context; bare numbers other than 0 are not lengths', () => {
+  assert.equal(box('0 0.125rem 0.5em #000').key, box('0 2px 8px #000').key);
+  assert.equal(box('0 0 1em #000', { rootFontSize: 16 }), null);
+  assert.equal(box('0 0 2px +0 #000').key, box('0 0 2px 0px #000').key);
+  assert.equal(box('-1px -0.001px #000').key, box('-1px 0 #000').key);
+});
+test('normalizeShadow: malformed layers make the whole value null', () => {
+  for (const bad of ['0 2px', '0 2px 4px', '#000', '0 2px #000 #fff', '0 #000 2px', '0 2px #000 4px', '0 2px 4px 1px 2px #000',
+    '2 4px #000', '0 2px 50% #000', '0 2px -1px #000', '0 2px 4pt #000', 'inset inset 0 2px #000', '0 2px black', '0 2px currentcolor',
+    '0 2px rgba(0,0,0,0.1', '0 2px rgba(0,0,0,0.1))', '0 2px #000,', ', 0 2px #000', '0 2px #000,,0 1px #000', '', '   '])
+    assert.equal(box(bad), null, bad);
+  for (const bad of ['inset 1px 1px #000', '1px 1px 2px 0 #000', '1px #000', '1px 1px'])
+    assert.equal(text(bad), null, bad);
+  assert.equal(normalizeShadow(0, 'box-shadow', px16), null);
+  assert.equal(normalizeShadow(undefined, 'box-shadow', px16), null);
+  assert.equal(normalizeShadow('0 2px #000', 'filter', px16), null);
+});
+test('normalizeShadow: layer count and order must both match', () => {
+  const a = '0 1px 2px #000';
+  const b = '0 2px 4px #111';
+  assert.notEqual(box(`${a}, ${b}`).key, box(`${b}, ${a}`).key);
+  assert.notEqual(box(`${a}, ${b}`).key, box(a).key);
+  assert.notEqual(box(`${a}, ${a}`).key, box(a).key);
+});
+test('normalizeOpacity: numbers, numeric strings and percentages to 0..1, clamped, float noise removed', () => {
+  for (const [v, want] of [[0.5, 0.5], ['0.5', 0.5], ['.5', 0.5], [' 50% ', 0.5], ['1', 1], [1, 1], [0, 0], ['0%', 0], ['100%', 1],
+    ['1e-1', 0.1], [0.30000001192092896, 0.3], ['0.3000000119', 0.3], [1.2, 1], ['150%', 1], [-0.5, 0], ['-1', 0]])
+    assert.equal(normalizeOpacity(v), want, JSON.stringify(v));
+  assert.ok(Object.is(normalizeOpacity(-0), 0));
+  for (const bad of ['', 'abc', '0.5px', '50 %', 'none', 'calc(0.5)', NaN, Infinity, '1e999', null, undefined, true, [0.5]])
+    assert.equal(normalizeOpacity(bad), null, String(bad));
+});
 test('exact match yields no findings', () => { const r = compareTarget(design, actual(ok)); assert.deepEqual([r.findings, r.blocked], [[], []]); });
 test('deviations get group severity', () => {
   const bad = { ...ok, 'background-color': 'rgb(103, 80, 160)', 'font-weight': '600', 'line-height': '22px', 'padding-left': '20px', 'border-top-left-radius': '18px' };
@@ -269,6 +350,52 @@ test('line-height percent with no font-size on either side blocks', () => {
   assert.equal(r.blocked.length, 1);
   for (const part of ['btn', 'line-height', '150%', 'font-size']) assert.ok(r.blocked[0].includes(part), `${part} in: ${r.blocked[0]}`);
 });
+test('shadows: Chrome computed equals the Figma value; a deviation is one Minor finding with readable values', () => {
+  const props = { 'box-shadow': '0px 2px 10px 0px rgba(0,0,0,0.1)', 'text-shadow': '0px 1px 2px rgba(0,0,0,0.25)' };
+  const same = compareTarget({ ...design, props }, actual({ 'box-shadow': 'rgba(0, 0, 0, 0.1) 0px 2px 10px 0px', 'text-shadow': 'rgba(0, 0, 0, 0.25) 0px 1px 2px' }));
+  assert.deepEqual([same.findings, same.notChecked, same.blocked], [[], [], []]);
+  const off = compareTarget({ ...design, props }, actual({ 'box-shadow': 'rgba(0, 0, 0, 0.1) 0px 2px 8px 0px', 'text-shadow': 'rgba(0, 0, 0, 0.25) 0px 1px 2px' }, 1, '375'));
+  assert.deepEqual(off.findings.map((f) => [f.id, f.property, f.severity, f.expected, f.actual, f.note]),
+    [['S-btn-box-shadow-0-375', 'box-shadow', 'Minor', '0px 2px 10px 0px rgba(0, 0, 0, 0.1)', '0px 2px 8px 0px rgba(0, 0, 0, 0.1)', undefined]]);
+  assert.deepEqual(off.blocked, []);
+});
+test('shadows: none vs a transparent shadow, a missing layer and swapped layers are findings', () => {
+  const run = (d, a) => compareTarget({ ...design, props: { 'box-shadow': d } }, actual({ 'box-shadow': a })).findings;
+  assert.equal(run('none', 'rgba(0, 0, 0, 0) 0px 0px 0px 0px').length, 1);
+  assert.equal(run('0 0 0 transparent', 'none').length, 1);
+  assert.deepEqual(run('none', 'none'), []);
+  assert.equal(run('0 1px 2px #000, 0 2px 4px #111', 'rgb(0, 0, 0) 0px 1px 2px 0px').length, 1);
+  assert.equal(run('0 1px 2px #000, 0 2px 4px #111', 'rgb(17, 17, 17) 0px 2px 4px 0px, rgb(0, 0, 0) 0px 1px 2px 0px').length, 1);
+  const [f] = run('0 2px #000', 'color(display-p3 1 0 0) 0px 2px 0px 0px');
+  assert.deepEqual([f.severity, f.note], ['Minor', 'sRGB 범위 밖']);
+});
+test('opacity: 50% equals 0.5, a different value is one Major finding', () => {
+  const run = (d, a) => compareTarget({ ...design, props: { opacity: d } }, actual({ opacity: a }));
+  assert.deepEqual(run('50%', '0.5').findings, []);
+  assert.deepEqual(run(1, '1').findings, []);
+  const [f, ...rest] = run(0.5, '0.4').findings;
+  assert.equal(rest.length, 0);
+  assert.deepEqual([f.property, f.severity, f.expected, f.actual], ['opacity', 'Major', '0.5', '0.4']);
+});
+test('shadows and opacity: unparseable design or actual values block with the original text', () => {
+  const d = compareTarget({ ...design, props: { 'box-shadow': '0 2px black', opacity: 'half' } }, actual({ 'box-shadow': 'none', opacity: '1' }, 2));
+  assert.deepEqual([d.findings, d.notChecked], [[], []]);
+  assert.equal(d.blocked.length, 2);
+  assert.match(d.blocked[0], /box-shadow: unparseable design value '0 2px black'/);
+  assert.match(d.blocked[1], /opacity: unparseable design value 'half'/);
+  const t = compareTarget({ ...design, props: { 'text-shadow': '0 1px 2px 1px #000' } }, actual({ 'text-shadow': 'none' }));
+  assert.match(t.blocked[0], /text-shadow: unparseable design value/);
+  const a = compareTarget({ ...design, props: { 'box-shadow': '0 2px #000' } }, actual({ 'box-shadow': '0px 2px currentcolor' }));
+  assert.deepEqual([a.findings.length, a.blocked.length], [0, 1]);
+  assert.match(a.blocked[0], /\.btn box-shadow: unparseable actual value '0px 2px currentcolor'/);
+  const missing = compareTarget({ ...design, props: { opacity: 1 } }, actual({}));
+  assert.match(missing.blocked[0], /opacity: actual value missing/);
+});
+test('a design without the new props never needs them on the actual side (old reports recompute unchanged)', () => {
+  const old21 = Object.fromEntries(ORIGINAL_21.map((p) => [p, ok[p] ?? (p.endsWith('color') ? 'rgb(0, 0, 0)' : '0px')]));
+  const r = compareTarget(design, actual(old21));
+  assert.deepEqual([r.findings, r.notChecked, r.blocked], [[], [], []]);
+});
 test('applyWaivers: exact match waives, stale match notes', () => {
   const [f] = compareTarget({ ...design, props: { 'background-color': '#6750A4' } }, actual({ 'background-color': 'rgb(103, 80, 160)' })).findings;
   const w = { selector: '.btn', property: 'background-color', figma: '#6750A4', actual: 'rgb(103, 80, 160)', reason: '브랜드 컬러 변경', by: 'designer', date: '2026-10-24' };
@@ -285,21 +412,89 @@ test('applyWaivers: waived finding keeps severity and records the waiver, input 
   assert.equal(applyWaivers([f], [{ ...w, selector: '.other' }])[0].status, 'open');
   assert.equal(applyWaivers([f], [{ ...w, selector: '.other' }])[0].note, undefined);
 });
+test('applyWaivers: shadow and opacity waivers match by normalized value in either notation', () => {
+  const [s] = compareTarget({ ...design, props: { 'box-shadow': '0 2px 10px rgba(0,0,0,0.1)' } }, actual({ 'box-shadow': 'rgba(0, 0, 0, 0.1) 0px 2px 8px 0px' })).findings;
+  const w = { selector: '.btn', property: 'box-shadow', figma: '0px 2px 10px 0px rgba(0, 0, 0, 0.1)', actual: '0 2px 8px rgba(0,0,0,.1)', reason: 'r', by: 'designer', date: '2026-11-06' };
+  assert.equal(applyWaivers([s], [w])[0].status, 'waived');
+  assert.equal(applyWaivers([s], [{ ...w, actual: '0 2px 6px rgba(0,0,0,.1)' }])[0].note, 'waiver 갱신 필요');
+  const [o] = compareTarget({ ...design, props: { opacity: 0.5 } }, actual({ opacity: '0.4' })).findings;
+  assert.equal(applyWaivers([o], [{ ...w, property: 'opacity', figma: '50%', actual: 0.4 }])[0].status, 'waived');
+});
+// 자리표시자 치환은 style.md 5단계와 같다. 함수 치환이라 JSON 안의 `$`가 replace 패턴으로 해석되지 않는다.
+const snippetSource = () => readFileSync(SNIPPET, 'utf8');
+const fillSnippet = (selector, requested) => snippetSource()
+  .replace('__SELECTOR_JSON__', () => JSON.stringify(selector))
+  .replace('__PROPS_JSON__', () => JSON.stringify(requested));
+// stub DOM 에서 스니펫을 실행하고, 요소에서 읽은 속성 이름(getPropertyValue 호출)을 모두 기록한다.
+function runSnippet(src, { selector = '.btn', count = 2, values = {} } = {}) {
+  const fn = new Function('document', 'getComputedStyle', `return (${src});`);
+  const els = Array.from({ length: count }, () => ({}));
+  const reads = [];
+  const document = { documentElement: {}, querySelectorAll: (s) => (s === selector ? els : []) };
+  const getComputedStyle = (el) => ({
+    fontSize: '16px',
+    getPropertyValue: (p) => { reads.push(p); return el === document.documentElement ? '' : (values[p] ?? `v:${p}`); },
+  });
+  return { out: fn(document, getComputedStyle)(), reads };
+}
+
 test('snippet becomes a function and covers PROPS', () => {
-  const src = readFileSync(SNIPPET, 'utf8');
-  assert.equal(typeof new Function(`return (${src.replace('__SELECTOR_JSON__', JSON.stringify('.btn'))});`)(), 'function');
+  const src = snippetSource();
+  assert.equal(typeof new Function(`return (${fillSnippet('.btn', [...PROPS])});`)(), 'function');
   for (const p of PROPS) assert.ok(src.includes(`'${p}'`), p);
 });
 test('snippet runs against a stub DOM and returns the contract shape', () => {
-  const src = readFileSync(SNIPPET, 'utf8');
-  const fn = new Function('document', 'getComputedStyle', `return (${src.replace('__SELECTOR_JSON__', JSON.stringify('.btn'))});`);
-  const els = [{}, {}];
-  const document = { documentElement: {}, querySelectorAll: (s) => (s === '.btn' ? els : []) };
-  const getComputedStyle = (el) => ({ fontSize: '16px', getPropertyValue: (p) => (el === document.documentElement ? '' : `v:${p}`) });
-  const out = fn(document, getComputedStyle)();
+  const { out } = runSnippet(fillSnippet('.btn', [...PROPS]));
   assert.deepEqual([out.selector, out.count, out.rootFontSize, out.samples.length], ['.btn', 2, 16, 2]);
   assert.deepEqual(out.samples[1].index, 1);
   assert.deepEqual(Object.keys(out.samples[0].props), [...PROPS]);
+  assert.deepEqual(out.unsupported, []);
+});
+test('snippet allowlist equals compare-styles PROPS exactly, and each placeholder appears once', () => {
+  const src = snippetSource();
+  const literal = /const PROPS = (\[[\s\S]*?\]);/.exec(src);
+  assert.ok(literal, 'PROPS array literal in snippet');
+  assert.deepEqual(new Function(`return ${literal[1]};`)(), [...PROPS]);
+  for (const placeholder of ['__SELECTOR_JSON__', '__PROPS_JSON__']) assert.equal(src.split(placeholder).length - 1, 1, placeholder);
+});
+test('snippet reads only the requested props that are in PROPS, in PROPS order', () => {
+  const { out, reads } = runSnippet(fillSnippet('.btn', ['opacity', 'color', 'box-shadow']));
+  for (const s of out.samples) assert.deepEqual(s.props, { color: 'v:color', 'box-shadow': 'v:box-shadow', opacity: 'v:opacity' });
+  assert.deepEqual(reads, ['color', 'box-shadow', 'opacity', 'color', 'box-shadow', 'opacity']);
+  assert.deepEqual(out.unsupported, []);
+});
+test('snippet returns requested props outside PROPS as unsupported, once each, and does not read them', () => {
+  const { out, reads } = runSnippet(fillSnippet('.btn', ['color', 'width', 'Color', 'width', 'border-width']), { count: 1 });
+  assert.deepEqual(out.samples[0].props, { color: 'v:color' });
+  assert.deepEqual(out.unsupported, ['width', 'Color', 'border-width']);
+  assert.deepEqual(reads, ['color']);
+});
+test('snippet with an empty request reads nothing and still reports count and rootFontSize', () => {
+  const { out, reads } = runSnippet(fillSnippet('.btn', []), { count: 3 });
+  assert.deepEqual([out.count, out.rootFontSize, out.unsupported], [3, 16, []]);
+  assert.deepEqual(out.samples.map((s) => s.props), [{}, {}, {}]);
+  assert.deepEqual(reads, []);
+});
+test('snippet reads font-size along with line-height, so a design line-height % without font-size still compares', () => {
+  const props = { 'line-height': '150%' };
+  const { out } = runSnippet(fillSnippet('.btn', Object.keys(props)), { count: 1, values: { 'font-size': '20px', 'line-height': '30px' } });
+  assert.deepEqual(out.samples[0].props, { 'font-size': '20px', 'line-height': '30px' });
+  const r = compareTarget({ ...design, props }, { target: 'btn', ...out });
+  assert.deepEqual([r.findings, r.notChecked, r.blocked], [[], [], []]);
+});
+test('snippet output for the design props feeds compareTarget: Chrome-format shadows and opacity compare', () => {
+  const props = { 'box-shadow': '0px 2px 10px 0px rgba(0,0,0,0.1)', 'text-shadow': 'none', opacity: 0.5 };
+  const values = { 'box-shadow': 'rgba(0, 0, 0, 0.1) 0px 2px 10px 0px', 'text-shadow': 'none', opacity: '0.4' };
+  const { out } = runSnippet(fillSnippet('.btn', Object.keys(props)), { count: 1, values });
+  assert.deepEqual(out.samples[0].props, values);
+  const r = compareTarget({ ...design, props }, { target: 'btn', ...out });
+  assert.deepEqual(r.findings.map((f) => [f.property, f.severity, f.expected, f.actual]), [['opacity', 'Major', '0.5', '0.4']]);
+  assert.deepEqual([r.notChecked, r.blocked], [[], []]);
+});
+test('snippet throws instead of reading everything when the request is not an array or was not filled in', () => {
+  for (const bad of ['color', null, { color: true }]) assert.throws(() => runSnippet(fillSnippet('.btn', bad)), TypeError, JSON.stringify(bad));
+  const unfilled = snippetSource().replace('__SELECTOR_JSON__', () => JSON.stringify('.btn'));
+  assert.throws(() => runSnippet(unfilled), ReferenceError);
 });
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'compare-styles-'));
@@ -375,4 +570,16 @@ test('CLI: an unusable value makes the verdict BLOCKED even next to a real findi
   assert.match(doc.blocked[0], /background-color.*papayawhip/);
   assert.deepEqual(doc.notChecked, []);
   assert.equal(spawnSync('node', [VERDICT, write(dir, 'findings.json', doc)], { encoding: 'utf8' }).stdout.trim(), 'BLOCKED');
+});
+test('CLI e2e: shadow-only deviation is PASS WITH MINOR, an opacity deviation makes it FAIL', () => {
+  const dir = tmp();
+  const d = write(dir, 'design.json', [{ target: 'btn', source: 'test', props: { 'box-shadow': '0px 1px 3px 0px rgba(0,0,0,0.3), 0px 4px 8px 3px rgba(0,0,0,0.15)', opacity: 1 } }]);
+  const verdictOf = (props) => {
+    const doc = JSON.parse(cli('--design', d, '--actual', write(dir, 'actual.json', [actual(props)])).stdout);
+    return [doc.findings.map((f) => [f.property, f.severity]), spawnSync('node', [VERDICT, write(dir, 'findings.json', doc)], { encoding: 'utf8' }).stdout.trim()];
+  };
+  const shadow = 'rgba(0, 0, 0, 0.3) 0px 1px 3px 0px, rgba(0, 0, 0, 0.15) 0px 4px 8px 3px';
+  assert.deepEqual(verdictOf({ 'box-shadow': shadow, opacity: '1' }), [[], 'PASS']);
+  assert.deepEqual(verdictOf({ 'box-shadow': 'rgba(0, 0, 0, 0.3) 0px 1px 3px 0px', opacity: '1' }), [[['box-shadow', 'Minor']], 'PASS WITH MINOR']);
+  assert.deepEqual(verdictOf({ 'box-shadow': shadow, opacity: '0.9' }), [[['opacity', 'Major']], 'FAIL']);
 });
