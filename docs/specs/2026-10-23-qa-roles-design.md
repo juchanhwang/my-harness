@@ -53,7 +53,7 @@
 | C9 | 훅은 셸 명령 — Agent 도구를 직접 부를 수 없다 | 훅은 "차단 + 사유"만. QA 호출 자체는 fe-dev/be-dev 본문 지시 | 같은 문서 |
 | C10 | Figma MCP: 현재 계정은 개인 팀 View 시트(starter) + 회사 팀 Dev 시트(pro). `get_metadata`·`get_variable_defs`·`get_screenshot` 읽기 성공 확인(2026-10-23). 쓰기(`use_figma`)는 미확인(권한상 불가 추정) | style 역할은 읽기만 사용. fixture의 구현 쪽은 HTML로 직접 작성 | `whoami` 실측 |
 | C11 | Figma MCP 레이트 리밋은 플랜·시트별. **View/Collab 시트 = 월 20회**(모든 플랜), Full/Dev 시트 = Pro 200/일 + 10/분. 읽기 도구에 적용, `whoami`는 면제. "Figma may change rate limits at any time." | 개인 drafts(View 시트)의 fixture를 매 eval마다 라이브로 읽으면 한 달 한도를 하루에 소진 → **eval은 Figma 스냅샷 파일**로 돈다(§6.3). 실제 운용은 회사 파일(Dev 시트 200/일) | https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/ |
-| C12 | `get_design_context`는 **코드 문자열**(기본 React + Tailwind, 프롬프트로 다른 프레임워크 요청 가능)과 자산 URL JSON을 반환한다. padding·radius 같은 필드 단위 구조화 값은 문서에 없다. `get_variable_defs`는 이름→값 맵("colors, spacing, and typography") | style 역할은 `get_design_context`에 **CSS 형식 출력**을 요청해 `padding: 16px`처럼 확정 숫자를 파싱한다(Tailwind 클래스는 프로젝트 테마에 따라 값이 달라 그대로 못 쓴다). **구현 스택과는 무관** — 구현이 Tailwind여도 비교 대상은 computed style(D27). 토큰 값은 `get_variable_defs`를 1차 소스로 | https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ |
+| C12 | `get_design_context`는 **코드 문자열**(기본 React + Tailwind, 프롬프트로 다른 프레임워크 요청 가능)과 자산 URL JSON을 반환한다. padding·radius 같은 필드 단위 구조화 값은 문서에 없다. `get_variable_defs`는 이름→값 맵("colors, spacing, and typography") | **§12 D27에서 정정 — 형식 옵션이 없어 서버 원문(React+Tailwind)을 파싱한다.** 원래 결정: style 역할은 `get_design_context`에 **CSS 형식 출력**을 요청해 `padding: 16px`처럼 확정 숫자를 파싱한다(Tailwind 클래스는 프로젝트 테마에 따라 값이 달라 그대로 못 쓴다). **구현 스택과는 무관** — 구현이 Tailwind여도 비교 대상은 computed style(D27). 토큰 값은 `get_variable_defs`를 1차 소스로 | https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ |
 | C13 | `context: fork` 스킬은 **기본 백그라운드 실행**(v2.1.218+). 결과를 기다리려면 `background: false`. 백그라운드 fork는 좁은 도구 세트로 실행된다. `arguments:` 필드로 `$name` 치환 가능, `$ARGUMENTS`는 전체 | `/qa-check`는 `background: false` 필수(호출자가 리포트를 받아야 하고, style은 MCP 도구가 필요) | https://code.claude.com/docs/en/skills |
 | C14 | `SubagentStop` stdin: `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, `last_assistant_message`. `decision: "block"` + `reason` → 서브에이전트가 계속 작업, 연속 continuation 상한 8회. v2.1.271+ `SubagentHandback`으로 보고하면 `last_assistant_message`에는 마지막 텍스트만 담김 | 무한 차단 방지는 `stop_hook_active`로. `QA:` 라인은 **마지막 텍스트 메시지**에 있어야 함 | https://code.claude.com/docs/en/hooks#subagentstop |
 | C15 | `TeammateIdle` stdin: `teammate_name`, `agent_id`(v2.1.290+). **`last_assistant_message` 없음.** exit 2 → stderr가 피드백으로 전달되고 계속 작업. `{"continue": false, "stopReason"}`로 완전 중단 | 팀 모드 훅은 메시지를 볼 수 없으므로 **마커 파일**을 검사한다(§5.7) | https://code.claude.com/docs/en/hooks#teammateidle |
@@ -130,7 +130,7 @@ U4·U5(팀 모드 훅)·U7·U8·U9는 이번 범위에서 실행하지 않았다
 | D24 | style Major finding의 "의도된 차이"는 **waiver 파일**로 처리. designer가 `<report-dir>/style-waivers.json`에 `{selector, property, figma, actual, reason, by, date}`를 기록 → style 역할이 일치하는 finding을 `WAIVED`로 표시하고 verdict 집계에서 제외(리포트에는 남김). designer 판정은 waiver 외의 방법으로 verdict를 바꾸지 못한다 | 사용자 (빌더 검토 Q3) |
 | D25 | acceptance는 **테스트 코드 파일을 남기지 않는다.** 세션 안에서 시나리오를 실행(Playwright MCP / API 호출)하고 결과만 리포트. 회귀 가치가 있는 시나리오는 리포트 `## E2E candidates`에 **제안**만 하고, 테스트 코드 작성·커밋은 fe-dev/be-dev 소유(PR 분리 원칙 변경 없음) | 사용자 (빌더 검토 Q4) |
 | D26 | 인수 검증(acceptance)은 `qa` 역할이 수행한다 — 업계 표준 근거가 아니라 **이 하네스의 규칙**(R7). fe/be는 단위·통합·E2E 코드를 계속 소유 | 사용자 |
-| D27 | Figma 값 추출 시 `get_design_context`에 CSS 형식 출력을 요청하는 것은 **값을 숫자로 확정하기 위한 추출 형식**이며 구현 스택을 제한하지 않는다. 구현이 Tailwind든 CSS 파일이든 비교 대상은 브라우저의 computed style | 사용자 확인 |
+| D27 | Figma 값 추출 시 `get_design_context`에 CSS 형식 출력을 요청하는 것은 **값을 숫자로 확정하기 위한 추출 형식**이며 구현 스택을 제한하지 않는다. 구현이 Tailwind든 CSS 파일이든 비교 대상은 브라우저의 computed style. **CSS 형식 요청 부분은 §12에서 정정**(서버에 형식 옵션이 없다) | 사용자 확인 |
 
 ## 5. 아키텍처
 
@@ -514,3 +514,17 @@ U3(훅 스키마 로깅) → U1(서브에이전트 내 Skill fork) → U2(fork �
 - **에이전트당 1회 거부**: 거부하면 `$LOG_DIR/state/handback-denied-<agent_id>`에 기록하고(agent_id는 `[A-Za-z0-9_-]`만 남긴다), 기록이 이미 있거나 만들 수 없으면 통과한다(루프 방지 fail-open). SubagentStop도 이 기록이 있으면 통과하므로 에이전트당 차단은 최대 1회다. 7일 넘은 기록은 지운다.
 - **agent_type 가드(위 「미해결」의 "가드를 넣지 않았다"를 대체)**: `agent_type`이 `fe-dev`·`be-dev`가 아니면 검사하지 않는다(로그 `source=skip-type`). in-process 팀원은 메타 `agentType`에 팀원 이름이 들어가므로(실측 `smoke-fe`) 팀원 턴 종료가 막히지 않고, 서브에이전트 동작은 그대로다. 비용: 팀원 payload의 `agent_type`이 `fe-dev`이면 가드가 효과가 없다(현상 유지). 단위 테스트 93 → 111개.
 - **검증**: 단위 테스트 61 → 93개 전체 통과. E13을 재작성(HEAD·clean 시드 3개 + 무시되지 않은 `.playwright-mcp/`)해 변경 전 3/8 → 변경 후 8/8(비용 $0.19 → $1.01)로 확인했다.
+
+## 12. style 비교 확장 (2026-11-06)
+
+사용자와 비교 범위를 다시 정했다. 아래가 앞 절(D6·D27, §5.5 style)의 해당 서술을 대체한다. 근거·실측 수치의 원본은 `skills/qa/figma-style-audit.md`다.
+
+- **D27 정정 — Figma 원문 파싱**: `get_design_context`에는 출력 형식 파라미터가 없고, 다른 형식은 에이전트(LLM)가 옮겨 쓴 것이다(https://developers.figma.com/docs/figma-mcp-server/trigger-specific-tools/). LLM 변환값은 오차 0 기준값이 될 수 없으므로 서버가 준 React+Tailwind 원문에서 대괄호 임의값과 `var(--토큰, 대체값)`만 읽는다. 이름만 있는 클래스(`font-medium`)는 테마에 따라 값이 달라 읽지 않는다. | 기본값(오류 정정)
+- **D28 — 비교 방향 유지**: 비교는 "디자인 → 구현"(시안에 있는 속성만)을 유지한다. 반대 방향(코드에 쓴 속성만)은 누락(시안에는 있는데 코드에 안 써서 상속값이 나온 경우)을 못 잡는다. | 사용자
+- **D29 — 선언값 24개, 오차 0**: 기존 21개에 `box-shadow`·`text-shadow`(Minor)·`opacity`(Major)를 더한다. 구현 값 스니펫은 디자인에 있는 속성만 읽는다(전체 480개를 읽어도 브라우저는 3ms지만, 결과가 모델 컨텍스트를 거쳐 22배 커진다). 테두리 두께·스타일, `text-align`, `text-decoration`, 조건부 `height`는 Figma 출력 실측 후 추가 후보다. | 사용자
+- **D30 — 레이아웃은 결과 위치·크기 비교(M2), ±1px**: width·간격·정렬은 구현 방법이 여럿이라(margin/gap, flex/grid) 속성 값이 아니라 결과를 비교한다. 비교 대상은 노드 크기(텍스트·텍스트에 맞춰 줄어드는 노드는 높이만), 형제 사이 간격, 시작·끝 여백이다. 디자인 쪽 좌표는 `get_metadata`(노드당 1회, 캐시)에서 얻는다. 오차 0 원칙의 첫 예외이며, 선언값은 계속 오차 0이다. | 사용자(±1px 승인)
+  - 실측(PHP 대상 4개): M1(루트 기준 위치 그대로)은 140개 값 중 ±2px에서도 16건 오탐. M2는 84개 값에서 ±0: 3, ±0.5: 2, ±1: 0건(남은 건 1/64px 반올림·회전 레이어 좌표). 주입 결함 5개는 ±1에서 모두 검출, ±2에서는 2px 결함 2개를 놓침.
+  - Chromium은 박스 좌표를 1/64px 격자에 맞춘다(실측 80.2857→80.28125, 차이는 1/64px ≈ 0.016px 미만. 반올림인지 버림인지는 확인하지 않았다). height·width의 계산값도 배치 값이라 선언값처럼 오차 0으로 비교하지 않는다.
+- **D31 — Figma 캐시에 원문 저장**: `figma-values-<node>.json`에 `get_design_context` 원문 전체와 `get_metadata` XML을 저장한다. 이전에는 발췌(150~250자)만 저장해 비교 속성을 늘릴 때 Figma를 다시 불러야 했다. | 기본값
+- **검증**: 단위 테스트 81 → 109개. eval(E3 2회·E4·E13, 변경 전 = 커밋 8b60b49)에서 E3 핵심 검출(S1–S5 18건, T1·T2 미보고)은 같고, 신규 동작(레이아웃 미검증 고지, 요청 속성만 읽기)은 변경 후에만 나왔다. 비용 차이는 노이즈 범위($1.73 vs $1.66). 레이아웃·그림자·opacity를 실행하는 eval은 없다 — 첫 실사용 리포트의 레이아웃 절에서 확인한다.
+- **보류**: PHP용 팔레트 적합성 검사(코드에 쓴 값이 디자인 시스템 토큰 값 목록에 있는가), 토큰 파이프라인이 있는 프로젝트의 토큰 이름 비교, 상속되지 않는 속성의 "추가 스타일" 검출.
