@@ -65,7 +65,10 @@
         "리포트 헤더에 `source: snapshot`이 있다",
         "트랜스크립트에 Figma MCP 도구(mcp__plugin_figma_figma__*) 호출이 0회다",
         "트랜스크립트에서 compare-styles.mjs를 실행했다",
-        "뷰포트 1280과 375 두 곳에서 값을 추출했다"
+        "뷰포트 1280과 375 두 곳에서 값을 추출했다",
+        "리포트 요약과 `Not checked`에 \"레이아웃 미검증\"과 이유(snapshot에 get_metadata 원문 없음)가 있다",
+        "style-design JSON의 target에 `layout` 필드가 없다(metadata 없이 지어내지 않는다)",
+        "style-actual JSON의 속성 키가 디자인 props 키와 같다(line-height가 있으면 font-size 추가 허용) — 24개 전체를 읽지 않았다"
       ],
       "runs": 1,
       "arm": "with_skill"
