@@ -13,10 +13,12 @@
 | 도구 | 역할 | 주의 |
 |---|---|---|
 | `get_variable_defs` | 토큰 이름 → 값 맵. **1차 소스** | 색·글꼴 토큰은 여기서 확정 |
-| `get_design_context` | **코드 문자열**(기본 React + Tailwind)과 자산 URL을 돌려준다 | 필드 단위 구조화 값은 없다. 프롬프트로 plain CSS 출력을 요청해 `padding`·`gap`·`radius`·타이포를 파싱한다 |
+| `get_design_context` | **코드 문자열**(기본 React + Tailwind)과 자산 URL을 돌려준다 | 필드 단위 구조화 값은 없다. 서버 원문(React + Tailwind)을 그대로 파싱해 `padding`·`gap`·`radius`·타이포를 얻는다. 다른 형식으로 변환을 요청하지 않는다. |
 | `get_screenshot` | 쓰지 않는다 | 판정에 안 쓰고 토큰이 크다. 시안은 Figma 링크로 본다 |
 
-- `get_design_context`는 코드 문자열을 준다: https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ . Tailwind 클래스는 프로젝트 테마에 따라 값이 달라지므로 그대로 읽지 않는다. 요청 형식이 plain CSS인 것은 **값을 숫자로 확정하기 위한 추출 형식**이며 구현 스택과 무관하다.
+- `get_design_context`는 코드 문자열을 준다: https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/ . 서버에는 출력 형식 파라미터가 없고, 다른 프레임워크·형식은 에이전트(LLM)가 이 출력을 옮겨 쓰는 것이다("Your agent can translate it into any framework or code style you ask for", https://developers.figma.com/docs/figma-mcp-server/trigger-specific-tools/ ). LLM이 변환한 값은 오차 0 비교의 기준값이 될 수 없으므로 원문을 파싱한다(2026-11-06 정정, 이전에는 plain CSS 요청).
+  - 값은 대괄호 임의값(`px-[24px]`)과 `var(--토큰, 대체값)`에서만 읽는다. `font-medium`·`p-4`처럼 이름만 있는 Tailwind 클래스는 프로젝트 테마에 따라 값이 달라지므로 읽지 않는다. `var()` 대체값은 정규화되지 않은 값이 올 수 있다(`white`, `'Roboto:Medium'`)
+  - 출력은 "design context, not production-ready code"다(https://developers.figma.com/docs/figma-mcp-server/server-returning-web-code/ ). 레이아웃 부산물(`relative`, `shrink-0`, `content-stretch`, 래퍼의 `leading-[0]`, `fontVariationSettings` 축 기본값)이 섞인다 — 공식 목록은 없고 eval 스냅샷(M3 버튼 1건)에서 관찰한 것이다. 21개 속성 밖이라 읽지 않는다.
 - 노드는 **컴포넌트 단위**로 좁힌다. 섹션·페이지 노드는 출력이 수백 KB다(2026-10-23 실측 491KB).
 - 읽기 도구에는 레이트 리밋이 있다: View·Collab 시트는 **월 20회**, Dev·Full 시트는 Professional 플랜 기준 **200회/일 + 10회/분**(Organization 200/일·15/분, Enterprise 600/일·20/분). https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/
   - 같은 노드를 두 번 읽지 않는다. 추출값은 리포트 옆 `figma-values-<node>.json`에 저장하고, **다음 호출(재검수·다른 세션)에서 이 파일이 있으면 Figma를 읽지 않는다.** 시안이 바뀌었으면 호출자가 `figma-refresh=1`로 다시 읽게 한다. gate는 Figma를 읽지 않고 저장된 design/actual JSON으로 스크립트를 재계산한다.
