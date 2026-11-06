@@ -2,8 +2,8 @@
 """PreToolUse 훅 — 파일을 지우는 Bash 명령을 판정한다.
 
 판정은 세 가지다.
-  allow — 안전하다고 확신하는 삭제만 묻지 않고 통과시킨다 (아래 SAFE_*·CODE_EXT·BUILD_DIRS).
-  deny  — 재귀 삭제(`rm -r/-R/-rf/-fr`)인데 대상이 재생성 가능한 산출물 폴더가 아니면 차단한다.
+  allow — 안전하다고 확신하는 삭제만 묻지 않고 통과시킨다 (아래 「자동 허용 범위」).
+  deny  — 재귀 삭제(`rm -r/-R/-rf/-fr`)인데 대상이 산출물 폴더도, git으로 복구 가능한 폴더도 아니면 차단한다.
           (settings.json의 deny 규칙은 예외를 둘 수 없어서 이 규칙을 훅으로 옮겼다.)
   ask   — 그 밖에 삭제로 보이는 명령은 사용자에게 묻는다.
 
@@ -17,11 +17,13 @@ settings.json의 permissions.ask 규칙(Bash(rm *) 등)은 명령 앞부분만 �
 ask 사유에는 `대상:` 줄(삭제 대상의 경로·종류·크기·수정일, 확정 못 하면 "해석 불가")이 붙는다.
 """
 import fnmatch
+import glob
 import json
 import os
 import re
 import shlex
 import stat
+import subprocess
 import sys
 import time
 
@@ -45,17 +47,36 @@ WRAPPER_NAMES = {
 
 # --- 자동 허용 범위 ---
 # 1) AI 산출물·임시 경로(.orchestrator/, 세션 scratchpad) 하위 — 파일·폴더 모두, 확장자 무관
-# 2) 프로젝트(cwd) 안의 일반 코드 파일(CODE_EXT). 설정 파일·보호 디렉터리는 제외
+# 2) 프로젝트(cwd) 안의 일반 코드 파일(CODE_EXT)과 쓰레기 파일(JUNK_GLOBS) — git 추적 여부 무관
 # 3) 프로젝트(cwd) 안의 재생성 가능한 산출물 폴더(BUILD_DIRS) — 재귀 삭제 허용
+# 4) 프로젝트(cwd) 안에서 git에 커밋돼 있고 수정 중이 아닌 파일·폴더 — `git checkout`으로 되살릴 수 있다
+#    (폴더는 안에 추적되지 않은·ignore된·수정 중인 파일이 하나도 없어야 한다)
+# 5) IGNORED_OK_DIRS(build, out, .venv, venv) — 폴더가 통째로 gitignore돼 있으면 산출물로 본다
+# 단, NEVER_FILE_GLOBS(비밀값·키·로컬 DB·lock 파일)와 보호 디렉터리 안은 위 규칙과 무관하게 자동 허용하지 않는다.
+# rm 인자의 글롭(`*.log`)은 실제 파일 목록으로 펼쳐 하나하나 판정한다.
 SAFE_DIR_NAMES = {".orchestrator"}
 SAFE_ABS_PREFIXES = ("/private/tmp/claude-", "/tmp/claude-")
 CODE_EXT = {
     ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".css", ".scss", ".less",
-    ".html", ".vue", ".svelte", ".py", ".php", ".md", ".mdx",
+    ".html", ".vue", ".svelte", ".py", ".php",
+}  # .md·.mdx는 커밋 전 계획 문서일 수 있어 4)의 git 조건으로만 허용한다
+JUNK_GLOBS = (
+    "*.log", "*.tmp", "*.bak", "*.orig", "*.rej", "*.swp", "*.swo", ".DS_Store", "*.pyc",
+    "*.tsbuildinfo", ".eslintcache", "*.snap",
+)
+BUILD_DIRS = {
+    "dist", ".next", ".turbo", ".vercel", "coverage", "node_modules",
+    ".cache", ".parcel-cache", ".svelte-kit", ".nuxt", ".output", ".expo", "storybook-static",
+    "playwright-report", "test-results", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
 }
-BUILD_DIRS = {"dist", ".next", ".turbo", ".vercel", "coverage", "node_modules"}
-PROTECTED_DIR_NAMES = {".git", ".claude", ".github", ".husky", ".vscode", "config"}  # 폴더·파일 삭제 공통
+IGNORED_OK_DIRS = {"build", "out", ".venv", "venv"}
+PROTECTED_DIR_NAMES = {".git", ".claude", ".github", ".husky", ".vscode", "config", "migrations"}  # 폴더·파일 공통
 FILE_PROTECTED_DIR_NAMES = {"node_modules"}  # 폴더째 지우는 건 허용, 그 안의 개별 파일은 건드리지 않는다
+NEVER_FILE_GLOBS = (  # scratchpad 안이어도, git에 커밋돼 있어도 묻는다
+    ".env", ".env.*", "*.env", "*.pem", "*.key", "*.p12", "*.pfx", "*.keystore", "id_rsa*", "id_ed25519*",
+    "id_ecdsa*", "*.sqlite", "*.sqlite3", "*.db", "*.db-*",
+    "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock", "bun.lockb", "tsconfig*.json",
+)
 PROTECTED_FILE_GLOBS = (
     "*.config.*", ".eslintrc*", ".prettierrc*", "CLAUDE.md", "AGENTS.md", "next-env.d.ts", "*.d.ts",
     "wp-config*.php",
@@ -63,7 +84,10 @@ PROTECTED_FILE_GLOBS = (
 RAW_META = re.compile(r"[`\n]|\$\(|\$\{")
 SEPARATORS = {"&&", ";", "||", "|", "&", "|&"}
 SIMPLE_SEPARATORS = {"&&", ";"}
-GLOB_CHARS = set("*?[]{}~$")
+UNRESOLVABLE_CHARS = set("{}~$")  # 브레이스 확장·홈·변수 — 펼치지 않고 묻는다
+GLOB_CHARS = set("*?[")
+MAX_GLOB_MATCHES = 200
+GIT_TIMEOUT = 3
 
 
 def matches_delete(text):
@@ -139,13 +163,21 @@ def delete_label(seg):
 
 
 def _resolve(raw, cwd):
-    if GLOB_CHARS & set(raw):
+    """rm 인자 하나를 실제 경로 목록으로. 판단할 수 없으면 None (→ 자동 허용하지 않는다)."""
+    if UNRESOLVABLE_CHARS & set(raw):
         return None
     if os.path.isabs(raw):
-        return os.path.realpath(raw)
-    if not os.path.isabs(cwd or ""):
+        path = raw
+    elif os.path.isabs(cwd or ""):
+        path = os.path.join(cwd, raw)
+    else:
         return None
-    return os.path.realpath(os.path.join(cwd, raw))
+    if GLOB_CHARS & set(raw):
+        matches = glob.glob(path, recursive=True)
+        if not matches or len(matches) > MAX_GLOB_MATCHES:
+            return None
+        return [os.path.realpath(m) for m in matches]
+    return [os.path.realpath(path)]
 
 
 def _fmt_size(n):
@@ -160,7 +192,7 @@ def _fmt_size(n):
 
 def _describe_path(raw, cwd):
     """삭제 대상 한 개의 표시 문구. 내용은 읽지 않고 lstat·직계 자식 수만 본다."""
-    if GLOB_CHARS & set(raw):
+    if (GLOB_CHARS | UNRESOLVABLE_CHARS) & set(raw):
         kind = "셸 확장" if set(raw) & set("~$") else "글롭"
         return f"해석 불가 ({kind} {raw})"
     if os.path.isabs(raw):
@@ -213,25 +245,51 @@ def _inside_project(real, cwd):
     return root != os.sep and real != root and os.path.commonpath([root, real]) == root
 
 
-def _is_safe_file(raw, cwd):
-    real = _resolve(raw, cwd)
-    if real is None:
+def _matches(name, globs):
+    return any(fnmatch.fnmatch(name, g) for g in globs)
+
+
+def _git(real, *args):
+    """real이 속한 저장소에서 git 실행. 실패·타임아웃이면 None."""
+    where = real if os.path.isdir(real) else os.path.dirname(real)
+    try:
+        proc = subprocess.run(
+            ["git", "-C", where, *args, "--", real],
+            capture_output=True, text=True, timeout=GIT_TIMEOUT,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return proc if proc.returncode == 0 else None
+
+
+def _git_recoverable(real):
+    """커밋돼 있고, 수정·스테이징·미추적·ignore된 파일이 하나도 없으면 True (git checkout으로 복구 가능)."""
+    tracked = _git(real, "ls-files")
+    if tracked is None or not tracked.stdout.strip():
         return False
+    status = _git(real, "status", "--porcelain", "--ignored", "--untracked-files=all")
+    return status is not None and not status.stdout.strip()
+
+
+def _git_ignored(real):
+    return _git(real, "check-ignore", "-q") is not None
+
+
+def _is_safe_file(real, cwd):
     parts = set(real.split(os.sep))
-    if parts & (PROTECTED_DIR_NAMES | FILE_PROTECTED_DIR_NAMES):
+    name = os.path.basename(real)
+    if parts & (PROTECTED_DIR_NAMES | FILE_PROTECTED_DIR_NAMES) or _matches(name, NEVER_FILE_GLOBS):
         return False
     if real.startswith(SAFE_ABS_PREFIXES) or parts & SAFE_DIR_NAMES:
         return True
-    name = os.path.basename(real)
-    if any(fnmatch.fnmatch(name, g) for g in PROTECTED_FILE_GLOBS):
+    if _matches(name, PROTECTED_FILE_GLOBS) or not _inside_project(real, cwd):
         return False
-    return os.path.splitext(name)[1] in CODE_EXT and _inside_project(real, cwd)
+    if _matches(name, JUNK_GLOBS) or os.path.splitext(name)[1] in CODE_EXT:
+        return True
+    return _git_recoverable(real)
 
 
-def _is_safe_dir(raw, cwd):
-    real = _resolve(raw, cwd)
-    if real is None:
-        return False
+def _is_safe_dir(real, cwd):
     parts = set(real.split(os.sep))
     if parts & PROTECTED_DIR_NAMES:
         return False
@@ -239,8 +297,22 @@ def _is_safe_dir(raw, cwd):
         return True
     if not _inside_project(real, cwd):
         return False
+    if os.path.isfile(real) or os.path.islink(real):  # rm -rf <파일> — 파일 기준으로 판정
+        return _is_safe_file(real, cwd)
     rel = os.path.relpath(real, os.path.realpath(cwd))
-    return bool(set(rel.split(os.sep)) & BUILD_DIRS)
+    if set(rel.split(os.sep)) & BUILD_DIRS:
+        return True
+    if os.path.basename(real) in IGNORED_OK_DIRS and _git_ignored(real):
+        return True
+    return _git_recoverable(real)
+
+
+def _all_safe(raw_targets, cwd, check):
+    for raw in raw_targets:
+        paths = _resolve(raw, cwd)
+        if paths is None or not all(check(p, cwd) for p in paths):
+            return False
+    return True
 
 
 def judge_rm(tokens, cwd):
@@ -258,8 +330,8 @@ def judge_rm(tokens, cwd):
     if not targets:
         return "ask"
     if recursive:
-        return "allow" if all(_is_safe_dir(t, cwd) for t in targets) else "deny"
-    return "allow" if all(_is_safe_file(t, cwd) for t in targets) else "ask"
+        return "allow" if _all_safe(targets, cwd, _is_safe_dir) else "deny"
+    return "allow" if _all_safe(targets, cwd, _is_safe_file) else "ask"
 
 
 def judge(segments, simple, cwd):
@@ -319,12 +391,16 @@ def main():
     cwd = data.get("cwd")
     verdict = judge(segments, simple, cwd)
     if verdict == "allow":
-        emit("allow", "코드 파일·산출물 폴더·AI 산출물 삭제 — 자동 허용 (~/.claude/hooks/ask-before-delete.py)")
+        emit(
+            "allow",
+            "코드·쓰레기 파일, 산출물 폴더, AI 산출물, git으로 복구 가능한 파일 삭제 — 자동 허용 "
+            "(~/.claude/hooks/ask-before-delete.py)",
+        )
     elif verdict == "deny":
         emit(
             "deny",
-            "재귀 삭제(rm -r/-R/-rf/-fr)는 산출물 폴더(dist, .next, .turbo, .vercel, coverage, node_modules) 외에는 "
-            "차단됩니다. 폴더는 mv로 ~/.Trash에 옮기세요 (~/.claude/hooks/ask-before-delete.py)",
+            "재귀 삭제(rm -r/-R/-rf/-fr)는 산출물 폴더나 git으로 복구 가능한 폴더(커밋돼 있고 수정·미추적 파일 없음) "
+            "외에는 차단됩니다. 폴더는 mv로 ~/.Trash에 옮기세요 (~/.claude/hooks/ask-before-delete.py)",
         )
     else:
         seg, label = hits[0]
