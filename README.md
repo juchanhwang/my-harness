@@ -613,7 +613,7 @@ PDF·PPTX 처리는 claude.ai 계정 스킬(`anthropic-skills:pdf`, `anthropic-s
 
 | 훅 | 이벤트 | 역할 |
 |---|---|---|
-| `ask-before-delete.py` | `PreToolUse`(matcher `Bash`) | 명령을 shlex로 나눠 실제로 실행되는 삭제만 판정한다. 프로젝트의 코드 파일·AI 산출물(`.orchestrator/`, 세션 scratchpad)·빌드 산출물 폴더(`dist`·`.next`·`node_modules` 등) 삭제는 통과, 그 밖의 재귀 삭제는 차단(폴더는 `mv`로 `~/.Trash`에), 나머지 삭제는 사용자에게 묻는다. 파이프·리다이렉트·`cd`가 낀 명령은 판정을 믿을 수 없어 묻는다. `permissions.ask`의 삭제성 규칙(`Bash(rm *)` 등)은 훅이 판정하지 못할 때의 대비다 |
+| `ask-before-delete.py` | `PreToolUse`(matcher `Bash`) | 명령을 shlex로 나눠 실제로 실행되는 삭제만 판정한다. 프로젝트의 코드 파일·쓰레기 파일(`*.log`·`.DS_Store` 등)·AI 산출물(`.orchestrator/`, 세션 scratchpad)·빌드 산출물 폴더(`dist`·`.next`·`node_modules`·`.cache` 등), 그리고 git에 커밋돼 있고 수정 중이 아니라 `git checkout`으로 되살릴 수 있는 파일·폴더 삭제는 통과한다. 비밀값·키·로컬 DB·lock 파일·`package.json`·`migrations/`는 커밋돼 있어도 묻는다. 글롭은 실제 파일로 펼쳐 하나씩 판정한다. 그 밖의 재귀 삭제는 차단(폴더는 `mv`로 `~/.Trash`에), 나머지 삭제는 대상의 경로·종류·크기를 보여 주며 사용자에게 묻는다. 파이프·리다이렉트·`cd`가 낀 명령은 판정을 믿을 수 없어 묻는다. `permissions.ask`의 삭제성 규칙(`Bash(rm *)` 등)은 훅이 판정하지 못할 때의 대비다 |
 | `claude-remote-notification.sh` | `Notification` | 원격 알림 전송 |
 | 인라인 `osascript` | `Notification` | macOS 로컬 알림 |
 | `claude-remote-session-start.sh` | `SessionStart` | 세션 시작 알림 |
