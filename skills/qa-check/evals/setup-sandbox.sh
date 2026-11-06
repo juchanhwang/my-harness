@@ -11,7 +11,7 @@
 #   --advance-head    시드 리포트를 만든 뒤 app/app.js 에 주석 한 줄을 더해 커밋한다 — 시드가 직전 커밋의 리포트가 된다
 #                     (계획의 --stale 을 실제 커밋 차이로 대신한다)
 # 구현 범위는 위 옵션까지다. --overlay-into / --stale / --dirty / --waivers 는 지원하지 않는다(진행 기록의 Ruling).
-#   dest 는 git 저장소 밖 신뢰된 경로(~/.qa-check-sandboxes/…)에 만든다. 이미 있으면 exit 1.
+#   dest 는 git 저장소 밖(세션 scratchpad 등)에 만든다. 홈(~) 직하에는 만들지 않는다. 이미 있으면 exit 1.
 set -euo pipefail
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
