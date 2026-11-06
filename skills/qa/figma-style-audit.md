@@ -27,10 +27,7 @@
 - 읽기 도구에는 레이트 리밋이 있다: View·Collab 시트는 **월 20회**, Dev·Full 시트는 Professional 플랜 기준 **200회/일 + 10회/분**(Organization 200/일·15/분, Enterprise 600/일·20/분). https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/
   - 같은 노드를 두 번 읽지 않는다. 세 도구(`get_variable_defs`·`get_design_context`·`get_metadata`)의 **응답 원문 전체**와 추출값·레이아웃 짝을 리포트 옆 `figma-values-<node>.json`에 저장하고, **다음 호출(재검수·다른 세션)에서 이 파일이 있으면 Figma를 읽지 않는다.** 2026-11-06 전에는 design_context를 150~250자 발췌만 저장해서, 비교 속성을 늘리자 같은 노드를 다시 읽어야 했다. 시안이 바뀌었으면 호출자가 `figma-refresh=1`로 다시 읽게 한다. gate는 Figma를 읽지 않고 저장된 design/actual JSON으로 스크립트를 재계산한다(레이아웃 데이터도 같은 파일에 있어 함께 재계산된다).
   - `figma-snapshot=`이 주어지면(eval 전용) Figma MCP를 호출하지 않는다.
-- Figma 토큰값과 라이브 computed CSS를 자동으로 대조하는 오픈소스는 확인하지 못했다. 가까운 도구는 시각 비교(Applitools Figma plugin), 수동 비교(Storybook Connect), 라이브 DOM이 아닌 토큰 점검(PatternFly pf-figma-token-check)이다. 그래서 이 비교 단계는 직접 구현한다.
-  - https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin
-  - https://storybook.js.org/blog/figma-plugin-for-storybook/
-  - https://github.com/patternfly/ai-helpers/blob/ba8165d906a8dd5ac20fdeb4d7de8e596129b499/plugins/design-audit/skills/pf-figma-token-check/SKILL.md
+- 기존 도구(design-drift 등)는 렌더링된 기하·픽셀을 허용 오차로 비교하고, 선언값을 오차 0으로 보는 요소 단위 Figma ↔ 라이브 비교는 없어 직접 구현한다. 조사 기록(2026-11-05)은 my-harness `docs/specs/2026-10-23-qa-roles-design.md` §12.
 
 ## 3. 구현 값 추출 (Playwright)
 

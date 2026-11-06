@@ -497,7 +497,7 @@ U3(훅 스키마 로깅) → U1(서브에이전트 내 Skill fork) → U2(fork �
 - Playwright: `toHaveCSS` — https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-css · `locator.evaluate` — https://playwright.dev/docs/api/class-locator#locator-evaluate · 완전 일치 근거(소스): https://github.com/microsoft/playwright/blob/20a2087ea43412b90c172c88faef80786ee18b8b/packages/playwright/src/matchers/matchers.ts#L341-L353 (C16)
 - MDN `getComputedStyle` — https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle ("resolved values … after applying active stylesheets")
 - 테스트 소유권: Fowler, "The Practical Test Pyramid" — https://martinfowler.com/articles/practical-test-pyramid.html · Google, *Software Engineering at Google* ch.11 — https://abseil.io/resources/swe-book/html/ch11.html (R7 — 이 설계의 역할 분배는 팀 결정)
-- 유사 도구(자동 토큰 대조는 없음): Applitools Figma plugin — https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin · Storybook Connect — https://storybook.js.org/blog/figma-plugin-for-storybook/ · PatternFly pf-figma-token-check — https://github.com/patternfly/ai-helpers/blob/ba8165d906a8dd5ac20fdeb4d7de8e596129b499/plugins/design-audit/skills/pf-figma-token-check/SKILL.md
+- 유사 도구(§12에서 재조사 — "자동 대조 없음"은 틀렸다): Applitools Figma plugin — https://applitools.com/docs/eyes/integrations/design-validation/figma-plugin · Storybook Connect — https://storybook.js.org/blog/figma-plugin-for-storybook/ · PatternFly pf-figma-token-check — https://github.com/patternfly/ai-helpers/blob/ba8165d906a8dd5ac20fdeb4d7de8e596129b499/plugins/design-audit/skills/pf-figma-token-check/SKILL.md
 - 원문 사본: `/private/tmp/claude-502/-Users-JuChan/b9480cba-5a32-4468-b1e4-3ab6f641d5a6/scratchpad/refs/` (세션 한정)
 
 ## 11. 최종 리뷰 반영 (2026-10-24)
@@ -526,5 +526,10 @@ U3(훅 스키마 로깅) → U1(서브에이전트 내 Skill fork) → U2(fork �
   - 실측(PHP 대상 4개): M1(루트 기준 위치 그대로)은 140개 값 중 ±2px에서도 16건 오탐. M2는 84개 값에서 ±0: 3, ±0.5: 2, ±1: 0건(남은 건 1/64px 반올림·회전 레이어 좌표). 주입 결함 5개는 ±1에서 모두 검출, ±2에서는 2px 결함 2개를 놓침.
   - Chromium은 박스 좌표를 1/64px 격자에 맞춘다(실측 80.2857→80.28125, 차이는 1/64px ≈ 0.016px 미만. 반올림인지 버림인지는 확인하지 않았다). height·width의 계산값도 배치 값이라 선언값처럼 오차 0으로 비교하지 않는다.
 - **D31 — Figma 캐시에 원문 저장**: `figma-values-<node>.json`에 `get_design_context` 원문 전체와 `get_metadata` XML을 저장한다. 이전에는 발췌(150~250자)만 저장해 비교 속성을 늘릴 때 Figma를 다시 불러야 했다. | 기본값
+- **기존 도구 재조사(2026-11-05)** — 이전 기록 "자동 대조 OSS 없음"은 틀렸다. 다만 선언값을 오차 0으로 보는 요소 단위 Figma ↔ 라이브 비교는 없어 직접 구현을 유지한다.
+  - `design-drift`(MIT, npm 첫 배포 2026-07-25): Figma REST 노드 JSON ↔ Playwright computed style을 요소 단위로 비교한다. 대상은 geometry·배경색·radius·font size/weight/family·box-shadow이고 padding·gap·line-height·letter-spacing은 보지 않는다. 허용 오차(기하 2px 경고/8px 오류, 배경색 ΔE76 2.3/5), 요소 매핑은 `data-diff-id` 또는 자동 매칭 + lockfile, CI 판정은 픽셀 diff만 쓴다. https://github.com/ehdrms785/design-drift/blob/36b264dc0cbc457a8001ac81f2fc92a36f79b6f0/README.md#L137-L145
+  - `dembrandt --tokens`(MIT, v0.39.0 2026-10-11): 렌더된 색·radius·font-size가 DTCG 토큰 집합에 속하는지 본다. Figma 노드와 직접 비교하지 않는다. https://github.com/dembrandt/dembrandt/blob/90e2691af47176c600c09a956cddd2f2e82a0003/README.md#L84-L88
+  - Applitools Figma Dev Comparison(스크린샷 + match level, 요소 매핑 없음) https://www.applitools.com/docs/eyes/integrations/design-validation/figma-dev-compare · Storybook Connect(나란히 보기) https://www.chromatic.com/features/figma-plugin · PatternFly pf-figma-token-check(Figma 변수 ↔ 토큰 소스, 라이브 computed 아님) https://github.com/patternfly/ai-helpers/blob/ba8165d906a8dd5ac20fdeb4d7de8e596129b499/plugins/design-audit/skills/pf-figma-token-check/SKILL.md#L62-L80
+  - design-drift·dembrandt 모두 대형 팀 채택 사례는 확인하지 못했다.
 - **검증**: 단위 테스트 81 → 109개. eval(E3 2회·E4·E13, 변경 전 = 커밋 8b60b49)에서 E3 핵심 검출(S1–S5 18건, T1·T2 미보고)은 같고, 신규 동작(레이아웃 미검증 고지, 요청 속성만 읽기)은 변경 후에만 나왔다. 비용 차이는 노이즈 범위($1.73 vs $1.66). 레이아웃·그림자·opacity를 실행하는 eval은 없다 — 첫 실사용 리포트의 레이아웃 절에서 확인한다.
 - **보류**: PHP용 팔레트 적합성 검사(코드에 쓴 값이 디자인 시스템 토큰 값 목록에 있는가), 토큰 파이프라인이 있는 프로젝트의 토큰 이름 비교, 상속되지 않는 속성의 "추가 스타일" 검출.
