@@ -14,13 +14,16 @@
 
 settings.json의 permissions.ask 규칙(Bash(rm *) 등)은 명령 앞부분만 보므로 이 훅이 그 틈을 메운다.
 훅이 오류로 죽으면 판정이 없는 것이므로 settings.json의 ask 규칙이 대신 묻는다.
+ask 사유에는 `대상:` 줄(삭제 대상의 경로·종류·크기·수정일, 확정 못 하면 "해석 불가")이 붙는다.
 """
 import fnmatch
 import json
 import os
 import re
 import shlex
+import stat
 import sys
+import time
 
 # 명령 경계(시작·공백·; & | ( ` ' " $ /) 뒤의 삭제 명령어. `docker run --rm`, `form` 같은 것은 제외된다.
 DELETE_CMD = re.compile(r"""(?:^|[\s;&|(`'"$/])(?:rm|rmdir|unlink|shred|srm|trash)(?=$|[\s;&|)`'"])""")
@@ -76,8 +79,8 @@ def find_delete(cmd):
     return None
 
 
-def build_reason(matched, description):
-    parts = [f"삭제 명령으로 보여 확인을 요청합니다 (감지: {matched})"]
+def build_reason(matched, target, description):
+    parts = [f"삭제 명령으로 보여 확인을 요청합니다 (감지: {matched})", f"대상: {target}"]
     if isinstance(description, str) and description.strip():
         parts.append(f"설명: {description.strip()}")
     else:
@@ -143,6 +146,66 @@ def _resolve(raw, cwd):
     if not os.path.isabs(cwd or ""):
         return None
     return os.path.realpath(os.path.join(cwd, raw))
+
+
+def _fmt_size(n):
+    if n < 1024:
+        return f"{n}B"
+    size = float(n)
+    for unit in ("KB", "MB", "GB"):
+        size /= 1024
+        if size < 1024 or unit == "GB":
+            return f"{size:.1f}{unit}"
+
+
+def _describe_path(raw, cwd):
+    """삭제 대상 한 개의 표시 문구. 내용은 읽지 않고 lstat·직계 자식 수만 본다."""
+    if GLOB_CHARS & set(raw):
+        kind = "셸 확장" if set(raw) & set("~$") else "글롭"
+        return f"해석 불가 ({kind} {raw})"
+    if os.path.isabs(raw):
+        absolute = os.path.normpath(raw)
+    elif os.path.isabs(cwd or ""):
+        absolute = os.path.normpath(os.path.join(cwd, raw))
+    else:
+        return f"해석 불가 (cwd 불명 {raw})"
+    path = absolute
+    try:
+        parent, base = os.path.split(absolute)
+        path = os.path.join(os.path.realpath(parent), base)  # 마지막 구성요소는 따라가지 않는다(심볼릭 링크 감지)
+        st = os.lstat(path)
+        if stat.S_ISLNK(st.st_mode):
+            return f"{path} (심볼릭 링크 → {os.readlink(path)})"
+        mtime = time.strftime("%m-%d", time.localtime(st.st_mtime))
+        if stat.S_ISDIR(st.st_mode):
+            with os.scandir(path) as it:
+                count = sum(1 for _ in it)  # 재귀 없이 바로 아래 항목만 센다
+            return f"{path} (폴더, 항목 {count}개, 수정 {mtime})"
+        return f"{path} (파일, {_fmt_size(st.st_size)}, 수정 {mtime})"
+    except (FileNotFoundError, NotADirectoryError):
+        return f"{path} (없음)"
+    except (OSError, ValueError):
+        return f"{path} (정보 조회 실패)"
+
+
+def describe_target(seg, label, cwd, limit=5):
+    """ask 사유의 `대상:` 문구. 대상을 확정할 수 없으면 `해석 불가 (이유)`."""
+    name = os.path.basename(seg[0])
+    if name != "rm":
+        reason = label if label == name or label.startswith(name) else f"{name} {label}"
+        return f"해석 불가 ({reason})"
+    targets, past_opts = [], False  # judge_rm()과 같은 규칙: 옵션 `-…`, `--` 이후는 대상
+    for tok in seg[1:]:
+        if not past_opts and tok == "--":
+            past_opts = True
+        elif past_opts or not tok.startswith("-"):
+            targets.append(tok)
+    if not targets:
+        return "해석 불가 (대상 없음)"
+    text = "; ".join(_describe_path(t, cwd) for t in targets[:limit])
+    if len(targets) > limit:
+        text += f" 외 {len(targets) - limit}개"
+    return text
 
 
 def _inside_project(real, cwd):
@@ -246,14 +309,15 @@ def main():
     if parsed is None:  # 쪼갤 수 없는 형태 — 문자열 전체를 보수적으로 훑는다
         matched = find_delete(cmd)
         if matched is not None:
-            emit("ask", build_reason(matched, description))
+            emit("ask", build_reason(matched, "해석 불가 (명령 형태가 복잡함)", description))
         return
 
     segments, simple = parsed
-    labels = [lbl for lbl in (delete_label(seg) for seg in segments) if lbl]
-    if not labels:
+    hits = [(seg, lbl) for seg, lbl in ((seg, delete_label(seg)) for seg in segments) if lbl]
+    if not hits:
         return
-    verdict = judge(segments, simple, data.get("cwd"))
+    cwd = data.get("cwd")
+    verdict = judge(segments, simple, cwd)
     if verdict == "allow":
         emit("allow", "코드 파일·산출물 폴더·AI 산출물 삭제 — 자동 허용 (~/.claude/hooks/ask-before-delete.py)")
     elif verdict == "deny":
@@ -263,7 +327,8 @@ def main():
             "차단됩니다. 폴더는 mv로 ~/.Trash에 옮기세요 (~/.claude/hooks/ask-before-delete.py)",
         )
     else:
-        emit("ask", build_reason(labels[0], description))
+        seg, label = hits[0]
+        emit("ask", build_reason(label, describe_target(seg, label, cwd), description))
 
 
 if __name__ == "__main__":
